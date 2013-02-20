@@ -10,14 +10,15 @@
 #include "Common.h"
 
 class State {
-	string state;
-	static hash<string> hasher;
+	//string state;
+	uint8_t *pieces;
+	uint8_t size;
 public:
 	size_t getHash() const;
 	int getH() const;
 	vector<State> genSuccesors() const;
 	bool isGoal() const;
-	State();
+	State(string s);
 
 	virtual ~State();
 };

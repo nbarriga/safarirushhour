@@ -13,12 +13,13 @@
 
 class Puzzle {
 
-
+	string _name;
+	State initial;
 	priority_queue<Node,vector<Node>,NodeComparator> open;
 	unordered_set<Node> closed;
 public:
 
-	Puzzle();
+	Puzzle(string name, string state);
 	virtual ~Puzzle();
 };
 

@@ -7,8 +7,8 @@
 
 #include "Puzzle.h"
 
-Puzzle::Puzzle() {
-	// TODO Auto-generated constructor stub
+Puzzle::Puzzle(string name, string state):_name(name), initial(State(state)) {
+
 
 }
 
