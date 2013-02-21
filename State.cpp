@@ -37,7 +37,7 @@ State::State(string s) {
 				dir=VERT;//vertical
 			}
 			_pieces[size]=encode_piece(letter_piece[(uint8_t)s[i]], row, col, dir, type);
-			//printf("%c %d %d %d %d %d\n",s[i],letter_piece[(uint8_t)s[i]], row, col, dir, type);
+			printf("%c %d %d %d %d %d\n",s[i],letter_piece[(uint8_t)s[i]], row, col, dir, type);
 			auto piece = decode_piece(_pieces[size]);
 
 			size++;
@@ -49,6 +49,7 @@ State::State(string s) {
 
 string State::toString() const {
 	string s(49,'.');
+	uint64_t b=0;
 	for(int i=0;i<size;i++){
 		auto piece = decode_piece(pieces[i]);
 		//printf("%c %d %d %d %d %d\n",piece.letter,((pieces[size]>>9)&31), piece.row, piece.col, piece.dir, piece.type);
@@ -76,8 +77,10 @@ string State::toString() const {
 			}
 			break;
 		}
-
+		//cout<<piece.letter<<" "<<shorten(pieces[i])<<" "<<bitset<64>(piece_board[shorten(pieces[i])])<<endl;
+	b|=piece_board[shorten(pieces[i])];
 	}
+	printBoard(b);
 	return s;
 }
 

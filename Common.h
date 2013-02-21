@@ -56,6 +56,9 @@ struct piece_t {
 static uint16_t encode_piece(uint16_t letter, uint16_t row,uint16_t col,uint16_t dir,uint16_t type){
 	return (letter<<9) | (row<<6) | (col<<3) | (dir<<2) | (type);
 }
+static uint16_t shorten(uint16_t piece){
+	return piece&((1<<9)-1);
+}
 static uint16_t encode_piece(uint16_t row,uint16_t col,uint16_t dir,uint16_t type){
 	return (row<<6) | (col<<3) | (dir<<2) | (type);
 }
@@ -68,20 +71,20 @@ static uint64_t get_board(uint16_t row,uint16_t col,uint16_t dir,uint16_t type){
 	switch(type){
 	case rover:
 	case two_by_two:
-		board=(3ull<<62) & (3ull<<53);
+		board=(3ull<<62) | (3ull<<53);
 		break;
 	case two_by_one:
 		if(dir==HOR){
 			board=(3ull<<62);
 		}else{
-			board=(1ull<<63) & (1ull<<54);
+			board=(1ull<<63) | (1ull<<54);
 		}
 		break;
 	case three_by_one:
 		if(dir==HOR){
-			board=(7ull<<62);
+			board=(7ull<<61);
 		}else{
-			board=(1ull<<63) & (1ull<<54) & (1ull<<45);
+			board=(1ull<<63) | (1ull<<54) | (1ull<<45);
 		}
 		break;
 	}
@@ -89,7 +92,19 @@ static uint64_t get_board(uint16_t row,uint16_t col,uint16_t dir,uint16_t type){
 	board>>=row*9;
 	return board;
 }
-
+static void printBoard(uint64_t board){
+	auto b=bitset<64>(board);
+	for(int i=0;i<63;i++){
+		if((i%9)==7){
+			continue;
+		}
+		if((i%9)==8){
+			cout<<endl;
+			continue;
+		}
+		cout<<b[63-i];
+	}
+}
 struct _dummy_static_initializer{
 	_dummy_static_initializer(){
 		for(auto i=0;i<19;i++){

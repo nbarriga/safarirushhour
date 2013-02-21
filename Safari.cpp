@@ -9,7 +9,6 @@
 #include "Puzzle.h"
 
 int main(){
-
 	string line;
 	while(getline(cin,line)){
 		if(line==""){
