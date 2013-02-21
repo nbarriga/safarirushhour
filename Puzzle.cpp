@@ -17,13 +17,11 @@ Puzzle::~Puzzle() {
 }
 
 string Puzzle::toString() const {
+	auto succ=_initial.genSuccesors();
 	string s("P ");
 	s.append(_name);
 	s.append("\n");
 	string state= _initial.toString();
-	for(int i=0;i<7;i++){
-		s.append(state.substr(7*i,7));
-		s.append("\n");
-	}
+	s.append(state);
 	return s;
 }

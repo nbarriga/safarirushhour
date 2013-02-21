@@ -22,6 +22,7 @@ public:
 	Puzzle(string name, string state);
 	virtual ~Puzzle();
 	string toString()const;
+
 };
 
 #endif /* PUZZLE_H_ */

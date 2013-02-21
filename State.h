@@ -13,12 +13,15 @@ class State {
 	//string state;
 	uint16_t *pieces;
 	uint8_t size;
+	uint64_t occupied;
 public:
 	size_t getHash() const;
 	int getH() const;
 	vector<State> genSuccesors() const;
 	bool isGoal() const;
 	State(string s);
+	State(const State &s);
+	State(uint16_t *pieces,	uint8_t size);
 	string toString()const;
 	virtual ~State();
 };
