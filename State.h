@@ -11,7 +11,7 @@
 
 class State {
 	//string state;
-	uint8_t *pieces;
+	uint16_t *pieces;
 	uint8_t size;
 public:
 	size_t getHash() const;
@@ -19,7 +19,7 @@ public:
 	vector<State> genSuccesors() const;
 	bool isGoal() const;
 	State(string s);
-
+	string toString()const;
 	virtual ~State();
 };
 
