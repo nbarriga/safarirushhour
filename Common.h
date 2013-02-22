@@ -40,22 +40,22 @@ const uint64_t outside=3ull|(3ull<<9)|(3ull<<18)|(3ull<<27)|(3ull<<36)|(3ull<<45
 const uint64_t outside_exit=3ull|(3ull<<9)|(3ull<<18)/*|(3ull<<27)|(3ull<<36)*/|(3ull<<45)|(3ull<<54);
 const uint64_t inside=~outside;
 const uint64_t inside_exit=~outside_exit;
-const uint64_t goal=inside_exit^inside;
+const uint64_t goal=(3ull<<27)|(3ull<<36);
 const uint64_t illegal=~0ull;
 const uint16_t illegal_piece=~0;
 
 //masks to extract each part
-const uint16_t LETTER=31<<9,COL=7<<6,ROW=7<<3,DIR=3<<2,TYPE=3;
+const uint16_t LETTER=31<<10,ROW=7<<7,COL=15<<3,DIR=3<<2,TYPE=3;
 
 extern uint8_t piece_type[256];
 extern uint8_t piece_letter[20];//index to char
 extern uint16_t letter_piece[256];//char to index
 
-extern uint64_t piece_board[512];
+extern uint64_t piece_board[1024];
 
 //[direction][distance][starting piece]
-extern uint64_t piece_board_neighbours[4][7][512];
-extern uint16_t piece_neighbours[4][7][512];
+extern uint64_t piece_board_paths[1024][1024];
+extern uint16_t piece_neighbours[4][7][1024];
 
 struct piece_t {
 	char letter;

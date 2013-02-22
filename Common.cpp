@@ -11,44 +11,44 @@ uint8_t piece_letter[20]={'_','u','v','x','o', 'q', 's','p', 'r','a', 'f','d',
 		'g', 'j','b', 'h', 'i', 'k','c', 'e'};
 uint16_t letter_piece[256];
 
-uint64_t piece_board[512];
+uint64_t piece_board[1024];
 
 //[direction][distance][starting piece]
-uint64_t piece_board_neighbours[4][7][512];
-uint16_t piece_neighbours[4][7][512];
+uint64_t piece_board_paths[1024][1024];
+uint16_t piece_neighbours[4][7][1024];
 
 static _dummy_static_initializer _dummy;
 uint16_t encode_piece(uint16_t letter, uint16_t row,uint16_t col,uint16_t dir,uint16_t type){
-	return (letter<<9) | (row<<6) | (col<<3) | (dir<<2) | (type);
+	return (letter<<10) | (row<<7) | (col<<3) | (dir<<2) | (type);
 }
 uint16_t shorten(uint16_t piece){
-	return piece&((1<<9)-1);
+	return piece&((1<<10)-1);
 }
 uint16_t encode_piece(uint16_t row,uint16_t col,uint16_t dir,uint16_t type){
-	return (row<<6) | (col<<3) | (dir<<2) | (type);
+	return (row<<7) | (col<<3) | (dir<<2) | (type);
 }
 piece_t decode_piece(uint16_t piece){
-	return piece_t(piece_letter[(piece>>9)&31], (piece>>6)&7, (piece>>3)&7, (piece>>2)&1, piece&3);
+	return piece_t(piece_letter[(piece>>10)&31], (piece>>7)&7, (piece>>3)&15, (piece>>2)&1, piece&3);
 }
 uint64_t get_board(uint16_t row,uint16_t col,uint16_t dir,uint16_t type){
-	uint64_t board;
+	uint64_t board=0;
 	switch(type){
 	case rover:
 	case two_by_two:
-		board=(3ull<<62) | (3ull<<53);
+		board=(3ull<<61) | (3ull<<52);
 		break;
 	case two_by_one:
 		if(dir==HOR){
-			board=(3ull<<62);
+			board=(3ull<<61);
 		}else{
-			board=(1ull<<63) | (1ull<<54);
+			board=(1ull<<62) | (1ull<<53);
 		}
 		break;
 	case three_by_one:
 		if(dir==HOR){
-			board=(7ull<<61);
+			board=(7ull<<60);
 		}else{
-			board=(1ull<<63) | (1ull<<54) | (1ull<<45);
+			board=(1ull<<62) | (1ull<<53) | (1ull<<44);
 		}
 		break;
 	}
@@ -91,7 +91,7 @@ uint16_t move(uint16_t piece, uint8_t direction, uint8_t distance){
 			return illegal_piece;
 		}
 		if(p.type==rover && p.row==2){
-			if(p.col+p.Xsize+distance>9){
+			if(p.col+p.Xsize+distance>9 || (p.col+distance==6)){
 				return illegal_piece;
 			}
 		}else{
@@ -104,64 +104,64 @@ uint16_t move(uint16_t piece, uint8_t direction, uint8_t distance){
 	}
 	return encode_piece(letter_piece[(uint8_t)p.letter],p.row,p.col,p.dir,p.type);
 }
-uint64_t move(uint64_t board, uint8_t direction, uint8_t distance, uint8_t type, bool vertical){
-	uint16_t bits=countSetBits(board);
-	switch(direction){
-	case UP:
-		if(!vertical && (type==two_by_one || type==three_by_one)){
-			board=illegal;
-		}else{
-			board<<=(9*distance);
-			if(countSetBits(board)!=bits){
-				board=illegal;
-			}
-		}
-		break;
-	case DOWN:
-		if(!vertical && (type==two_by_one || type==three_by_one)){
-			board=illegal;
-		}else{
-			board>>=(9*distance);
-			if(countSetBits(board)!=bits){
-				board=illegal;
-			}
-		}
-		break;
-	case LEFT:
-		if(vertical && (type==two_by_one || type==three_by_one)){
-			board=illegal;
-		}else{
-			for(int i=1;i<=distance;i++){
-				board<<=1;
-				board&=inside;
-				if(countSetBits(board)!=bits){
-					board=illegal;
-					break;
-				}
-			}
-		}
-		break;
-	case RIGHT:
-		if(vertical && (type==two_by_one || type==three_by_one)){
-			board=illegal;
-		}else{
-			for(int i=1;i<=distance;i++){
-				board>>=1;
-				if(type!=rover){
-					board&=inside;
-				}else{
-					board&=inside_exit;
-				}
-				if(countSetBits(board)!=bits){
-					board=illegal;
-					break;
-				}
-			}
-		}
-		break;
-	}
-	return board;
-}
+//uint64_t move(uint64_t board, uint8_t direction, uint8_t distance, uint8_t type, bool vertical){
+//	uint16_t bits=countSetBits(board);
+//	switch(direction){
+//	case UP:
+//		if(!vertical && (type==two_by_one || type==three_by_one)){
+//			board=illegal;
+//		}else{
+//			board<<=(9*distance);
+//			if(countSetBits(board)!=bits){
+//				board=illegal;
+//			}
+//		}
+//		break;
+//	case DOWN:
+//		if(!vertical && (type==two_by_one || type==three_by_one)){
+//			board=illegal;
+//		}else{
+//			board>>=(9*distance);
+//			if(countSetBits(board)!=bits){
+//				board=illegal;
+//			}
+//		}
+//		break;
+//	case LEFT:
+//		if(vertical && (type==two_by_one || type==three_by_one)){
+//			board=illegal;
+//		}else{
+//			for(int i=1;i<=distance;i++){
+//				board<<=1;
+//				board&=inside;
+//				if(countSetBits(board)!=bits){
+//					board=illegal;
+//					break;
+//				}
+//			}
+//		}
+//		break;
+//	case RIGHT:
+//		if(vertical && (type==two_by_one || type==three_by_one)){
+//			board=illegal;
+//		}else{
+//			for(int i=1;i<=distance;i++){
+//				board>>=1;
+//				if(type!=rover){
+//					board&=inside;
+//				}else{
+//					board&=inside_exit;
+//				}
+//				if(countSetBits(board)!=bits){
+//					board=illegal;
+//					break;
+//				}
+//			}
+//		}
+//		break;
+//	}
+//	return board;
+//}
 void printBoard(uint64_t board){
 	auto b=bitset<64>(board);
 	for(int i=0;i<63;i++){
@@ -196,10 +196,39 @@ _dummy_static_initializer::_dummy_static_initializer(){
 					piece_board[piece]=board;
 					for(int dir=0;dir<4;dir++){
 						for(int distance=1;distance<=7;distance++){
-							piece_board_neighbours[dir][distance-1][piece]=move(board,dir,distance,rover,HOR);
-							piece_neighbours[dir][distance-1][piece]=move(piece,dir,distance);
+							uint16_t new_piece=move(piece,dir,distance);
+							piece_neighbours[dir][distance-1][piece]=new_piece;
 						}
 					}
+				}
+			}
+			for(int row=0;row<6;row++){
+				for(int col=0;col<6;col++){
+					uint16_t piece=encode_piece(row,col,HOR,rover);
+					for(int dir=0;dir<4;dir++){
+						uint64_t path=piece_board[piece];
+						for(int distance=1;distance<=7;distance++){
+							uint16_t new_piece=move(piece,dir,distance);
+							path|=piece_board[new_piece];
+							piece_board_paths[piece][new_piece]=path;
+						}
+					}
+				}
+			}
+			{
+				uint64_t board=get_board(2,7,HOR,rover);
+				uint16_t goal_piece=encode_piece(2,7,HOR,rover);
+				piece_board[goal_piece]=board;
+
+				int row=2;
+				for(int col=0;col<6;col++){
+					uint16_t piece=encode_piece(row,col,HOR,rover);
+					uint64_t path=piece_board[piece];
+					for(int distance=1;distance<=7-col;distance++){
+						uint16_t new_piece=move(piece,RIGHT,distance);
+						path|=piece_board[new_piece];
+					}
+					piece_board_paths[piece][goal_piece]=path;
 				}
 			}
 			break;
@@ -213,8 +242,21 @@ _dummy_static_initializer::_dummy_static_initializer(){
 					piece_board[piece]=board;
 					for(int dir=0;dir<4;dir++){
 						for(int distance=1;distance<=7;distance++){
-							piece_board_neighbours[dir][distance-1][piece]=move(board,dir,distance,two_by_two,HOR);
-							piece_neighbours[dir][distance-1][piece]=move(piece,dir,distance);
+							uint16_t new_piece=move(piece,dir,distance);
+							piece_neighbours[dir][distance-1][piece]=new_piece;
+						}
+					}
+				}
+			}
+			for(int row=0;row<6;row++){
+				for(int col=0;col<6;col++){
+					uint16_t piece=encode_piece(row,col,HOR,two_by_two);
+					for(int dir=0;dir<4;dir++){
+						uint64_t path=piece_board[piece];
+						for(int distance=1;distance<=7;distance++){
+							uint16_t new_piece=move(piece,dir,distance);
+							path|=piece_board[new_piece];
+							piece_board_paths[piece][new_piece]=path;
 						}
 					}
 				}
@@ -236,8 +278,25 @@ _dummy_static_initializer::_dummy_static_initializer(){
 						piece_board[piece]=board;
 						for(int dir=0;dir<4;dir++){
 							for(int distance=1;distance<=7;distance++){
-								piece_board_neighbours[dir][distance-1][piece]=move(board,dir,distance,three_by_one,orientation);
-								piece_neighbours[dir][distance-1][piece]=move(piece,dir,distance);
+								uint16_t new_piece=move(piece,dir,distance);
+								piece_neighbours[dir][distance-1][piece]=new_piece;
+							}
+						}
+					}
+				}
+			}
+			for(int row=0;row<7;row++){
+				for(int col=0;col<7;col++){
+					for(int orientation=0;orientation<2;orientation++){
+						if(orientation==HOR && col>=5)continue;
+						if(orientation==VERT && row>=5)continue;
+						uint16_t piece=encode_piece(row,col,orientation,three_by_one);
+						for(int dir=0;dir<4;dir++){
+							uint64_t path=piece_board[piece];
+							for(int distance=1;distance<=7;distance++){
+								uint16_t new_piece=move(piece,dir,distance);
+								path|=piece_board[new_piece];
+								piece_board_paths[piece][new_piece]=path;
 							}
 						}
 					}
@@ -266,8 +325,25 @@ _dummy_static_initializer::_dummy_static_initializer(){
 						piece_board[piece]=board;
 						for(int dir=0;dir<4;dir++){
 							for(int distance=1;distance<=7;distance++){
-								piece_board_neighbours[dir][distance-1][piece]=move(board,dir,distance,two_by_one,orientation);
-								piece_neighbours[dir][distance-1][piece]=move(piece,dir,distance);
+								uint16_t new_piece=move(piece,dir,distance);
+								piece_neighbours[dir][distance-1][piece]=new_piece;
+							}
+						}
+					}
+				}
+			}
+			for(int row=0;row<7;row++){
+				for(int col=0;col<7;col++){
+					for(int orientation=0;orientation<2;orientation++){
+						if(orientation==HOR && col>=6)continue;
+						if(orientation==VERT && row>=6)continue;
+						uint16_t piece=encode_piece(row,col,orientation,two_by_one);
+						for(int dir=0;dir<4;dir++){
+							uint64_t path=piece_board[piece];
+							for(int distance=1;distance<=7;distance++){
+								uint16_t new_piece=move(piece,dir,distance);
+								path|=piece_board[new_piece];
+								piece_board_paths[piece][new_piece]=path;
 							}
 						}
 					}

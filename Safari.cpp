@@ -26,6 +26,8 @@ int main(){
 		}
 		Puzzle puzzle(name,state);
 		cout<<puzzle.toString();
-
+		cout<<"Result: "<<endl;
+		cout<<puzzle.aStar()<<endl;
+		cout<<"END"<<endl;
 	}
 }

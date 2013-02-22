@@ -15,14 +15,13 @@ class Puzzle {
 
 	string _name;
 	State _initial;
-	priority_queue<Node,vector<Node>,NodeComparator> open;
-	unordered_set<Node> closed;
+	string reconstruct(const Node *end);
 public:
 
 	Puzzle(string name, string state);
 	virtual ~Puzzle();
 	string toString()const;
-
+	string aStar();
 };
 
 #endif /* PUZZLE_H_ */
