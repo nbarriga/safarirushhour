@@ -11,9 +11,10 @@
 
 class State {
 	//string state;
+	uint64_t occupied;
 	uint16_t *pieces;
 	uint8_t size;
-	uint64_t occupied;
+
 public:
 	size_t getHash() const;
 	int getH() const;

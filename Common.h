@@ -41,11 +41,13 @@ const uint64_t outside_exit=3ull|(3ull<<9)|(3ull<<18)/*|(3ull<<27)|(3ull<<36)*/|
 const uint64_t inside=~outside;
 const uint64_t inside_exit=~outside_exit;
 const uint64_t goal=(3ull<<27)|(3ull<<36);
+const uint64_t pre_exit=goal<<2;
 const uint64_t illegal=~0ull;
 const uint16_t illegal_piece=~0;
 
 //masks to extract each part
 const uint16_t LETTER=31<<10,ROW=7<<7,COL=15<<3,DIR=3<<2,TYPE=3;
+const uint16_t SHORT_PIECE=(1<<10)-1;
 
 extern uint8_t piece_type[256];
 extern uint8_t piece_letter[20];//index to char

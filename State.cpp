@@ -9,11 +9,21 @@
 
 
 int State::getH() const {
+	int h;
 	if(decode_piece(pieces[0]).row==2){
-		return 1;
+		h=1;
 	}else{
-		return 2;
+		h=2;
 	}
+//	for(int p=1;p<size;p++){
+//		//auto piece=decode_piece(pieces[0]);
+//		auto short_piece=shorten(pieces[0]);
+//		//auto piece=decode_piece(short_piece);
+//		if((piece_board[short_piece]&pre_exit)!=0){
+//			h++;
+//		}
+//	}
+	return h;
 }
 
 vector<State> State::genSuccesors() const{
@@ -71,7 +81,7 @@ State::State(string s) {
 	}
 	uint16_t row,col,dir,type;
 	size=0;
-	int roverPos;
+	int roverPos=-1;
 	for(int i=0;i<49;i++){
 		if(s[i]!='.' && !seen[(uint8_t)s[i]]){
 			seen[(uint8_t)s[i]]=true;
@@ -94,7 +104,11 @@ State::State(string s) {
 	}
 	pieces=new uint16_t[size];
 	memcpy(pieces,_pieces,size*sizeof(uint16_t));
-	swap(pieces[0],pieces[roverPos]);
+	if(roverPos==-1){
+		cerr<<"Didn't find rover"<<endl;
+	}else{
+		swap(pieces[0],pieces[roverPos]);
+	}
 	occupied=0ull;
 	for(int p=0;p<size;p++){
 		occupied|=piece_board[shorten(pieces[p])];
@@ -160,7 +174,7 @@ State::State(uint16_t* pieces, uint8_t size):pieces(pieces),size(size) {
 		occupied|=piece_board[shorten(pieces[p])];
 	}
 }
-State::State(const State &s):size(s.size),occupied(s.occupied){
+State::State(const State &s):occupied(s.occupied),size(s.size){
 	pieces=new uint16_t[size];
 	memcpy(pieces,s.pieces,sizeof(uint16_t)*size);
 }

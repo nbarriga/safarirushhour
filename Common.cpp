@@ -22,7 +22,7 @@ uint16_t encode_piece(uint16_t letter, uint16_t row,uint16_t col,uint16_t dir,ui
 	return (letter<<10) | (row<<7) | (col<<3) | (dir<<2) | (type);
 }
 uint16_t shorten(uint16_t piece){
-	return piece&((1<<10)-1);
+	return piece&(SHORT_PIECE);
 }
 uint16_t encode_piece(uint16_t row,uint16_t col,uint16_t dir,uint16_t type){
 	return (row<<7) | (col<<3) | (dir<<2) | (type);
@@ -208,7 +208,10 @@ _dummy_static_initializer::_dummy_static_initializer(){
 					for(int dir=0;dir<4;dir++){
 						uint64_t path=piece_board[piece];
 						for(int distance=1;distance<=7;distance++){
-							uint16_t new_piece=move(piece,dir,distance);
+							uint16_t new_piece=piece_neighbours[dir][distance-1][piece];
+							if(new_piece==illegal_piece){
+								continue;
+							}
 							path|=piece_board[new_piece];
 							piece_board_paths[piece][new_piece]=path;
 						}
@@ -226,6 +229,9 @@ _dummy_static_initializer::_dummy_static_initializer(){
 					uint64_t path=piece_board[piece];
 					for(int distance=1;distance<=7-col;distance++){
 						uint16_t new_piece=move(piece,RIGHT,distance);
+						if(new_piece==illegal_piece){
+							continue;
+						}
 						path|=piece_board[new_piece];
 					}
 					piece_board_paths[piece][goal_piece]=path;
@@ -254,7 +260,10 @@ _dummy_static_initializer::_dummy_static_initializer(){
 					for(int dir=0;dir<4;dir++){
 						uint64_t path=piece_board[piece];
 						for(int distance=1;distance<=7;distance++){
-							uint16_t new_piece=move(piece,dir,distance);
+							uint16_t new_piece=piece_neighbours[dir][distance-1][piece];
+							if(new_piece==illegal_piece){
+								continue;
+							}
 							path|=piece_board[new_piece];
 							piece_board_paths[piece][new_piece]=path;
 						}
@@ -294,7 +303,10 @@ _dummy_static_initializer::_dummy_static_initializer(){
 						for(int dir=0;dir<4;dir++){
 							uint64_t path=piece_board[piece];
 							for(int distance=1;distance<=7;distance++){
-								uint16_t new_piece=move(piece,dir,distance);
+								uint16_t new_piece=piece_neighbours[dir][distance-1][piece];
+								if(new_piece==illegal_piece){
+									continue;
+								}
 								path|=piece_board[new_piece];
 								piece_board_paths[piece][new_piece]=path;
 							}
@@ -341,7 +353,10 @@ _dummy_static_initializer::_dummy_static_initializer(){
 						for(int dir=0;dir<4;dir++){
 							uint64_t path=piece_board[piece];
 							for(int distance=1;distance<=7;distance++){
-								uint16_t new_piece=move(piece,dir,distance);
+								uint16_t new_piece=piece_neighbours[dir][distance-1][piece];
+								if(new_piece==illegal_piece){
+									continue;
+								}
 								path|=piece_board[new_piece];
 								piece_board_paths[piece][new_piece]=path;
 							}
