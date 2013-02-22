@@ -59,7 +59,7 @@ string Puzzle::aStar(){
 
 	      return s;
 	    }
-	    auto children =current->genSuccesors();
+	    const vector<Node*>& children =current->genSuccesors();
 //	    for (auto it=children.begin();it!=children.end();it++){
 //	    	cout<<"child:"<<endl<<(*it)->toString()<<endl;
 //	    }

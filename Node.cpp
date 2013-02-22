@@ -39,7 +39,7 @@ bool NodeComparator::operator ()(const Node* lhs, const Node* rhs) const {
 }
 
 vector<Node*> Node::genSuccesors() const{
-	auto children=_state.genSuccesors();
+	const vector<State>& children=_state.genSuccesors();
 	vector<Node*> nodes;
 	for(auto it=children.begin();it!=children.end();it++){
 		nodes.push_back(new Node(*it,this));//TODO: this is slow!!!
