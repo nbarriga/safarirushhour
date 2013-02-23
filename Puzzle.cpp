@@ -94,8 +94,7 @@ string Puzzle::aStar(){
 					delete *it;
 					continue;
 				}
-				open.erase(*it);
-				delete stored->first;
+
 				//check in queue and delete
 				for(auto toDel=open_queue.begin();toDel!=open_queue.end();toDel++){
 					if(stateEqual(*toDel,*it)){
@@ -103,6 +102,9 @@ string Puzzle::aStar(){
 						break;
 					}
 				}
+				delete stored->first;
+				open.erase(stored);
+
 			}
 			open.insert(make_pair(*it,(*it)->getG())); // fast, but nodes may appear multiple times
 			open_queue.push_back(*it);

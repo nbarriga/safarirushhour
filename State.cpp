@@ -7,34 +7,33 @@
 
 #include "State.h"
 
-
-int State::getH() const {
-	return 0;
-//	int h;
+void State::calculateH(){
+	h=0;
 //	if(decode_piece(pieces[0]).row==2){
 //		h=1;
 //	}else{
 //		h=2;
 //	}
 //	for(int p=1;p<size;p++){
-//		//auto piece=decode_piece(pieces[0]);
 //		auto short_piece=shorten(pieces[0]);
-//		//auto piece=decode_piece(short_piece);
 //		if((piece_board[short_piece]&pre_exit)!=0){
 //			h++;
 //		}
 //	}
-//	return h;
+}
+uint16_t State::getH() const {
+	return h;
+
 }
 
 vector<State*> State::genSuccesors() const{
 	//for each piece, generate all moves in all directions at all distances
 	vector<State*> succesors;
 	uint64_t occupied=0;
-		occupied=0ull;
-		for(int p=0;p<size;p++){
-			occupied|=piece_board[shorten(pieces[p])];
-		}
+	occupied=0ull;
+	for(int p=0;p<size;p++){
+		occupied|=piece_board[shorten(pieces[p])];
+	}
 	for(int p=0;p<size;p++){
 		for(int dir=0;dir<4;dir++){
 			for(int distance=1;distance<=7;distance++){
@@ -42,14 +41,14 @@ vector<State*> State::genSuccesors() const{
 				if(newPiece==illegal_piece)continue;
 				//cout<<pieces[p]<<" "<<newPiece<<" "<<shorten(pieces[p])<<" "<<shorten(newPiece)<<endl;
 				//cout<<decode_piece(pieces[p]).toString()<<" "<<decode_piece(newPiece).toString()<<endl;
-//				uint64_t newBoard=piece_board[newPiece];
+				//				uint64_t newBoard=piece_board[newPiece];
 
 				if(((occupied&(~piece_board[shorten(pieces[p])]))&piece_board_paths[shorten(pieces[p])][newPiece])!=0)continue;
-//				cout<<"legal move found"<<endl;
-//				cout<<"occu: "<<bitset<64>(occupied)<<endl<<
-//						"from: "<<bitset<64>(piece_board[shorten(pieces[p])])<<endl<<
-//						"to:   "<<bitset<64>(piece_board[newPiece])<<endl<<
-//						"path: "<<bitset<64>(piece_board_paths[shorten(pieces[p])][newPiece])<<endl<<endl;
+				//				cout<<"legal move found"<<endl;
+				//				cout<<"occu: "<<bitset<64>(occupied)<<endl<<
+				//						"from: "<<bitset<64>(piece_board[shorten(pieces[p])])<<endl<<
+				//						"to:   "<<bitset<64>(piece_board[newPiece])<<endl<<
+				//						"path: "<<bitset<64>(piece_board_paths[shorten(pieces[p])][newPiece])<<endl<<endl;
 
 				newPiece|=(pieces[p]&LETTER);
 				uint16_t *new_pieces=new uint16_t[size];
@@ -67,13 +66,13 @@ bool State::isGoal() const{
 	//check if rover position is == to goal
 	return (piece_board[shorten(pieces[0])]&goal)==goal;
 
-//	auto piece=decode_piece(pieces[0]);
-//	bool goalB= piece.letter=='x'&&piece.row==2&&piece.col==7;
-//	if(goalB){
-//		cout<<bitset<64>(goal)<<endl;
-//		cout<<bitset<64>(piece_board[shorten(pieces[0])])<<endl;
-//	}
-//	return goalB;
+	//	auto piece=decode_piece(pieces[0]);
+	//	bool goalB= piece.letter=='x'&&piece.row==2&&piece.col==7;
+	//	if(goalB){
+	//		cout<<bitset<64>(goal)<<endl;
+	//		cout<<bitset<64>(piece_board[shorten(pieces[0])])<<endl;
+	//	}
+	//	return goalB;
 }
 //2x2 pieces: termite mounds (u,v) and safari rover (x); 3x1 pieces: elephant (o, q, s) and
 //rhino (p, r); 2x1 pieces: lion (a, f),
@@ -114,21 +113,18 @@ State::State(string s):prev(NULL), g(0) {
 	}else{
 		swap(pieces[0],pieces[roverPos]);
 	}
-//	occupied=0ull;
-//	for(int p=0;p<size;p++){
-//		occupied|=piece_board[shorten(pieces[p])];
-//	}
+	calculateH();
 }
 
 string State::toString() const {
 	string s(49,'.');
 	for(int i=0;i<size;i++){
 		auto piece = decode_piece(pieces[i]);
-//		printf("%c %d %d %d %d %d\n",piece.letter,((pieces[i]>>10)&31), piece.row, piece.col, piece.dir, piece.type);
-//		if(piece.letter=='x'&&piece.row==2&&piece.col==7){
-//			cout<<"goal"<<endl;
-//
-//		}
+		//		printf("%c %d %d %d %d %d\n",piece.letter,((pieces[i]>>10)&31), piece.row, piece.col, piece.dir, piece.type);
+		//		if(piece.letter=='x'&&piece.row==2&&piece.col==7){
+		//			cout<<"goal"<<endl;
+		//
+		//		}
 		switch(piece.type){
 		case rover:
 			if(piece.col<7){
@@ -174,18 +170,19 @@ string State::toString() const {
 }
 
 State::State(uint16_t* pieces, uint8_t size, const State* prev):prev(prev),g(prev==NULL?1:prev->getG()+1),pieces(pieces),size(size) {
+	calculateH();
 }
-State::State(const State &s):prev(s.prev),g(s.g),size(s.size){
+State::State(const State &s):prev(s.prev),g(s.g),h(s.h),size(s.size){
 	cout<<"State copy constructor!"<<endl;
 	pieces=new uint16_t[size];
 	memcpy(pieces,s.pieces,sizeof(uint16_t)*size);
 }
 
-int State::getF() const {
+uint16_t State::getF() const {
 	return getH()+getG();
 }
 
-int State::getG() const {
+uint16_t State::getG() const {
 	return g;
 }
 

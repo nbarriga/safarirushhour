@@ -11,14 +11,15 @@
 
 class State {
 	const State *prev;
-	uint16_t g;
+	uint16_t g,h;
 	uint16_t *pieces;
 	uint8_t size;
+	void calculateH();
 public:
 	size_t getHash() const;
-	int getH() const;
-	int getF()const;
-	int getG() const;
+	uint16_t getH() const;
+	uint16_t getF()const;
+	uint16_t getG() const;
 	vector<State*> genSuccesors() const;
 	bool isGoal() const;
 	State(string s);
