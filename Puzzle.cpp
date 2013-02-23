@@ -54,7 +54,7 @@ string Puzzle::aStar(){
 		open_queue.pop_back();
 		open.erase(current);
 
-		// cout<<"open queue size: "<<open_queue.size()<<" f:"<<current->getF()<<" first: "<<endl<<current->toString()<<endl;
+		 //cout<<"open queue size: "<<open_queue.size()<<" f:"<<current->getF()<<" first: "<<endl<<current->toString()<<endl;
 
 		if (current->isGoal()) {
 			string s =reconstruct(current);

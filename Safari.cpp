@@ -10,6 +10,7 @@
 
 
 int main(){
+	_dummy_static_initializer _dummy;
 	string line;
 	while(getline(cin,line)){
 		if(line==""){

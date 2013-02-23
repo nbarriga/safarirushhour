@@ -30,12 +30,13 @@
 #include <boost/functional/hash/hash.hpp>
 using namespace std;
 
-const uint16_t HOR=0, VERT=1;
-const uint8_t UP=0, DOWN=1, LEFT=2, RIGHT=3;
-const uint8_t rover=0;
-const uint8_t two_by_two=1;
-const uint8_t three_by_one=2;
-const uint8_t two_by_one=3;
+enum ORIENTATION {HOR=0, VERT=1};
+enum DIRECTION {UP=0, DOWN=1, LEFT=2, RIGHT=3};
+enum PIECE_TYPE {rover=0, two_by_two=1, three_by_one=2, two_by_one=3};
+
+extern ORIENTATION ORIENTATIONS[2];
+extern DIRECTION DIRECTIONS[4];
+extern PIECE_TYPE PIECE_TYPES[4];
 
 const uint64_t outside=3ull|(3ull<<9)|(3ull<<18)|(3ull<<27)|(3ull<<36)|(3ull<<45)|(3ull<<54);
 const uint64_t outside_exit=3ull|(3ull<<9)|(3ull<<18)/*|(3ull<<27)|(3ull<<36)*/|(3ull<<45)|(3ull<<54);
@@ -44,38 +45,50 @@ const uint64_t inside_exit=~outside_exit;
 const uint64_t goal=(3ull<<27)|(3ull<<36);
 const uint64_t pre_exit=goal<<2;
 const uint64_t illegal=~0ull;
-const uint16_t illegal_piece=~0;
+const uint8_t illegal_pos=~0;
 
 //masks to extract each part
 const uint16_t LETTER=31<<10,ROW=7<<7,COL=15<<3,DIR=3<<2,TYPE=3;
 const uint16_t SHORT_PIECE=(1<<10)-1;
 
-extern uint8_t piece_type[256];
+extern PIECE_TYPE piece_type[256];
 extern uint8_t piece_letter[20];//index to char
 extern uint16_t letter_piece[256];//char to index
 
-extern uint64_t piece_board[1024];
+//[RowCol][ORIENTATION][TYPE]
+extern uint64_t piece_board[128][2][4];
 
-//[direction][distance][starting piece]
-extern uint64_t piece_board_paths[1024][1024];
-extern uint16_t piece_neighbours[4][7][1024];
+//[type][start][end]
+extern uint64_t piece_board_paths[4][128][128];
 
-struct piece_t {
-	char letter;
-	uint16_t row, col, dir, type, Xsize, Ysize;
-	piece_t(char letter, uint16_t row,uint16_t col,uint16_t dir,uint16_t type);
-	string toString() const;
+union RowCol{
+	struct _split{
+		uint8_t row:4,col:3;
+	} split;
+	uint8_t packed;
+	RowCol():packed(0){
+
+	}
 };
-uint16_t encode_piece(uint16_t letter, uint16_t row,uint16_t col,uint16_t dir,uint16_t type);
-uint16_t shorten(uint16_t piece);
-uint16_t encode_piece(uint16_t row,uint16_t col,uint16_t dir,uint16_t type);
-piece_t decode_piece(uint16_t piece);
+
+//[direction][distance][RowCol][type][orientation]
+extern RowCol piece_neighbours[4][7][128][4][2];
+
+extern uint8_t type_sizeX[4][2];
+extern uint8_t type_sizeY[4][2];
+
+//filled by State constructor
+extern uint8_t index_letter[19];
+extern uint8_t letter_index[256];
+extern uint8_t numPieces;
+extern PIECE_TYPE index_type[19];
+extern ORIENTATION index_orientation[19];
 
 //board is 7 rows and 9 columns, 2 rightmost columns are outside
-uint64_t get_board(uint16_t row,uint16_t col,uint16_t dir,uint16_t type);
+uint64_t get_board(RowCol rowCol,ORIENTATION orientation,PIECE_TYPE type);
 
-//uint64_t move(uint64_t board, uint8_t direction, uint8_t distance, uint8_t type, bool vertical);
-uint16_t move(uint16_t piece, uint8_t direction, uint8_t distance);
+
+RowCol move(RowCol rowCol,PIECE_TYPE type,ORIENTATION orientation, DIRECTION direction, uint8_t distance);
 
 void printBoard(uint64_t board);
 

@@ -31,30 +31,25 @@ vector<State*> State::genSuccesors() const{
 	vector<State*> succesors;
 	uint64_t occupied=0;
 	occupied=0ull;
-	for(int p=0;p<size;p++){
-		occupied|=piece_board[shorten(pieces[p])];
+	for(int p=0;p<numPieces;p++){
+		occupied|=piece_board[pieces[p].packed][index_orientation[p]][index_type[p]];
 	}
-	for(int p=0;p<size;p++){
+	for(int p=0;p<numPieces;p++){
 		for(int dir=0;dir<4;dir++){
 			for(int distance=1;distance<=7;distance++){
-				uint16_t newPiece=piece_neighbours[dir][distance-1][shorten(pieces[p])];
-				if(newPiece==illegal_piece)continue;
-				//cout<<pieces[p]<<" "<<newPiece<<" "<<shorten(pieces[p])<<" "<<shorten(newPiece)<<endl;
-				//cout<<decode_piece(pieces[p]).toString()<<" "<<decode_piece(newPiece).toString()<<endl;
-				//				uint64_t newBoard=piece_board[newPiece];
+				RowCol newPos=piece_neighbours[dir][distance-1][pieces[p].packed][index_type[p]][index_orientation[p]];
 
-				if(((occupied&(~piece_board[shorten(pieces[p])]))&piece_board_paths[shorten(pieces[p])][newPiece])!=0)continue;
-				//				cout<<"legal move found"<<endl;
-				//				cout<<"occu: "<<bitset<64>(occupied)<<endl<<
-				//						"from: "<<bitset<64>(piece_board[shorten(pieces[p])])<<endl<<
-				//						"to:   "<<bitset<64>(piece_board[newPiece])<<endl<<
-				//						"path: "<<bitset<64>(piece_board_paths[shorten(pieces[p])][newPiece])<<endl<<endl;
-
-				newPiece|=(pieces[p]&LETTER);
-				uint16_t *new_pieces=new uint16_t[size];
-				memcpy(new_pieces,pieces,size*sizeof(uint16_t));
-				new_pieces[p]=newPiece;
-				succesors.push_back(new State(new_pieces,size,this));
+				if(newPos.packed==illegal_pos){
+					continue;
+				}
+				if(((occupied&(~piece_board[pieces[p].packed][index_orientation[p]][index_type[p]]))&
+						piece_board_paths[index_type[p]][pieces[p].packed][newPos.packed])!=0){
+					continue;
+				}
+				RowCol *new_pieces=new RowCol[numPieces];
+				memcpy(new_pieces,pieces,numPieces*sizeof(RowCol));
+				new_pieces[p].packed=newPos.packed;
+				succesors.push_back(new State(new_pieces,this));
 			}
 		}
 	}
@@ -62,99 +57,80 @@ vector<State*> State::genSuccesors() const{
 }
 
 bool State::isGoal() const{
-	//look for rover in pieces
-	//check if rover position is == to goal
-	return (piece_board[shorten(pieces[0])]&goal)==goal;
-
-	//	auto piece=decode_piece(pieces[0]);
-	//	bool goalB= piece.letter=='x'&&piece.row==2&&piece.col==7;
-	//	if(goalB){
-	//		cout<<bitset<64>(goal)<<endl;
-	//		cout<<bitset<64>(piece_board[shorten(pieces[0])])<<endl;
-	//	}
-	//	return goalB;
+	auto p=letter_index[(uint8_t)'x'];
+	return (piece_board[pieces[p].packed][index_orientation[p]][index_type[p]]&goal)==goal;
 }
 //2x2 pieces: termite mounds (u,v) and safari rover (x); 3x1 pieces: elephant (o, q, s) and
 //rhino (p, r); 2x1 pieces: lion (a, f),
 //lioness (d, g, j), impala (b, h, i, k) and zebra (c, e).
 State::State(string s):prev(NULL), g(0) {
-	uint16_t _pieces[19];
+	RowCol _pieces[19];
 	bool seen[256];
 	for(int i=0;i<256;i++){
 		seen[i]=false;
 	}
-	uint16_t row,col,dir,type;
-	size=0;
-	int roverPos=-1;
+	ORIENTATION dir;
+	PIECE_TYPE type;
+	RowCol rowCol;
+	int size=0;
 	for(int i=0;i<49;i++){
 		if(s[i]!='.' && !seen[(uint8_t)s[i]]){
 			seen[(uint8_t)s[i]]=true;
 			type=piece_type[(uint8_t)s[i]];
-			col=i%7;
-			row=i/7;
+			rowCol.split.col=i%7;
+			rowCol.split.row=i/7;
 			if(s[i]==s[i+1]){//square pieces are horizontal, who cares
 				dir=HOR;//horizontal
 			}else{
 				dir=VERT;//vertical
 			}
-			_pieces[size]=encode_piece(letter_piece[(uint8_t)s[i]], row, col, dir, type);
-			//printf("%c %d %d %d %d %d\n",s[i],letter_piece[(uint8_t)s[i]], row, col, dir, type);
-			//auto piece = decode_piece(_pieces[size]);
-			if(s[i]=='x'){
-				roverPos=size;
-			}
+			_pieces[size]=rowCol;
+			index_letter[size]=s[i];
+			letter_index[(uint8_t)s[i]]=size;
+			index_type[size]=type;
+			index_orientation[size]=dir;
 			size++;
 		}
 	}
-	pieces=new uint16_t[size];
-	memcpy(pieces,_pieces,size*sizeof(uint16_t));
-	if(roverPos==-1){
-		cerr<<"Didn't find rover"<<endl;
-	}else{
-		swap(pieces[0],pieces[roverPos]);
-	}
+	numPieces=size;
+	pieces=new RowCol[size];
+	memcpy(pieces,_pieces,size*sizeof(RowCol));
 	calculateH();
 }
 
 string State::toString() const {
 	string s(49,'.');
-	for(int i=0;i<size;i++){
-		auto piece = decode_piece(pieces[i]);
-		//		printf("%c %d %d %d %d %d\n",piece.letter,((pieces[i]>>10)&31), piece.row, piece.col, piece.dir, piece.type);
-		//		if(piece.letter=='x'&&piece.row==2&&piece.col==7){
-		//			cout<<"goal"<<endl;
-		//
-		//		}
-		switch(piece.type){
+	for(int i=0;i<numPieces;i++){
+		switch(index_type[i]){
 		case rover:
-			if(piece.col<7){
-				s[piece.row*7+piece.col]=piece.letter;
-				s[(piece.row+1)*7+piece.col]=piece.letter;
-				if(piece.col<6){
-					s[piece.row*7+piece.col+1]=piece.letter;
-					s[(piece.row+1)*7+piece.col+1]=piece.letter;
+			if(pieces[i].split.col<7){
+				s[pieces[i].split.row*7+pieces[i].split.col]=index_letter[i];
+				s[(pieces[i].split.row+1)*7+pieces[i].split.col]=index_letter[i];
+				if(pieces[i].split.col<6){
+					s[pieces[i].split.row*7+pieces[i].split.col+1]=index_letter[i];
+					s[(pieces[i].split.row+1)*7+pieces[i].split.col+1]=index_letter[i];
 				}
 			}
 			break;
 		case two_by_two:
-			s[piece.row*7+piece.col]=piece.letter;
-			s[piece.row*7+piece.col+1]=piece.letter;
-			s[(piece.row+1)*7+piece.col]=piece.letter;
-			s[(piece.row+1)*7+piece.col+1]=piece.letter;
+			s[pieces[i].split.row*7+pieces[i].split.col]=index_letter[i];
+			s[pieces[i].split.row*7+pieces[i].split.col+1]=index_letter[i];
+			s[(pieces[i].split.row+1)*7+pieces[i].split.col]=index_letter[i];
+			s[(pieces[i].split.row+1)*7+pieces[i].split.col+1]=index_letter[i];
 			break;
 		case three_by_one:
-			if(piece.dir==HOR){
-				s[piece.row*7+piece.col+2]=piece.letter;
+			if(index_orientation[i]==HOR){
+				s[pieces[i].split.row*7+pieces[i].split.col+2]=index_letter[i];
 			}else{
-				s[(piece.row+2)*7+piece.col]=piece.letter;
+				s[(pieces[i].split.row+2)*7+pieces[i].split.col]=index_letter[i];
 			}
 		case two_by_one:
-			if(piece.dir==HOR){
-				s[piece.row*7+piece.col]=piece.letter;
-				s[piece.row*7+piece.col+1]=piece.letter;
+			if(index_orientation[i]==HOR){
+				s[pieces[i].split.row*7+pieces[i].split.col]=index_letter[i];
+				s[pieces[i].split.row*7+pieces[i].split.col+1]=index_letter[i];
 			}else{
-				s[piece.row*7+piece.col]=piece.letter;
-				s[(piece.row+1)*7+piece.col]=piece.letter;
+				s[pieces[i].split.row*7+pieces[i].split.col]=index_letter[i];
+				s[(pieces[i].split.row+1)*7+pieces[i].split.col]=index_letter[i];
 			}
 			break;
 		}
@@ -169,13 +145,13 @@ string State::toString() const {
 	return formatted;
 }
 
-State::State(uint16_t* pieces, uint8_t size, const State* prev):prev(prev),g(prev==NULL?1:prev->getG()+1),pieces(pieces),size(size) {
+State::State(RowCol* pieces, const State* prev):prev(prev),g(prev==NULL?0:prev->getG()+1),pieces(pieces) {
 	calculateH();
 }
-State::State(const State &s):prev(s.prev),g(s.g),h(s.h),size(s.size){
+State::State(const State &s):prev(s.prev),g(s.g),h(s.h){
 	cout<<"State copy constructor!"<<endl;
-	pieces=new uint16_t[size];
-	memcpy(pieces,s.pieces,sizeof(uint16_t)*size);
+	pieces=new RowCol[numPieces];
+	memcpy(pieces,s.pieces,sizeof(RowCol)*numPieces);
 }
 
 uint16_t State::getF() const {
@@ -192,8 +168,8 @@ State::~State() {
 
 size_t State::getHash() const {
 	size_t hash=0;
-	for(int i=0;i<size;i++){
-		boost::hash_combine(hash,pieces[i]);
+	for(int i=0;i<numPieces;i++){
+		boost::hash_combine(hash,pieces[i].packed);
 	}
 	return hash;
 }

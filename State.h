@@ -12,8 +12,7 @@
 class State {
 	const State *prev;
 	uint16_t g,h;
-	uint16_t *pieces;
-	uint8_t size;
+	RowCol *pieces;
 	void calculateH();
 public:
 	size_t getHash() const;
@@ -24,7 +23,7 @@ public:
 	bool isGoal() const;
 	State(string s);
 	State(const State &s);
-	State(uint16_t *pieces,	uint8_t size, const State* prev);
+	State(RowCol *pieces, const State* prev);
 	string toString()const;
 	virtual ~State();
 	friend class equal_to<State*>;
@@ -45,11 +44,10 @@ template <>struct hash<State*>{
 
 template <>struct equal_to<State*>{
 	bool operator() (const State* x, const State* y) const{
-		if(x->size==y->size){
-			if(memcmp(x->pieces,y->pieces,sizeof(uint16_t)*x->size)==0){
-				return true;
-			}
-		}return false;
+		if(memcmp(x->pieces,y->pieces,sizeof(RowCol)*numPieces)==0){
+			return true;
+		}
+		return false;
 	}
 };
 }
