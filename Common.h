@@ -24,6 +24,7 @@
 #include <cinttypes>
 #include <boost/random.hpp>
 #include <queue>
+#include <unordered_map>
 #include <unordered_set>
 #include <functional>
 #include <boost/functional/hash/hash.hpp>

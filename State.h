@@ -10,23 +10,48 @@
 #include "Common.h"
 
 class State {
-	//string state;
-	uint64_t occupied;
+	const State *prev;
+	uint16_t g;
 	uint16_t *pieces;
 	uint8_t size;
-
 public:
 	size_t getHash() const;
 	int getH() const;
-	vector<State> genSuccesors() const;
+	int getF()const;
+	int getG() const;
+	vector<State*> genSuccesors() const;
 	bool isGoal() const;
 	State(string s);
 	State(const State &s);
-	State(uint16_t *pieces,	uint8_t size);
+	State(uint16_t *pieces,	uint8_t size, const State* prev);
 	string toString()const;
 	virtual ~State();
+	friend class equal_to<State*>;
+	const State* getPrev() const {
+		return prev;
+	}
+};
+class StatePointerComparator
+{
+public:
+	StatePointerComparator(){}
+	bool operator ()(const State* lhs, const State* rhs) const;
+};
+namespace std {
+template <>struct hash<State*>{
+	size_t operator()(const State* s) const{return s->getHash();}
 };
 
+template <>struct equal_to<State*>{
+	bool operator() (const State* x, const State* y) const{
+		if(x->size==y->size){
+			if(memcmp(x->pieces,y->pieces,sizeof(uint16_t)*x->size)==0){
+				return true;
+			}
+		}return false;
+	}
+};
+}
 
 
 #endif /* STATE_H_ */

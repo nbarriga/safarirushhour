@@ -8,6 +8,7 @@
 #include "Common.h"
 #include "Puzzle.h"
 
+
 int main(){
 	string line;
 	while(getline(cin,line)){

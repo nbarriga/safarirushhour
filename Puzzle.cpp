@@ -17,7 +17,6 @@ Puzzle::~Puzzle() {
 }
 
 string Puzzle::toString() const {
-	auto succ=_initial.genSuccesors();
 	string s("P ");
 	s.append(_name);
 	s.append("\n");
@@ -25,78 +24,101 @@ string Puzzle::toString() const {
 	s.append(state);
 	return s;
 }
-string Puzzle::reconstruct(const Node *node){
-	if(node==NULL){
+string Puzzle::reconstruct(const State *state){
+	if(state==NULL){
 		return "";
 	}else{
-		return reconstruct(node->getPrev())+"\n"+node->toString();
+		return reconstruct(state->getPrev())+"\n"+state->toString();
 	}
 }
 string Puzzle::aStar(){
-	priority_queue<Node*,vector<Node*>,NodeComparator> open_queue;
-	unordered_set<Node*> open;
-	unordered_set<Node*> closed;
+	StatePointerComparator comp;
+	equal_to<State*> stateEqual;
+	vector<State*> open_queue;
 
-	Node *n=new Node(_initial,NULL);
-	open_queue.push(n);
+	unordered_map<State*,int> open;
+	unordered_map<State*,int> closed;
+	State *initial= new State(_initial);
+	open_queue.push_back(initial);
+	std::make_heap(open_queue.begin(), open_queue.end(),comp);
 
 
-	  while (!open_queue.empty()) {
+	open.insert(make_pair(initial,initial->getG()));
 
-	    Node *current= open_queue.top();
-	    open_queue.pop();
-	   // cout<<"open queue size: "<<open_queue.size()<<" f:"<<current->getF()<<" first: "<<endl<<current->toString()<<endl;
+	uint64_t nodes=0;
 
-	    if (current->isGoal()) {
-	    	string s =reconstruct(current);
-//	  	  for(auto it=closed.begin();it!=closed.end();it++){
-//	  		  delete *it;
-//	  	  }
-	    	delete n;
-		  for(auto it=open.begin();it!=open.end();it++){
-			  delete (*it);
-		  }
+	while (!open_queue.empty()) {
 
-	      return s;
-	    }
-	    const vector<Node*>& children =current->genSuccesors();
-//	    for (auto it=children.begin();it!=children.end();it++){
-//	    	cout<<"child:"<<endl<<(*it)->toString()<<endl;
-//	    }
-	    for (auto it=children.begin();it!=children.end();it++){
-	    	bool inOpen=false,inClosed=false;
+		State *current= open_queue.front();
+		std::pop_heap(open_queue.begin(), open_queue.end(),comp);
+		open_queue.pop_back();
+		open.erase(current);
 
-	    	auto stored = open.find(*it);
-	    	if(stored!=open.end() ){
-	    		inOpen=true;
-	    		if((*stored)->getG()<=(*it)->getG()){
-	    			delete *it;
-	    			continue;
-	    		}
-	    	}
-	    	stored = closed.find(*it);
-	    	if(stored!=closed.end()){
-	    		inClosed=true;
-	    		if((*stored)->getG()<=(*it)->getG()){
-	    			delete *it;
-	    			continue;
-	    		}
-	    	}
+		// cout<<"open queue size: "<<open_queue.size()<<" f:"<<current->getF()<<" first: "<<endl<<current->toString()<<endl;
 
-	    	if (inClosed) closed.erase(*it); // re-open node to
-	    	if(inOpen)open.erase(*it);
-	    	open.insert(*it); // fast, but nodes may appear multiple times
-	    	open_queue.push(*it);//TODO: handle repeated nodes in open queue
+		if (current->isGoal()) {
+			string s =reconstruct(current);
 
-	    	// other solution requires decreaseKey priority queue operation
-	    	//   if (to,*) in OPEN then decrease key of state to to to.f in OPEN
-	    	//                     else insert (to, to.f) into OPEN
-	    }
-	    closed.insert(current);
-	  }
-	  for(auto it=closed.begin();it!=closed.end();it++){
-		  delete (*it);
-	  }
-	  closed.clear();
-	  return "Can't find answer";
+			cout<<"sol length: "<<current->getG()<<" nodes: "<<nodes<<" closed size: "<<
+					closed.size()<<" open size: "<<open.size()<<" "<<open_queue.size()<<endl;
+
+			for(auto it=open.begin();it!=open.end();it++){
+				delete it->first;
+			}
+			for(auto it=closed.begin();it!=closed.end();it++){
+				delete it->first;
+			}
+			delete current;
+			open.clear();
+			closed.clear();
+			return s;
+		}
+		const vector<State*>& children =current->genSuccesors();
+
+		for (auto it=children.begin();it!=children.end();it++){
+			nodes++;
+
+			auto stored = closed.find(*it);
+			if(stored!=closed.end()){
+				if(stored->second<=(*it)->getG()){
+					delete *it;
+					continue;
+				}
+				closed.erase(*it); // re-open node to
+				delete stored->first;
+			}
+
+			stored = open.find(*it);
+			if(stored!=open.end() ){
+				if(stored->second<=(*it)->getG()){
+					delete *it;
+					continue;
+				}
+				open.erase(*it);
+				delete stored->first;
+				//check in queue and delete
+				for(auto toDel=open_queue.begin();toDel!=open_queue.end();toDel++){
+					if(stateEqual(*toDel,*it)){
+						open_queue.erase(toDel);
+						break;
+					}
+				}
+			}
+			open.insert(make_pair(*it,(*it)->getG())); // fast, but nodes may appear multiple times
+			open_queue.push_back(*it);
+			std::push_heap(open_queue.begin(), open_queue.end(),comp);
+			//			uint64_t memOpen=open.size()*sizeof(State);
+//			uint64_t memClosed=closed.size()*sizeof(State);
+//			uint64_t currMem=memOpen+memClosed;
+//			memory=memory>currMem?memory:currMem;
+		}
+		//cout<<open_queue.size()<<" "<<open.size()<<" "<<closed.size()<<endl;
+		closed.insert(make_pair(current,current->getG()));
+
+	}
+	//	for(auto it=closed.begin();it!=closed.end();it++){
+	//		delete (*it);
+	//	}
+	closed.clear();
+	return "Can't find answer";
 }

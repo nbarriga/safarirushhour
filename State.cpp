@@ -9,12 +9,13 @@
 
 
 int State::getH() const {
-	int h;
-	if(decode_piece(pieces[0]).row==2){
-		h=1;
-	}else{
-		h=2;
-	}
+	return 0;
+//	int h;
+//	if(decode_piece(pieces[0]).row==2){
+//		h=1;
+//	}else{
+//		h=2;
+//	}
 //	for(int p=1;p<size;p++){
 //		//auto piece=decode_piece(pieces[0]);
 //		auto short_piece=shorten(pieces[0]);
@@ -23,12 +24,17 @@ int State::getH() const {
 //			h++;
 //		}
 //	}
-	return h;
+//	return h;
 }
 
-vector<State> State::genSuccesors() const{
+vector<State*> State::genSuccesors() const{
 	//for each piece, generate all moves in all directions at all distances
-	vector<State> succesors;
+	vector<State*> succesors;
+	uint64_t occupied=0;
+		occupied=0ull;
+		for(int p=0;p<size;p++){
+			occupied|=piece_board[shorten(pieces[p])];
+		}
 	for(int p=0;p<size;p++){
 		for(int dir=0;dir<4;dir++){
 			for(int distance=1;distance<=7;distance++){
@@ -49,8 +55,7 @@ vector<State> State::genSuccesors() const{
 				uint16_t *new_pieces=new uint16_t[size];
 				memcpy(new_pieces,pieces,size*sizeof(uint16_t));
 				new_pieces[p]=newPiece;
-				const State newState(new_pieces,size);
-				succesors.push_back(newState);
+				succesors.push_back(new State(new_pieces,size,this));
 			}
 		}
 	}
@@ -73,7 +78,7 @@ bool State::isGoal() const{
 //2x2 pieces: termite mounds (u,v) and safari rover (x); 3x1 pieces: elephant (o, q, s) and
 //rhino (p, r); 2x1 pieces: lion (a, f),
 //lioness (d, g, j), impala (b, h, i, k) and zebra (c, e).
-State::State(string s) {
+State::State(string s):prev(NULL), g(0) {
 	uint16_t _pieces[19];
 	bool seen[256];
 	for(int i=0;i<256;i++){
@@ -109,10 +114,10 @@ State::State(string s) {
 	}else{
 		swap(pieces[0],pieces[roverPos]);
 	}
-	occupied=0ull;
-	for(int p=0;p<size;p++){
-		occupied|=piece_board[shorten(pieces[p])];
-	}
+//	occupied=0ull;
+//	for(int p=0;p<size;p++){
+//		occupied|=piece_board[shorten(pieces[p])];
+//	}
 }
 
 string State::toString() const {
@@ -168,16 +173,22 @@ string State::toString() const {
 	return formatted;
 }
 
-State::State(uint16_t* pieces, uint8_t size):pieces(pieces),size(size) {
-	occupied=0ull;
-	for(int p=0;p<size;p++){
-		occupied|=piece_board[shorten(pieces[p])];
-	}
+State::State(uint16_t* pieces, uint8_t size, const State* prev):prev(prev),g(prev==NULL?1:prev->getG()+1),pieces(pieces),size(size) {
 }
-State::State(const State &s):occupied(s.occupied),size(s.size){
+State::State(const State &s):prev(s.prev),g(s.g),size(s.size){
+	cout<<"State copy constructor!"<<endl;
 	pieces=new uint16_t[size];
 	memcpy(pieces,s.pieces,sizeof(uint16_t)*size);
 }
+
+int State::getF() const {
+	return getH()+getG();
+}
+
+int State::getG() const {
+	return g;
+}
+
 State::~State() {
 	delete[] pieces;
 }
@@ -188,4 +199,7 @@ size_t State::getHash() const {
 		boost::hash_combine(hash,pieces[i]);
 	}
 	return hash;
+}
+bool StatePointerComparator::operator ()(const State* lhs, const State* rhs) const {
+	return lhs->getF() > rhs->getF();
 }
