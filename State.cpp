@@ -9,21 +9,19 @@
 
 void State::calculateH(){
 	h=0;
-//	if(decode_piece(pieces[0]).row==2){
+//	if(pieces[0].split.row==2){
 //		h=1;
 //	}else{
 //		h=2;
 //	}
-//	for(int p=1;p<size;p++){
-//		auto short_piece=shorten(pieces[0]);
-//		if((piece_board[short_piece]&pre_exit)!=0){
+//	for(int p=1;p<numPieces;p++){
+//		if((piece_board[pieces[p].packed][index_orientation[p]][index_type[p]]&pre_exit)!=0){
 //			h++;
 //		}
 //	}
 }
 uint16_t State::getH() const {
 	return h;
-
 }
 
 vector<State*> State::genSuccesors() const{
@@ -35,6 +33,7 @@ vector<State*> State::genSuccesors() const{
 		occupied|=piece_board[pieces[p].packed][index_orientation[p]][index_type[p]];
 	}
 	for(int p=0;p<numPieces;p++){
+		uint64_t occupiedNoCurrent=occupied&(~piece_board[pieces[p].packed][index_orientation[p]][index_type[p]]);
 		for(int dir=0;dir<4;dir++){
 			for(int distance=1;distance<=7;distance++){
 				RowCol newPos=piece_neighbours[dir][distance-1][pieces[p].packed][index_type[p]][index_orientation[p]];
@@ -42,7 +41,7 @@ vector<State*> State::genSuccesors() const{
 				if(newPos.packed==illegal_pos){
 					continue;
 				}
-				if(((occupied&(~piece_board[pieces[p].packed][index_orientation[p]][index_type[p]]))&
+				if((occupiedNoCurrent&
 						piece_board_paths[index_type[p]][pieces[p].packed][newPos.packed])!=0){
 					continue;
 				}
@@ -149,7 +148,7 @@ State::State(RowCol* pieces, const State* prev):prev(prev),g(prev==NULL?0:prev->
 	calculateH();
 }
 State::State(const State &s):prev(s.prev),g(s.g),h(s.h){
-	cout<<"State copy constructor!"<<endl;
+//	cout<<"State copy constructor!"<<endl;
 	pieces=new RowCol[numPieces];
 	memcpy(pieces,s.pieces,sizeof(RowCol)*numPieces);
 }

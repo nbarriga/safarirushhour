@@ -74,7 +74,7 @@ string Puzzle::aStar(){
 			return s;
 		}
 		const vector<State*>& children =current->genSuccesors();
-
+		bool deletedFromOpen=false;
 		for (auto it=children.begin();it!=children.end();it++){
 			nodes++;
 
@@ -98,6 +98,7 @@ string Puzzle::aStar(){
 				//check in queue and delete
 				for(auto toDel=open_queue.begin();toDel!=open_queue.end();toDel++){
 					if(stateEqual(*toDel,*it)){
+						deletedFromOpen=true;
 						open_queue.erase(toDel);
 						break;
 					}
@@ -108,11 +109,16 @@ string Puzzle::aStar(){
 			}
 			open.insert(make_pair(*it,(*it)->getG())); // fast, but nodes may appear multiple times
 			open_queue.push_back(*it);
-			std::push_heap(open_queue.begin(), open_queue.end(),comp);
+
 			//			uint64_t memOpen=open.size()*sizeof(State);
 //			uint64_t memClosed=closed.size()*sizeof(State);
 //			uint64_t currMem=memOpen+memClosed;
 //			memory=memory>currMem?memory:currMem;
+		}
+		if(deletedFromOpen){
+			std::make_heap(open_queue.begin(), open_queue.end(),comp);
+		}else{
+			std::push_heap(open_queue.begin(), open_queue.end(),comp);
 		}
 		//cout<<open_queue.size()<<" "<<open.size()<<" "<<closed.size()<<endl;
 		closed.insert(make_pair(current,current->getG()));
