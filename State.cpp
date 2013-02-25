@@ -10,7 +10,11 @@
 uint16_t State::calculateH() const{
 	uint16_t _h=0;
 	if(pieces[letter_index[(uint8_t)'x']].split.row==2){
-		_h=1;
+		if(pieces[letter_index[(uint8_t)'x']].split.col==7){
+			_h=0;
+		}else{
+			_h=1;
+		}
 	}else{
 		_h=2;
 	}
