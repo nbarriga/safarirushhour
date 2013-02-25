@@ -10,10 +10,12 @@
 #include "Common.h"
 
 class State {
-	const State *prev;
-	const RowCol *pieces;
+	const State *const prev;
+	const RowCol *const pieces;
+	const size_t hash;
 	const uint16_t g,h;
 	uint16_t calculateH() const;
+	size_t calculateHash() const;
 	const RowCol* getPieces(const string s) const;
 	const RowCol* copyPieces(const RowCol* prevPieces) const;
 public:
@@ -46,6 +48,7 @@ template <>struct hash<State*>{
 
 template <>struct equal_to<State*>{
 	bool operator() (const State* x, const State* y) const{
+//		return x->getHash()==y->getHash();
 		if(memcmp(x->pieces,y->pieces,sizeof(RowCol)*numPieces)==0){
 			return true;
 		}

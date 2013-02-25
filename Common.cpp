@@ -12,7 +12,7 @@ PIECE_TYPE PIECE_TYPES[]={rover,two_by_two,three_by_one,two_by_one};
 PIECE_TYPE piece_type[256];
 uint8_t piece_letter[20]={'_','u','v','x','o', 'q', 's','p', 'r','a', 'f','d',
 		'g', 'j','b', 'h', 'i', 'k','c', 'e'};
-uint16_t letter_piece[256];
+uint8_t letter_piece[256];
 
 uint64_t piece_board[128][2][4];
 

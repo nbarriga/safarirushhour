@@ -53,7 +53,7 @@ const uint16_t SHORT_PIECE=(1<<10)-1;
 
 extern PIECE_TYPE piece_type[256];
 extern uint8_t piece_letter[20];//index to char
-extern uint16_t letter_piece[256];//char to index
+extern uint8_t letter_piece[256];//char to index
 
 //[RowCol][ORIENTATION][TYPE]
 extern uint64_t piece_board[128][2][4];

@@ -9,16 +9,16 @@
 
 uint16_t State::calculateH() const{
 	uint16_t _h=0;
-//	if(pieces[0].split.row==2){
-//		_h=1;
-//	}else{
-//		_h=2;
-//	}
-//	for(int p=1;p<numPieces;p++){
-//		if((piece_board[pieces[p].packed][index_orientation[p]][index_type[p]]&pre_exit)!=0){
-//			_h++;
-//		}
-//	}
+	if(pieces[letter_index[(uint8_t)'x']].split.row==2){
+		_h=1;
+	}else{
+		_h=2;
+	}
+	for(int p=0;p<numPieces;p++){
+		if((p!=letter_index[(uint8_t)'x'])&&(piece_board[pieces[p].packed][index_orientation[p]][index_type[p]]&pre_exit)!=0){
+			_h++;
+		}
+	}
 	return _h;
 }
 uint16_t State::getH() const {
@@ -97,7 +97,7 @@ const RowCol* State::getPieces(const string s) const{
 //2x2 pieces: termite mounds (u,v) and safari rover (x); 3x1 pieces: elephant (o, q, s) and
 //rhino (p, r); 2x1 pieces: lion (a, f),
 //lioness (d, g, j), impala (b, h, i, k) and zebra (c, e).
-State::State(const string s):prev(NULL), pieces(getPieces(s)),g(0),h(calculateH()) {
+State::State(const string s):prev(NULL), pieces(getPieces(s)),hash(calculateHash()),g(0),h(calculateH()) {
 
 }
 
@@ -148,7 +148,7 @@ string State::toString() const {
 	return formatted;
 }
 
-State::State(const RowCol* pieces, const State* prev):prev(prev),pieces(pieces),g(prev==NULL?0:prev->getG()+1),h(calculateH()) {
+State::State(const RowCol* pieces, const State* prev):prev(prev),pieces(pieces),hash(calculateHash()),g(prev==NULL?0:prev->getG()+1),h(calculateH()) {
 
 }
 const RowCol* State::copyPieces(const RowCol* prevPieces) const{
@@ -156,8 +156,7 @@ const RowCol* State::copyPieces(const RowCol* prevPieces) const{
 	memcpy(_pieces,prevPieces,sizeof(RowCol)*numPieces);
 	return _pieces;
 }
-State::State(const State &s):prev(s.prev),pieces(copyPieces(s.pieces)),g(s.g),h(s.h){
-//	cout<<"State copy constructor!"<<endl;
+State::State(const State &s):prev(s.prev),pieces(copyPieces(s.pieces)),hash(s.getHash()),g(s.g),h(s.h){
 
 }
 
@@ -169,16 +168,19 @@ uint16_t State::getG() const {
 	return g;
 }
 
+size_t State::calculateHash() const {
+	size_t _hash=0;
+	for(int i=0;i<numPieces;i++){
+		boost::hash_combine(_hash,pieces[i].packed);
+	}
+	return _hash;
+}
+
 State::~State() {
 	delete[] pieces;
 }
 
 size_t State::getHash() const {
-	size_t hash=0;
-	//return boost::hash_value(pieces);
-	for(int i=0;i<numPieces;i++){
-		boost::hash_combine(hash,pieces[i].packed);
-	}
 	return hash;
 }
 bool StatePointerComparator::operator ()(const State* lhs, const State* rhs) const {
