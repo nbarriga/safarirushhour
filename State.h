@@ -41,6 +41,12 @@ public:
 	StatePointerComparator(){}
 	bool operator ()(const State* lhs, const State* rhs) const;
 };
+class ReverseStatePointerComparator
+{
+public:
+	ReverseStatePointerComparator(){}
+	bool operator ()(const State* lhs, const State* rhs) const;
+};
 namespace std {
 template <>struct hash<State*>{
 	size_t operator()(const State* s) const{return s->getHash();}

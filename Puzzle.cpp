@@ -33,6 +33,7 @@ string Puzzle::reconstruct(const State *state){
 }
 string Puzzle::aStar(){
 	StatePointerComparator comp;
+	ReverseStatePointerComparator revComp;
 	equal_to<State*> stateEqual;
 	vector<State*> open_queue;
 
@@ -123,6 +124,16 @@ string Puzzle::aStar(){
 		//cout<<open_queue.size()<<" "<<open.size()<<" "<<closed.size()<<endl;
 		closed.insert(make_pair(current,current->getG()));
 
+		//============================SMA*====================================
+//		if(open_queue.size()>50000){
+//			sort_heap(open_queue.begin(), open_queue.end(),comp);
+//			for(auto toDel=open_queue.begin();toDel!=(open_queue.begin()+10000);toDel++){
+//				open.erase(*toDel);
+//				delete *toDel;
+//			}
+//			open_queue.erase(open_queue.begin(),open_queue.begin()+10000);
+//			make_heap(open_queue.begin(), open_queue.end(),comp);
+//		}
 	}
 	//	for(auto it=closed.begin();it!=closed.end();it++){
 	//		delete (*it);

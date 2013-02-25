@@ -184,5 +184,14 @@ size_t State::getHash() const {
 	return hash;
 }
 bool StatePointerComparator::operator ()(const State* lhs, const State* rhs) const {
+	if(lhs->getF() == rhs->getF()){
+		return lhs->getG() > rhs->getG();
+	}
 	return lhs->getF() > rhs->getF();
+}
+bool ReverseStatePointerComparator::operator ()(const State* lhs, const State* rhs) const {
+	if(lhs->getF() == rhs->getF()){
+		return lhs->getG() < rhs->getG();
+	}
+	return lhs->getF() < rhs->getF();
 }
