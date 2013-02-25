@@ -29,6 +29,7 @@ public:
 	State(const State &s);
 	State(const RowCol *pieces, const State* prev);
 	string toString()const;
+	const string getMove(const State *const next)const;
 	virtual ~State();
 	friend class equal_to<State*>;
 	const State* getPrev() const {

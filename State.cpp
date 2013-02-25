@@ -176,6 +176,35 @@ size_t State::calculateHash() const {
 	return _hash;
 }
 
+const string State::getMove(const State* const next) const {
+	stringstream ss;
+	for(int i=0;i<numPieces;i++){
+		if(pieces[i].packed!=next->pieces[i].packed){
+			ss<<index_letter[i];
+			int thisRow=pieces[i].split.row;
+			int nextRow=next->pieces[i].split.row;
+			auto rowDiff=thisRow-nextRow;
+			if(rowDiff>0){
+				ss<<"u"<<rowDiff;
+			}else if(rowDiff<0){
+				ss<<"d"<<(-rowDiff);
+			}else{
+				int thisCol=pieces[i].split.col;
+				int nextCol=next->pieces[i].split.col;
+				auto colDiff=thisCol-nextCol;
+				if(colDiff>0){
+					ss<<"l"<<colDiff;
+				}else if(colDiff<0){
+					ss<<"r"<<(-colDiff);
+				}else{
+					ss<<"pass";
+				}
+			}
+		}
+	}
+	return ss.str();
+}
+
 State::~State() {
 	delete[] pieces;
 }

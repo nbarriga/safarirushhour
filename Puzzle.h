@@ -14,7 +14,7 @@ class Puzzle {
 
 	string _name;
 	State _initial;
-	string reconstruct(const State *end);
+	string reconstruct(const State *const end);
 public:
 
 	Puzzle(string name, string state);

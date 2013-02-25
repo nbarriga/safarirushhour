@@ -24,11 +24,11 @@ string Puzzle::toString() const {
 	s.append(state);
 	return s;
 }
-string Puzzle::reconstruct(const State *state){
-	if(state==NULL){
+string Puzzle::reconstruct(const State *const state){
+	if(state->getPrev()==NULL){
 		return "";
 	}else{
-		return reconstruct(state->getPrev())+"\n"+state->toString();
+		return reconstruct(state->getPrev())+" "+state->getPrev()->getMove(state);
 	}
 }
 string Puzzle::aStar(){
@@ -58,9 +58,10 @@ string Puzzle::aStar(){
 		 //cout<<"open queue size: "<<open_queue.size()<<" f:"<<current->getF()<<" first: "<<endl<<current->toString()<<endl;
 
 		if (current->isGoal()) {
-			string s =reconstruct(current);
+			stringstream ss;
+			ss<<current->getG()<<" "<<reconstruct(current);
 
-			cout<<"sol length: "<<current->getG()<<" nodes: "<<nodes<<" closed size: "<<
+			cout<<"nodes searched: "<<nodes<<" closed size: "<<
 					closed.size()<<" open size: "<<open.size()<<" "<<open_queue.size()<<endl;
 
 			for(auto it=open.begin();it!=open.end();it++){
@@ -72,7 +73,7 @@ string Puzzle::aStar(){
 			delete current;
 			open.clear();
 			closed.clear();
-			return s;
+			return ss.str();
 		}
 		const vector<State*>& children =current->genSuccesors();
 		bool deletedFromOpen=false;
