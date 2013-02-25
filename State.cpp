@@ -7,18 +7,19 @@
 
 #include "State.h"
 
-void State::calculateH(){
-	h=0;
+uint16_t State::calculateH() const{
+	uint16_t _h=0;
 //	if(pieces[0].split.row==2){
-//		h=1;
+//		_h=1;
 //	}else{
-//		h=2;
+//		_h=2;
 //	}
 //	for(int p=1;p<numPieces;p++){
 //		if((piece_board[pieces[p].packed][index_orientation[p]][index_type[p]]&pre_exit)!=0){
-//			h++;
+//			_h++;
 //		}
 //	}
+	return _h;
 }
 uint16_t State::getH() const {
 	return h;
@@ -59,42 +60,45 @@ bool State::isGoal() const{
 	auto p=letter_index[(uint8_t)'x'];
 	return (piece_board[pieces[p].packed][index_orientation[p]][index_type[p]]&goal)==goal;
 }
+const RowCol* State::getPieces(const string s) const{
+	RowCol _pieces[19];
+		bool seen[256];
+		for(int i=0;i<256;i++){
+			seen[i]=false;
+		}
+		ORIENTATION dir;
+		PIECE_TYPE type;
+		RowCol rowCol;
+		int size=0;
+		for(int i=0;i<49;i++){
+			if(s[i]!='.' && !seen[(uint8_t)s[i]]){
+				seen[(uint8_t)s[i]]=true;
+				type=piece_type[(uint8_t)s[i]];
+				rowCol.split.col=i%7;
+				rowCol.split.row=i/7;
+				if(s[i]==s[i+1]){//square pieces are horizontal, who cares
+					dir=HOR;//horizontal
+				}else{
+					dir=VERT;//vertical
+				}
+				_pieces[size]=rowCol;
+				index_letter[size]=s[i];
+				letter_index[(uint8_t)s[i]]=size;
+				index_type[size]=type;
+				index_orientation[size]=dir;
+				size++;
+			}
+		}
+		numPieces=size;
+		RowCol* __pieces=new RowCol[size];
+		memcpy(__pieces,_pieces,size*sizeof(RowCol));
+		return __pieces;
+}
 //2x2 pieces: termite mounds (u,v) and safari rover (x); 3x1 pieces: elephant (o, q, s) and
 //rhino (p, r); 2x1 pieces: lion (a, f),
 //lioness (d, g, j), impala (b, h, i, k) and zebra (c, e).
-State::State(string s):prev(NULL), g(0) {
-	RowCol _pieces[19];
-	bool seen[256];
-	for(int i=0;i<256;i++){
-		seen[i]=false;
-	}
-	ORIENTATION dir;
-	PIECE_TYPE type;
-	RowCol rowCol;
-	int size=0;
-	for(int i=0;i<49;i++){
-		if(s[i]!='.' && !seen[(uint8_t)s[i]]){
-			seen[(uint8_t)s[i]]=true;
-			type=piece_type[(uint8_t)s[i]];
-			rowCol.split.col=i%7;
-			rowCol.split.row=i/7;
-			if(s[i]==s[i+1]){//square pieces are horizontal, who cares
-				dir=HOR;//horizontal
-			}else{
-				dir=VERT;//vertical
-			}
-			_pieces[size]=rowCol;
-			index_letter[size]=s[i];
-			letter_index[(uint8_t)s[i]]=size;
-			index_type[size]=type;
-			index_orientation[size]=dir;
-			size++;
-		}
-	}
-	numPieces=size;
-	pieces=new RowCol[size];
-	memcpy(pieces,_pieces,size*sizeof(RowCol));
-	calculateH();
+State::State(const string s):prev(NULL), pieces(getPieces(s)),g(0),h(calculateH()) {
+
 }
 
 string State::toString() const {
@@ -144,13 +148,17 @@ string State::toString() const {
 	return formatted;
 }
 
-State::State(RowCol* pieces, const State* prev):prev(prev),g(prev==NULL?0:prev->getG()+1),pieces(pieces) {
-	calculateH();
+State::State(const RowCol* pieces, const State* prev):prev(prev),pieces(pieces),g(prev==NULL?0:prev->getG()+1),h(calculateH()) {
+
 }
-State::State(const State &s):prev(s.prev),g(s.g),h(s.h){
+const RowCol* State::copyPieces(const RowCol* prevPieces) const{
+	RowCol *_pieces=new RowCol[numPieces];
+	memcpy(_pieces,prevPieces,sizeof(RowCol)*numPieces);
+	return _pieces;
+}
+State::State(const State &s):prev(s.prev),pieces(copyPieces(s.pieces)),g(s.g),h(s.h){
 //	cout<<"State copy constructor!"<<endl;
-	pieces=new RowCol[numPieces];
-	memcpy(pieces,s.pieces,sizeof(RowCol)*numPieces);
+
 }
 
 uint16_t State::getF() const {
@@ -167,6 +175,7 @@ State::~State() {
 
 size_t State::getHash() const {
 	size_t hash=0;
+	//return boost::hash_value(pieces);
 	for(int i=0;i<numPieces;i++){
 		boost::hash_combine(hash,pieces[i].packed);
 	}

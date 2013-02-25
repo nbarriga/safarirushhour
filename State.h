@@ -11,9 +11,11 @@
 
 class State {
 	const State *prev;
-	uint16_t g,h;
-	RowCol *pieces;
-	void calculateH();
+	const RowCol *pieces;
+	const uint16_t g,h;
+	uint16_t calculateH() const;
+	const RowCol* getPieces(const string s) const;
+	const RowCol* copyPieces(const RowCol* prevPieces) const;
 public:
 	size_t getHash() const;
 	uint16_t getH() const;
@@ -21,9 +23,9 @@ public:
 	uint16_t getG() const;
 	vector<State*> genSuccesors() const;
 	bool isGoal() const;
-	State(string s);
+	State(const string s);
 	State(const State &s);
-	State(RowCol *pieces, const State* prev);
+	State(const RowCol *pieces, const State* prev);
 	string toString()const;
 	virtual ~State();
 	friend class equal_to<State*>;
