@@ -25,7 +25,7 @@ public:
 	uint16_t getF()const;
 	uint16_t getG() const;
 	void setG(uint16_t g);
-	vector<State*> genSuccesors() const;
+	vector<State*> genSuccesors(bool sorted) const;
 	bool isGoal() const;
 	State(const string s);
 	State(const State &s);

@@ -32,10 +32,10 @@ string Puzzle::reconstruct(const State *const state){
 	}
 }
 string Puzzle::aStar(){
-	StatePointerComparator comp;
-	ReverseStatePointerComparator revComp;
 	equal_to<State*> stateEqual;
 	vector<State*> open_queue;
+	StatePointerComparator comp;
+	ReverseStatePointerComparator revComp;
 
 	unordered_set<State*> open;
 	unordered_set<State*> closed;
@@ -46,7 +46,7 @@ string Puzzle::aStar(){
 
 	open.insert(initial);
 
-	uint64_t nodes=0;
+	nodes=0;
 	uint32_t maxLiveNodes=0;
 
 	while (!open_queue.empty()) {
@@ -64,7 +64,7 @@ string Puzzle::aStar(){
 
 		if (current->isGoal()) {
 			stringstream ss;
-			ss<<current->getG()<<" "<<reconstruct(current);
+			ss<<current->getG()<<reconstruct(current);
 
 			cout<<"memory: "<<maxLiveNodes*(sizeof(State)+sizeof(RowCol)*numPieces)<<endl;
 			cout<<"nodes searched: "<<nodes<<" closed size: "<<
@@ -81,7 +81,7 @@ string Puzzle::aStar(){
 			closed.clear();
 			return ss.str();
 		}
-		const vector<State*>& children =current->genSuccesors();
+		const vector<State*>& children =current->genSuccesors(false);
 
 		for (auto it=children.begin();it!=children.end();it++){
 			nodes++;
@@ -147,4 +147,54 @@ string Puzzle::aStar(){
 	}
 	closed.clear();
 	return "Can't find answer";
+}
+
+string Puzzle::innerIdaStar(const State& s) {
+	nodes++;
+
+	if (s.getF() > threshold) {
+		if (s.getF() < f_min) {
+			f_min = s.getF();
+		}
+		done=false;
+		return "";
+	}
+
+	if (s.getH() == 0){
+		done=true;
+		stringstream ss;
+		ss<<s.getG()<<reconstruct(&s);
+		return ss.str();  // goal found
+	}
+
+
+	const vector<State*>& children=s.genSuccesors(true);
+
+	for (auto it=children.begin(); it!=children.end();it++) {
+		string s=innerIdaStar(*(*it));
+		delete(*it);
+		if (done){
+			for(auto toDel=it+1;toDel!=children.end();toDel++){
+				delete(*toDel);
+			}
+			return s;         // done
+		}
+	}
+	return "Can't find answer";
+}
+
+string Puzzle::idaStar() {
+	nodes=0;
+	threshold = _initial.getH();
+	done = false;
+	string moves;
+	while (!done) {
+		f_min = SHRT_MAX;
+		moves = innerIdaStar(_initial);
+		if (!done){
+			threshold = f_min;
+		}
+	}
+	cout<<"nodes searched: "<<nodes<<endl;
+	return moves;
 }

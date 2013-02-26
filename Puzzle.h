@@ -15,12 +15,18 @@ class Puzzle {
 	string _name;
 	State _initial;
 	string reconstruct(const State *const end);
+	string innerIdaStar(const State& s);
+	uint16_t threshold,f_min;
+	uint64_t nodes;
+	bool done;
 public:
 
 	Puzzle(string name, string state);
 	virtual ~Puzzle();
 	string toString()const;
 	string aStar();
+
+	string idaStar();
 };
 
 #endif /* PUZZLE_H_ */

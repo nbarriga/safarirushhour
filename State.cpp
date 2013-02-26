@@ -34,7 +34,7 @@ uint16_t State::getH() const {
 	return h;
 }
 
-vector<State*> State::genSuccesors() const{
+vector<State*> State::genSuccesors(bool sorted) const{
 	//for each piece, generate all moves in all directions at all distances
 	vector<State*> succesors;
 	uint64_t occupied=0;
@@ -61,6 +61,9 @@ vector<State*> State::genSuccesors() const{
 				succesors.push_back(new State(new_pieces,this));
 			}
 		}
+	}
+	if(sorted){
+		sort(succesors.begin(),succesors.end(),ReverseStatePointerComparator());
 	}
 	return succesors;
 }
