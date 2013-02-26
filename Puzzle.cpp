@@ -37,14 +37,14 @@ string Puzzle::aStar(){
 	equal_to<State*> stateEqual;
 	vector<State*> open_queue;
 
-	unordered_map<State*,int> open;
-	unordered_map<State*,int> closed;
+	unordered_set<State*> open;
+	unordered_set<State*> closed;
 	State *initial= new State(_initial);
 	open_queue.push_back(initial);
 	std::make_heap(open_queue.begin(), open_queue.end(),comp);
 
 
-	open.insert(make_pair(initial,initial->getG()));
+	open.insert(initial);
 
 	uint64_t nodes=0;
 	uint32_t maxLiveNodes=0;
@@ -66,15 +66,15 @@ string Puzzle::aStar(){
 			stringstream ss;
 			ss<<current->getG()<<" "<<reconstruct(current);
 
-			cout<<"memory: "<<maxLiveNodes*(sizeof(State)+sizeof(RowCol)*numPieces+2*sizeof(int))<<endl;
+			cout<<"memory: "<<maxLiveNodes*(sizeof(State)+sizeof(RowCol)*numPieces)<<endl;
 			cout<<"nodes searched: "<<nodes<<" closed size: "<<
 					closed.size()<<" open size: "<<open.size()<<" "<<open_queue.size()<<endl;
 
 			for(auto it=open.begin();it!=open.end();it++){
-				delete it->first;
+				delete *it;
 			}
 			for(auto it=closed.begin();it!=closed.end();it++){
-				delete it->first;
+				delete *it;
 			}
 			delete current;
 			open.clear();
@@ -89,17 +89,17 @@ string Puzzle::aStar(){
 
 			auto stored = closed.find(*it);
 			if(stored!=closed.end()){
-				if(stored->second<=(*it)->getG()){
+				if((*stored)->getG()<=(*it)->getG()){
 					delete *it;
 					continue;
 				}
 				closed.erase(*it); // re-open node to
-				delete stored->first;
+				delete *stored;
 			}
 
 			stored = open.find(*it);
 			if(stored!=open.end() ){
-				if(stored->second<=(*it)->getG()){
+				if((*stored)->getG()<=(*it)->getG()){
 					delete *it;
 					continue;
 				}
@@ -113,7 +113,7 @@ string Puzzle::aStar(){
 						std::push_heap(open_queue.begin(), toUpdate+1,comp);
 
 						open.erase(stored);
-						open.insert(make_pair(*toUpdate,(*toUpdate)->getG()));
+						open.insert(*toUpdate);
 						delete *it;
 						break;
 					}
@@ -121,7 +121,7 @@ string Puzzle::aStar(){
 
 			}
 			if(!updatedInOpen){
-				open.insert(make_pair(*it,(*it)->getG())); // fast, but nodes may appear multiple times
+				open.insert(*it); // fast, but nodes may appear multiple times
 				open_queue.push_back(*it);
 				std::push_heap(open_queue.begin(), open_queue.end(),comp);
 			}
@@ -129,7 +129,7 @@ string Puzzle::aStar(){
 
 		}
 
-		closed.insert(make_pair(current,current->getG()));
+		closed.insert(current);
 
 		//============================SMA*====================================
 		//		if(open_queue.size()>50000){
