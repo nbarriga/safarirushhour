@@ -47,6 +47,7 @@ string Puzzle::aStar(){
 	open.insert(make_pair(initial,initial->getG()));
 
 	uint64_t nodes=0;
+	uint32_t maxLiveNodes=0;
 
 	while (!open_queue.empty()) {
 
@@ -55,12 +56,17 @@ string Puzzle::aStar(){
 		open_queue.pop_back();
 		open.erase(current);
 
-		 //cout<<"open queue size: "<<open_queue.size()<<" f:"<<current->getF()<<" first: "<<endl<<current->toString()<<endl;
+		//=======================IDA*===========================
+		//		if(current->getF()>16){
+		//			continue;
+		//		}
+		//cout<<"open queue size: "<<open_queue.size()<<" f:"<<current->getF()<<" first: "<<endl<<current->toString()<<endl;
 
 		if (current->isGoal()) {
 			stringstream ss;
 			ss<<current->getG()<<" "<<reconstruct(current);
 
+			cout<<"memory: "<<maxLiveNodes*(sizeof(State)+sizeof(RowCol)*numPieces+2*sizeof(int))<<endl;
 			cout<<"nodes searched: "<<nodes<<" closed size: "<<
 					closed.size()<<" open size: "<<open.size()<<" "<<open_queue.size()<<endl;
 
@@ -76,9 +82,10 @@ string Puzzle::aStar(){
 			return ss.str();
 		}
 		const vector<State*>& children =current->genSuccesors();
-		bool deletedFromOpen=false;
+
 		for (auto it=children.begin();it!=children.end();it++){
 			nodes++;
+			bool updatedInOpen=false;
 
 			auto stored = closed.find(*it);
 			if(stored!=closed.end()){
@@ -98,47 +105,46 @@ string Puzzle::aStar(){
 				}
 
 				//check in queue and delete
-				for(auto toDel=open_queue.begin();toDel!=open_queue.end();toDel++){
-					if(stateEqual(*toDel,*it)){
-						deletedFromOpen=true;
-						open_queue.erase(toDel);
+				for(auto toUpdate=open_queue.begin();toUpdate!=open_queue.end();toUpdate++){
+					if(stateEqual(*toUpdate,*it)){
+						updatedInOpen=true;
+
+						(*toUpdate)->setG((*it)->getG());
+						std::push_heap(open_queue.begin(), toUpdate+1,comp);
+
+						open.erase(stored);
+						open.insert(make_pair(*toUpdate,(*toUpdate)->getG()));
+						delete *it;
 						break;
 					}
 				}
-				delete stored->first;
-				open.erase(stored);
 
 			}
-			open.insert(make_pair(*it,(*it)->getG())); // fast, but nodes may appear multiple times
-			open_queue.push_back(*it);
+			if(!updatedInOpen){
+				open.insert(make_pair(*it,(*it)->getG())); // fast, but nodes may appear multiple times
+				open_queue.push_back(*it);
+				std::push_heap(open_queue.begin(), open_queue.end(),comp);
+			}
+			maxLiveNodes=maxLiveNodes>closed.size()+open.size()?maxLiveNodes:closed.size()+open.size();
 
-			//			uint64_t memOpen=open.size()*sizeof(State);
-//			uint64_t memClosed=closed.size()*sizeof(State);
-//			uint64_t currMem=memOpen+memClosed;
-//			memory=memory>currMem?memory:currMem;
 		}
-		if(deletedFromOpen){
-			std::make_heap(open_queue.begin(), open_queue.end(),comp);
-		}else{
-			std::push_heap(open_queue.begin(), open_queue.end(),comp);
-		}
-		//cout<<open_queue.size()<<" "<<open.size()<<" "<<closed.size()<<endl;
+
 		closed.insert(make_pair(current,current->getG()));
 
 		//============================SMA*====================================
-//		if(open_queue.size()>50000){
-//			sort_heap(open_queue.begin(), open_queue.end(),comp);
-//			for(auto toDel=open_queue.begin();toDel!=(open_queue.begin()+10000);toDel++){
-//				open.erase(*toDel);
-//				delete *toDel;
-//			}
-//			open_queue.erase(open_queue.begin(),open_queue.begin()+10000);
-//			make_heap(open_queue.begin(), open_queue.end(),comp);
-//		}
+		//		if(open_queue.size()>50000){
+		//			sort_heap(open_queue.begin(), open_queue.end(),comp);
+		//			for(auto toDel=open_queue.begin();toDel!=(open_queue.begin()+10000);toDel++){
+		//				open.erase(*toDel);
+		//				delete *toDel;
+		//			}
+		//			open_queue.erase(open_queue.begin(),open_queue.begin()+10000);
+		//			make_heap(open_queue.begin(), open_queue.end(),comp);
+		//		}
 	}
-	//	for(auto it=closed.begin();it!=closed.end();it++){
-	//		delete (*it);
-	//	}
+	for(auto it=closed.begin();it!=closed.end();it++){
+		delete (*it);
+	}
 	closed.clear();
 	return "Can't find answer";
 }

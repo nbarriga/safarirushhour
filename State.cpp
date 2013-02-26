@@ -18,7 +18,12 @@ uint16_t State::calculateH() const{
 	}else{
 		_h=2;
 	}
-	for(int p=0;p<numPieces;p++){
+//	if(pieces[letter_index[(uint8_t)'x']].split.row==2 &&pieces[letter_index[(uint8_t)'x']].split.col==7){
+//        _h=0;
+//    }else{
+//    _h=abs(pieces[letter_index[(uint8_t)'x']].split.row-2)+(7-pieces[letter_index[(uint8_t)'x']].split.col);
+//	}
+    for(int p=0;p<numPieces;p++){
 		if((p!=letter_index[(uint8_t)'x'])&&(piece_board[pieces[p].packed][index_orientation[p]][index_type[p]]&pre_exit)!=0){
 			_h++;
 		}
@@ -207,6 +212,10 @@ const string State::getMove(const State* const next) const {
 		}
 	}
 	return ss.str();
+}
+
+void State::setG(uint16_t g) {
+	this->g=g;
 }
 
 State::~State() {

@@ -13,7 +13,8 @@ class State {
 	const State *const prev;
 	const RowCol *const pieces;
 	const size_t hash;
-	const uint16_t g,h;
+	uint16_t g;
+	const uint16_t h;
 	uint16_t calculateH() const;
 	size_t calculateHash() const;
 	const RowCol* getPieces(const string s) const;
@@ -23,6 +24,7 @@ public:
 	uint16_t getH() const;
 	uint16_t getF()const;
 	uint16_t getG() const;
+	void setG(uint16_t g);
 	vector<State*> genSuccesors() const;
 	bool isGoal() const;
 	State(const string s);
