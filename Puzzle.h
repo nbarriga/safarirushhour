@@ -15,10 +15,13 @@ class Puzzle {
 	string _name;
 	State _initial;
 	string reconstruct(const State *const end);
-	string innerIdaStar(const State& s);
+	string reconstruct(int endPos);
+	string innerIdaStar(State* s, int depth);
 	uint16_t threshold,f_min;
 	uint64_t nodes;
 	bool done;
+	State* path[1000];
+	unordered_set<State> visited;
 public:
 
 	Puzzle(string name, string state);

@@ -169,7 +169,7 @@ const RowCol* State::copyPieces(const RowCol* prevPieces) const{
 	return _pieces;
 }
 State::State(const State &s):prev(s.prev),pieces(copyPieces(s.pieces)),hash(s.getHash()),g(s.g),h(s.h){
-
+//cout<<"copy const"<<endl;
 }
 
 uint16_t State::getF() const {
@@ -239,4 +239,16 @@ bool ReverseStatePointerComparator::operator ()(const State* lhs, const State* r
 		return lhs->getG() < rhs->getG();
 	}
 	return lhs->getF() < rhs->getF();
+}
+
+bool HighFLowGComparator::operator ()(const State* lhs,
+		const State* rhs) const {
+	if(lhs->getF() == rhs->getF()){
+			return lhs->getG() < rhs->getG();
+		}
+		return lhs->getF() > rhs->getF();
+}
+
+bool FGComparator::operator ()(const State* lhs) const {
+	return lhs->getG()==g && lhs->getF()==f;
 }

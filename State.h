@@ -34,6 +34,7 @@ public:
 	const string getMove(const State *const next)const;
 	virtual ~State();
 	friend class equal_to<State*>;
+	friend class equal_to<State>;
 	const State* getPrev() const {
 		return prev;
 	}
@@ -43,6 +44,18 @@ class StatePointerComparator
 public:
 	StatePointerComparator(){}
 	bool operator ()(const State* lhs, const State* rhs) const;
+};
+class HighFLowGComparator
+{
+public:
+	HighFLowGComparator(){}
+	bool operator ()(const State* lhs, const State* rhs) const;
+};
+class FGComparator{
+	uint16_t f,g;
+public:
+	FGComparator(uint16_t f,uint16_t g):f(f),g(g){}
+	bool operator ()(const State* lhs) const;
 };
 class ReverseStatePointerComparator
 {
@@ -64,7 +77,19 @@ template <>struct equal_to<State*>{
 		return false;
 	}
 };
-}
 
+template <>struct hash<State>{
+	size_t operator()(const State& s) const{return s.getHash();}
+};
+template <>struct equal_to<State>{
+	bool operator() (const State& x, const State& y) const{
+//		return x->getHash()==y->getHash();
+		if(memcmp(x.pieces,y.pieces,sizeof(RowCol)*numPieces)==0){
+			return true;
+		}
+		return false;
+	}
+};
+}
 
 #endif /* STATE_H_ */

@@ -132,15 +132,63 @@ string Puzzle::aStar(){
 		closed.insert(current);
 
 		//============================SMA*====================================
-		//		if(open_queue.size()>50000){
-		//			sort_heap(open_queue.begin(), open_queue.end(),comp);
-		//			for(auto toDel=open_queue.begin();toDel!=(open_queue.begin()+10000);toDel++){
-		//				open.erase(*toDel);
-		//				delete *toDel;
-		//			}
-		//			open_queue.erase(open_queue.begin(),open_queue.begin()+10000);
-		//			make_heap(open_queue.begin(), open_queue.end(),comp);
-		//		}
+		//this needs to make sure that for any deleted node, its parent is in the open list.
+		//So, before deleting a node, if parent is not in open, reopen it from closed.
+//		const int sizeLimit=1000;//,forgottenSize=20000;
+//		if(open_queue.size()>sizeLimit){
+//			//sort_heap(open_queue.begin(), open_queue.end(),comp);
+//			//we want to delete the highest F's, breaking ties by lowest G
+//			sort(open_queue.begin(), open_queue.end(),HighFLowGComparator());
+//			unordered_set<State*> reopen;
+//			vector<State*> erased;
+//
+//			while(erased.size()<100){
+//				auto part=partition(
+//						open_queue.begin(),
+//						open_queue.end(),
+//						FGComparator(open_queue.front()->getF(),open_queue.front()->getG()));
+//
+//
+//				//unordered_set<State*> erased_set;
+//				//erased.insert(erased.begin(),open_queue.begin(),open_queue.begin()+forgottenSize);
+//				erased.insert(erased.end(),open_queue.begin(),part);
+//				//erased_set.insert(open_queue.begin(),open_queue.begin()+forgottenSize);
+//
+//				//open_queue.erase(open_queue.begin(),open_queue.begin()+forgottenSize);
+//				open_queue.erase(open_queue.begin(),part);
+//
+//
+//
+//				cout<<"deleted: "<<erased.size()<<endl;
+//				cout<<erased.front()->getF()<<" "<<erased.front()->getG()<<" "<<
+//						erased.back()->getF()<<" "<<erased.back()->getG()<<" "<<
+//						open_queue.front()->getF()<<" "<<open_queue.front()->getG()<<" "<<
+//						open_queue.back()->getF()<<" "<<open_queue.back()->getG()<<endl;
+//			}
+//			cout<<"DONE ERASING"<<endl<<endl;
+//			for(auto toDel=erased.begin();toDel!=erased.end();toDel++){
+//				open.erase(*toDel);
+//
+//			}
+//			for(auto toDel=erased.begin();toDel!=erased.end();toDel++){
+//				State *parent=const_cast<State*>((*toDel)->getPrev());
+//				if(open.count(parent)==0 && reopen.count(parent)==0){
+//					//reopen parent
+//					if(closed.count(parent)==0){
+//						cout<<"error!!!!! parent should be in one of the lists"<<endl;
+//					}else{
+//						reopen.insert(parent);
+//						closed.erase(parent);
+//					}
+//				}
+//				delete *toDel;
+//			}
+//			cout<<"reopening nodes: "<<reopen.size()<<endl;
+//
+//			open_queue.insert(open_queue.end(),reopen.begin(),reopen.end());
+//			open.insert(reopen.begin(),reopen.end());
+//			make_heap(open_queue.begin(), open_queue.end(),comp);
+//		}
 	}
 	for(auto it=closed.begin();it!=closed.end();it++){
 		delete (*it);
@@ -149,38 +197,67 @@ string Puzzle::aStar(){
 	return "Can't find answer";
 }
 
-string Puzzle::innerIdaStar(const State& s) {
+string Puzzle::innerIdaStar(State* s, int depth) {
 	nodes++;
+	path[depth]=s;
+	auto f=s->getF();
 
-	if (s.getF() > threshold) {
-		if (s.getF() < f_min) {
-			f_min = s.getF();
+	//cout<<depth<<" "<<visited.size()<<endl;
+
+	auto old=visited.find(*s);
+	if(old!=visited.end()){
+		if(old->getG()<s->getG()){
+			return "";
+		}else if(old->getG()>s->getG()){
+			visited.erase(old);
+			//delete *old;
+			visited.insert(*s);
+		}
+	}
+
+	if(old==visited.end()){
+		visited.insert(*s);
+	}
+
+	if (f > threshold) {
+		if (f < f_min) {
+			f_min = f;
 		}
 		done=false;
 		return "";
 	}
 
-	if (s.getH() == 0){
+	if (s->getH() == 0){
 		done=true;
 		stringstream ss;
-		ss<<s.getG()<<reconstruct(&s);
+		ss<<s->getG()<<reconstruct(depth);
 		return ss.str();  // goal found
 	}
 
 
-	const vector<State*>& children=s.genSuccesors(true);
+	const vector<State*>& children=s->genSuccesors(true);
 
 	for (auto it=children.begin(); it!=children.end();it++) {
-		string s=innerIdaStar(*(*it));
+		string s=innerIdaStar(*it, depth+1);
 		delete(*it);
 		if (done){
 			for(auto toDel=it+1;toDel!=children.end();toDel++){
-				delete(*toDel);
+				delete (*toDel);
 			}
 			return s;         // done
 		}
 	}
+
+
 	return "Can't find answer";
+}
+
+string Puzzle::reconstruct(int endPos) {
+	stringstream ss;
+	for(int i=0;i<endPos;i++){
+		ss<<" "<<path[i]->getMove(path[i+1]);
+	}
+	return ss.str();
 }
 
 string Puzzle::idaStar() {
@@ -188,11 +265,16 @@ string Puzzle::idaStar() {
 	threshold = _initial.getH();
 	done = false;
 	string moves;
+
 	while (!done) {
 		f_min = SHRT_MAX;
-		moves = innerIdaStar(_initial);
+
+		moves = innerIdaStar(&_initial,0);
+
 		if (!done){
 			threshold = f_min;
+			cout<<"cache size: "<<visited.size()<<endl;
+			cout<<"increasing threshold to: "<<threshold<<endl;
 		}
 	}
 	cout<<"nodes searched: "<<nodes<<endl;
