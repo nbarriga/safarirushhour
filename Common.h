@@ -28,6 +28,11 @@
 #include <unordered_set>
 #include <functional>
 #include <boost/functional/hash/hash.hpp>
+
+
+//#define ZOBRIST
+//#define IDA
+
 using namespace std;
 
 enum ORIENTATION {HOR=0, VERT=1};
@@ -83,6 +88,9 @@ extern uint8_t letter_index[256];
 extern uint8_t numPieces;
 extern PIECE_TYPE index_type[19];
 extern ORIENTATION index_orientation[19];
+
+
+extern uint64_t zobrist[2][256];
 
 //board is 7 rows and 9 columns, 2 rightmost columns are outside
 uint64_t get_board(RowCol rowCol,ORIENTATION orientation,PIECE_TYPE type);

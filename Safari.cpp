@@ -34,7 +34,11 @@ int main(){
 		//cout<<puzzle.toString();
 		//cout<<"Result: "<<endl;
 //		cout<<puzzle.aStar()<<endl;
+#ifdef IDA
 		string moves=puzzle.idaStar();
+#else
+		string moves=puzzle.aStar();
+#endif
 		cout<<"solution "<<name<<" "<<(boost::posix_time::microsec_clock::local_time() -start).total_milliseconds()/1000.0<<" "<<moves<<endl;
 
 		//cout<<"END"<<endl;

@@ -203,7 +203,17 @@ string Puzzle::innerIdaStar(State* s, int depth) {
 	auto f=s->getF();
 
 	//cout<<depth<<" "<<visited.size()<<endl;
-
+#ifdef ZOBRIST
+	if(TT.exist(s)){
+		if(TT.TTGetG(s)<s->getG()){
+			return "";//TT cut off
+		}else if(TT.TTGetG(s)>s->getG()){
+			TT.TTsave(s);//replace
+		}
+	}else{
+		TT.TTsave(s);
+	}
+#else
 	auto old=visited.find(*s);
 	if(old!=visited.end()){
 		if(old->getG()<s->getG()){
@@ -218,6 +228,7 @@ string Puzzle::innerIdaStar(State* s, int depth) {
 	if(old==visited.end()){
 		visited.insert(*s);
 	}
+#endif
 
 	if (f > threshold) {
 		if (f < f_min) {
@@ -273,8 +284,7 @@ string Puzzle::idaStar() {
 
 		if (!done){
 			threshold = f_min;
-			cout<<"cache size: "<<visited.size()<<endl;
-			cout<<"increasing threshold to: "<<threshold<<endl;
+			//cout<<"increasing threshold to: "<<threshold<<endl;
 		}
 	}
 	cout<<"nodes searched: "<<nodes<<endl;

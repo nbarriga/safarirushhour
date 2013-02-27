@@ -28,6 +28,8 @@ uint8_t numPieces;
 PIECE_TYPE index_type[19];
 ORIENTATION index_orientation[19];
 
+uint64_t zobrist[2][256];
+
 
 uint64_t get_board(RowCol rowCol,ORIENTATION orientation,PIECE_TYPE type){
 	uint64_t board=0;
@@ -143,6 +145,14 @@ _dummy_static_initializer::_dummy_static_initializer(){
 	type_sizeY[two_by_one][HOR]=1;
 	type_sizeX[two_by_one][VERT]=1;
 	type_sizeY[two_by_one][VERT]=2;
+
+	boost::random::mt19937_64 rng;//use a seed?
+	for(auto i=0;i<256;i++){
+		zobrist[0][i]=rng();
+		zobrist[1][i]=rng();
+	}
+
+
 
 	for(auto i=0;i<20;i++){
 

@@ -58,6 +58,7 @@ vector<State*> State::genSuccesors(bool sorted) const{
 				RowCol *new_pieces=new RowCol[numPieces];
 				memcpy(new_pieces,pieces,numPieces*sizeof(RowCol));
 				new_pieces[p].packed=newPos.packed;
+				//calculate zobrist hash incrementally here
 				succesors.push_back(new State(new_pieces,this));
 			}
 		}
@@ -109,7 +110,13 @@ const RowCol* State::getPieces(const string s) const{
 //2x2 pieces: termite mounds (u,v) and safari rover (x); 3x1 pieces: elephant (o, q, s) and
 //rhino (p, r); 2x1 pieces: lion (a, f),
 //lioness (d, g, j), impala (b, h, i, k) and zebra (c, e).
-State::State(const string s):prev(NULL), pieces(getPieces(s)),hash(calculateHash()),g(0),h(calculateH()) {
+State::State(const string s):prev(NULL), pieces(getPieces(s)),
+#ifdef ZOBRIST
+		hash(calculateZobristHash(0)),hash2(calculateZobristHash(1)),
+#else
+		hash(calculateHash()),
+#endif
+		g(0),h(calculateH()) {
 
 }
 
@@ -160,7 +167,13 @@ string State::toString() const {
 	return formatted;
 }
 
-State::State(const RowCol* pieces, const State* prev):prev(prev),pieces(pieces),hash(calculateHash()),g(prev==NULL?0:prev->getG()+1),h(calculateH()) {
+State::State(const RowCol* pieces, const State* prev):prev(prev),pieces(pieces),
+#ifdef ZOBRIST
+		hash(calculateZobristHash(0)),hash2(calculateZobristHash(1)),
+#else
+		hash(calculateHash()),
+#endif
+		g(prev==NULL?0:prev->getG()+1),h(calculateH()) {
 
 }
 const RowCol* State::copyPieces(const RowCol* prevPieces) const{
@@ -168,7 +181,13 @@ const RowCol* State::copyPieces(const RowCol* prevPieces) const{
 	memcpy(_pieces,prevPieces,sizeof(RowCol)*numPieces);
 	return _pieces;
 }
-State::State(const State &s):prev(s.prev),pieces(copyPieces(s.pieces)),hash(s.getHash()),g(s.g),h(s.h){
+State::State(const State &s):prev(s.prev),pieces(copyPieces(s.pieces)),
+#ifdef ZOBRIST
+		hash(s.hash),hash2(s.hash2),
+#else
+		hash(s.getHash()),
+#endif
+		g(s.g),h(s.h){
 //cout<<"copy const"<<endl;
 }
 
@@ -179,7 +198,15 @@ uint16_t State::getF() const {
 uint16_t State::getG() const {
 	return g;
 }
-
+#ifdef ZOBRIST
+uint64_t State::calculateZobristHash(int n) const{
+	uint64_t _hash=0;
+	for(int i=0;i<numPieces;i++){
+		_hash^= zobrist[n][pieces[i].packed];
+	}
+	return _hash;;
+}
+#else
 size_t State::calculateHash() const {
 	size_t _hash=0;
 	for(int i=0;i<numPieces;i++){
@@ -187,7 +214,7 @@ size_t State::calculateHash() const {
 	}
 	return _hash;
 }
-
+#endif
 const string State::getMove(const State* const next) const {
 	stringstream ss;
 	for(int i=0;i<numPieces;i++){
@@ -220,14 +247,24 @@ const string State::getMove(const State* const next) const {
 void State::setG(uint16_t g) {
 	this->g=g;
 }
+#ifdef ZOBRIST
+uint64_t State::getHash() const {
+	return hash;
+}
 
+uint64_t State::getHash2() const {
+	return hash2;
+}
+#else
+size_t State::getHash() const {
+	return hash;
+}
+#endif
 State::~State() {
 	delete[] pieces;
 }
 
-size_t State::getHash() const {
-	return hash;
-}
+
 bool StatePointerComparator::operator ()(const State* lhs, const State* rhs) const {
 	if(lhs->getF() == rhs->getF()){
 		return lhs->getG() > rhs->getG();

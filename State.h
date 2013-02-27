@@ -12,15 +12,27 @@
 class State {
 	const State *const prev;
 	const RowCol *const pieces;
+#ifdef ZOBRIST
+	const uint64_t hash, hash2;
+	uint64_t calculateZobristHash(int n) const;
+#else
 	const size_t hash;
+	size_t calculateHash() const;
+#endif
 	uint16_t g;
 	const uint16_t h;
+
 	uint16_t calculateH() const;
-	size_t calculateHash() const;
+
 	const RowCol* getPieces(const string s) const;
 	const RowCol* copyPieces(const RowCol* prevPieces) const;
 public:
+#ifdef ZOBRIST
+	uint64_t getHash() const;
+	uint64_t getHash2() const;
+#else
 	size_t getHash() const;
+#endif
 	uint16_t getH() const;
 	uint16_t getF()const;
 	uint16_t getG() const;
