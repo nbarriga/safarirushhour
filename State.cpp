@@ -21,11 +21,11 @@ uint16_t State::calculateH() const{
 //	if(pieces[letter_index[(uint8_t)'x']].split.row==2 &&pieces[letter_index[(uint8_t)'x']].split.col==7){
 //        _h=0;
 //    }else{
-//    _h=abs(pieces[letter_index[(uint8_t)'x']].split.row-2)+(7-pieces[letter_index[(uint8_t)'x']].split.col);
+//    _h=abs(pieces[letter_index[(uint8_t)'x']].split.row-2)*10+(7-pieces[letter_index[(uint8_t)'x']].split.col);
 //	}
     for(int p=0;p<numPieces;p++){
 		if((p!=letter_index[(uint8_t)'x'])&&(piece_board[pieces[p].packed][index_orientation[p]][index_type[p]]&pre_exit)!=0){
-			_h++;
+			_h+=10;
 		}
 	}
 	return _h;
@@ -276,4 +276,20 @@ bool HighFLowGComparator::operator ()(const State* lhs,
 
 bool FGComparator::operator ()(const State* lhs) const {
 	return lhs->getG()==g && lhs->getF()==f;
+}
+namespace std{
+bool equal_to<State*>::operator() (const State* x, const State* y) const{
+	//return x->getHash()==y->getHash() && x->getHash2()==y->getHash2() ;
+	if(memcmp(x->pieces,y->pieces,sizeof(RowCol)*numPieces)==0){
+		return true;
+	}
+	return false;
+}
+bool equal_to<State>::operator() (const State& x, const State& y) const{
+	//return x.getHash()==y.getHash() && x.getHash2()==y.getHash2() ;
+	if(memcmp(x.pieces,y.pieces,sizeof(RowCol)*numPieces)==0){
+		return true;
+	}
+	return false;
+}
 }

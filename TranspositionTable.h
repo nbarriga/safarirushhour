@@ -10,8 +10,6 @@
 #include "Common.h"
 #include "State.h"
 
-#ifdef ZOBRIST
-
 class Entry{
 private:
 	uint64_t hash2;
@@ -47,5 +45,5 @@ public:
 	bool exist(const State *const s) const;
 
 };
-#endif
+
 #endif /* TRANSPOSITIONTABLE_H_ */

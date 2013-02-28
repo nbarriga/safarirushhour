@@ -7,7 +7,7 @@
 
 #include "TranspositionTable.h"
 
-#ifdef ZOBRIST
+
 TranspositionTable::TranspositionTable() {
 	TT=new Entry[ttSize];
 
@@ -36,4 +36,4 @@ uint16_t TranspositionTable::TTGetG(const State* const s) const {
 bool TranspositionTable::exist(const State* const s) const {
 	return TT[s->getHash()%ttSize].getHash2()==s->getHash2();
 }
-#endif
+

@@ -73,26 +73,14 @@ template <>struct hash<State*>{
 };
 
 template <>struct equal_to<State*>{
-	bool operator() (const State* x, const State* y) const{
-//		return x->getHash()==y->getHash();
-		if(memcmp(x->pieces,y->pieces,sizeof(RowCol)*numPieces)==0){
-			return true;
-		}
-		return false;
-	}
+	bool operator() (const State* x, const State* y) const;
 };
 
 template <>struct hash<State>{
 	size_t operator()(const State& s) const{return s.getHash();}
 };
 template <>struct equal_to<State>{
-	bool operator() (const State& x, const State& y) const{
-//		return x->getHash()==y->getHash();
-		if(memcmp(x.pieces,y.pieces,sizeof(RowCol)*numPieces)==0){
-			return true;
-		}
-		return false;
-	}
+	bool operator() (const State& x, const State& y) const;
 };
 }
 

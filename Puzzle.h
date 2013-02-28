@@ -22,11 +22,7 @@ class Puzzle {
 	uint64_t nodes;
 	bool done;
 	State* path[1000];
-#ifdef ZOBRIST
 	TranspositionTable TT;
-#else
-	unordered_set<State> visited;
-#endif
 public:
 
 	Puzzle(string name, string state);
