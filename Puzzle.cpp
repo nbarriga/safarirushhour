@@ -279,12 +279,12 @@ string Puzzle::idaStar() {
 
 	while (!done) {
 		f_min = SHRT_MAX;
-
+		cout<<"Threshold: "<<threshold<<endl;
 		moves = innerIdaStar(&_initial,0);
 
 		if (!done){
 			threshold = f_min;
-			//cout<<"increasing threshold to: "<<threshold<<endl;
+
 		}
 	}
 	cout<<"nodes searched: "<<nodes<<endl;

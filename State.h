@@ -42,6 +42,7 @@ public:
 	State(const string s);
 	State(const State &s);
 	State(const RowCol *pieces, const State* prev);
+	State(const RowCol *pieces, const State* prev, uint64_t hash, uint64_t hash2);
 	string toString()const;
 	const string getMove(const State *const next)const;
 	virtual ~State();

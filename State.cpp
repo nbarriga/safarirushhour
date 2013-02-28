@@ -59,7 +59,15 @@ vector<State*> State::genSuccesors(bool sorted) const{
 				memcpy(new_pieces,pieces,numPieces*sizeof(RowCol));
 				new_pieces[p].packed=newPos.packed;
 				//calculate zobrist hash incrementally here
+#ifdef ZOBRIST
+				uint64_t _hash=hash^zobrist[pieces[p].packed][index_orientation[p]][index_type[p]][0];
+				_hash^=zobrist[new_pieces[p].packed][index_orientation[p]][index_type[p]][0];
+				uint64_t _hash2=hash2^zobrist[pieces[p].packed][index_orientation[p]][index_type[p]][1];
+				_hash2^=zobrist[new_pieces[p].packed][index_orientation[p]][index_type[p]][1];
+				succesors.push_back(new State(new_pieces,this,_hash,_hash2));
+#else
 				succesors.push_back(new State(new_pieces,this));
+#endif
 			}
 		}
 	}
@@ -202,7 +210,7 @@ uint16_t State::getG() const {
 uint64_t State::calculateZobristHash(int n) const{
 	uint64_t _hash=0;
 	for(int i=0;i<numPieces;i++){
-		_hash^= zobrist[n][pieces[i].packed];
+		_hash^= zobrist[pieces[i].packed][index_orientation[i]][index_type[i]][n];
 	}
 	return _hash;;
 }
@@ -260,6 +268,17 @@ size_t State::getHash() const {
 	return hash;
 }
 #endif
+
+State::State(const RowCol* pieces, const State* prev, uint64_t hash,
+		uint64_t hash2):prev(prev),pieces(pieces),
+#ifdef ZOBRIST
+		hash(hash),hash2(hash2),
+#else
+		hash(calculateHash()),
+#endif
+		g(prev==NULL?0:prev->getG()+1),h(calculateH()) {
+
+}
 State::~State() {
 	delete[] pieces;
 }

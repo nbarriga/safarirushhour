@@ -30,8 +30,8 @@
 #include <boost/functional/hash/hash.hpp>
 
 
-//#define ZOBRIST
-//#define IDA
+#define ZOBRIST
+#define IDA
 
 using namespace std;
 
@@ -89,8 +89,8 @@ extern uint8_t numPieces;
 extern PIECE_TYPE index_type[19];
 extern ORIENTATION index_orientation[19];
 
-
-extern uint64_t zobrist[2][256];
+//rowcol orientation type 1-2
+extern uint64_t zobrist[256][2][4][2];
 
 //board is 7 rows and 9 columns, 2 rightmost columns are outside
 uint64_t get_board(RowCol rowCol,ORIENTATION orientation,PIECE_TYPE type);
