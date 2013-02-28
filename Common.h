@@ -28,10 +28,10 @@
 #include <unordered_set>
 #include <functional>
 #include <boost/functional/hash/hash.hpp>
+#include <sys/time.h>
+#include <sys/resource.h>
 
-
-#define ZOBRIST
-#define IDA
+//#define IDA
 
 using namespace std;
 

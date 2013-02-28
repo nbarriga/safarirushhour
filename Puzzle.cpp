@@ -56,19 +56,18 @@ string Puzzle::aStar(){
 		open_queue.pop_back();
 		open.erase(current);
 
-		//=======================IDA*===========================
-		//		if(current->getF()>16){
-		//			continue;
-		//		}
-		//cout<<"open queue size: "<<open_queue.size()<<" f:"<<current->getF()<<" first: "<<endl<<current->toString()<<endl;
 
 		if (current->isGoal()) {
 			stringstream ss;
 			ss<<current->getG()<<reconstruct(current);
 
-			cout<<"memory: "<<maxLiveNodes*(sizeof(State)+sizeof(RowCol)*numPieces)<<endl;
-			cout<<"nodes searched: "<<nodes<<" closed size: "<<
-					closed.size()<<" open size: "<<open.size()<<" "<<open_queue.size()<<endl;
+			struct rusage usage;
+			getrusage(RUSAGE_SELF , &usage);
+
+			cout<<"Usage: "<<usage.ru_maxrss/1024<<"MB"<<endl;
+			cout<<"memory: "<<maxLiveNodes*(sizeof(State)+sizeof(RowCol)*numPieces+10*sizeof(State*))/1024/1024<<"MB"<<endl;
+			cout<<"nodes searched: "<<nodes<<endl;
+
 
 			for(auto it=open.begin();it!=open.end();it++){
 				delete *it;
@@ -202,8 +201,7 @@ string Puzzle::innerIdaStar(State* s, int depth) {
 	path[depth]=s;
 	auto f=s->getF();
 
-	//cout<<depth<<" "<<visited.size()<<endl;
-#ifdef ZOBRIST
+
 	if(TT.exist(s)){
 		if(TT.TTGetG(s)<s->getG()){
 			return "";//TT cut off
@@ -213,22 +211,6 @@ string Puzzle::innerIdaStar(State* s, int depth) {
 	}else{
 		TT.TTsave(s);
 	}
-#else
-	auto old=visited.find(*s);
-	if(old!=visited.end()){
-		if(old->getG()<s->getG()){
-			return "";
-		}else if(old->getG()>s->getG()){
-			visited.erase(old);
-			//delete *old;
-			visited.insert(*s);
-		}
-	}
-
-	if(old==visited.end()){
-		visited.insert(*s);
-	}
-#endif
 
 	if (f > threshold) {
 		if (f < f_min) {
@@ -279,7 +261,7 @@ string Puzzle::idaStar() {
 
 	while (!done) {
 		f_min = SHRT_MAX;
-		cout<<"Threshold: "<<threshold<<endl;
+		cout<<"Threshold: "<<threshold<<", nodes: "<<nodes<<endl;
 		moves = innerIdaStar(&_initial,0);
 
 		if (!done){
@@ -287,6 +269,6 @@ string Puzzle::idaStar() {
 
 		}
 	}
-	cout<<"nodes searched: "<<nodes<<endl;
+	cout<<"total nodes searched: "<<nodes<<endl;
 	return moves;
 }
