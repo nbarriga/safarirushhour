@@ -31,7 +31,7 @@ string Puzzle::reconstruct(const State *const state){
 		return reconstruct(state->getPrev())+" "+state->getPrev()->getMove(state);
 	}
 }
-string Puzzle::aStar(){
+int Puzzle::aStar(){
 	equal_to<State*> stateEqual;
 	vector<State*> open_queue;
 	StatePointerComparator comp;
@@ -58,17 +58,18 @@ string Puzzle::aStar(){
 
 
 		if (current->isGoal()) {
-			stringstream ss;
-			ss<<current->getG()<<reconstruct(current);
+			solution=reconstruct(current);;
+			int solutionLength=current->getG();
 
 			struct rusage usage;
 			getrusage(RUSAGE_SELF , &usage);
 
-			cout<<"Usage: "<<usage.ru_maxrss/1024<<"MB"<<endl;
-			cout<<"memory: "<<maxLiveNodes*(sizeof(State)+sizeof(RowCol)*numPieces+10*sizeof(State*))/1024/1024<<"MB"<<endl;
-			cout<<"nodes searched: "<<nodes<<endl;
+			if(init_done){
+				cout<<"Usage: "<<usage.ru_maxrss/1024<<"MB"<<endl;
+				cout<<"memory: "<<maxLiveNodes*(sizeof(State)+sizeof(RowCol)*numPieces+10*sizeof(State*))/1024/1024<<"MB"<<endl;
+				cout<<"nodes searched: "<<nodes<<endl;
 
-
+			}
 			for(auto it=open.begin();it!=open.end();it++){
 				delete *it;
 			}
@@ -78,7 +79,8 @@ string Puzzle::aStar(){
 			delete current;
 			open.clear();
 			closed.clear();
-			return ss.str();
+
+			return solutionLength;
 		}
 		const vector<State*>& children =current->genSuccesors(false);
 
@@ -193,10 +195,11 @@ string Puzzle::aStar(){
 		delete (*it);
 	}
 	closed.clear();
-	return "Can't find answer";
+	solution="Can't find answer";
+	return -1;
 }
 
-string Puzzle::innerIdaStar(State* s, int depth) {
+int Puzzle::innerIdaStar(State* s, int depth) {
 	nodes++;
 	path[depth]=s;
 	auto f=s->getF();
@@ -204,7 +207,7 @@ string Puzzle::innerIdaStar(State* s, int depth) {
 
 	if(TT.exist(s)){
 		if(TT.TTGetG(s)<s->getG()){
-			return "";//TT cut off
+			return -1;//TT cut off
 		}else if(TT.TTGetG(s)>s->getG()){
 			TT.TTsave(s);//replace
 		}
@@ -217,21 +220,20 @@ string Puzzle::innerIdaStar(State* s, int depth) {
 			f_min = f;
 		}
 		done=false;
-		return "";
+		return -1;
 	}
 
 	if (s->getH() == 0){
 		done=true;
-		stringstream ss;
-		ss<<s->getG()<<reconstruct(depth);
-		return ss.str();  // goal found
+		solution=reconstruct(depth);
+		return s->getG();  // goal found
 	}
 
 
 	const vector<State*>& children=s->genSuccesors(true);
 
 	for (auto it=children.begin(); it!=children.end();it++) {
-		string s=innerIdaStar(*it, depth+1);
+		int s=innerIdaStar(*it, depth+1);
 		delete(*it);
 		if (done){
 			for(auto toDel=it+1;toDel!=children.end();toDel++){
@@ -241,8 +243,8 @@ string Puzzle::innerIdaStar(State* s, int depth) {
 		}
 	}
 
-
-	return "Can't find answer";
+	solution="Can't find answer";
+	return -1;
 }
 
 string Puzzle::reconstruct(int endPos) {
@@ -253,11 +255,14 @@ string Puzzle::reconstruct(int endPos) {
 	return ss.str();
 }
 
-string Puzzle::idaStar() {
+Puzzle::Puzzle(string name,const State& state):_name(name), _initial(state) {
+}
+
+int Puzzle::idaStar() {
 	nodes=0;
 	threshold = _initial.getH();
 	done = false;
-	string moves;
+	int moves;
 
 	while (!done) {
 		f_min = SHRT_MAX;

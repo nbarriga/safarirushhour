@@ -17,20 +17,26 @@ class Puzzle {
 	State _initial;
 	string reconstruct(const State *const end);
 	string reconstruct(int endPos);
-	string innerIdaStar(State* s, int depth);
+	int innerIdaStar(State* s, int depth);
 	uint16_t threshold,f_min;
 	uint64_t nodes;
 	bool done;
 	State* path[1000];
 	TranspositionTable TT;
+	string solution;
 public:
 
 	Puzzle(string name, string state);
+	Puzzle(string name, const State& state);
 	virtual ~Puzzle();
 	string toString()const;
-	string aStar();
+	int aStar();
 
-	string idaStar();
+	int idaStar();
+
+	const string& getSolution() const {
+		return solution;
+	}
 };
 
 #endif /* PUZZLE_H_ */

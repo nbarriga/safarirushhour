@@ -6,6 +6,9 @@
  */
 
 #include "Common.h"
+#include "Puzzle.h"
+#include "State.h"
+
 ORIENTATION ORIENTATIONS[]={HOR,VERT};
 DIRECTION DIRECTIONS[]={UP,DOWN,LEFT,RIGHT};
 PIECE_TYPE PIECE_TYPES[]={rover,two_by_two,three_by_one,two_by_one};
@@ -35,7 +38,13 @@ bool exit_obstacles2[3][4][2][128];
 bool exit_obstacles3[7][4][2][128];
 bool exit_obstacles4[13][4][2][128];
 bool rover_on_exit[4][128];
+bool init_done=false;
 
+#ifdef BIG
+uint8_t relaxation[6][6][7][7][4][2][7][7][4][2];
+#else
+uint8_t relaxation[6][6][7][7][4][2];
+#endif
 uint64_t get_board(RowCol rowCol,ORIENTATION orientation,PIECE_TYPE type){
 	uint64_t board=0;
 	switch(type){
@@ -406,4 +415,102 @@ _dummy_static_initializer::_dummy_static_initializer(){
 			rover_on_exit[3][rowCol.packed]=on_exit;
 		}
 	}
+#ifdef BIG
+	ifstream fileIn("data2.bin", ios::in | ios::binary);
+#else
+	ifstream fileIn("data.bin", ios::in | ios::binary);
+#endif
+	RowCol roverRowCol;
+	bool done=false;
+	for(roverRowCol.split.row=0;roverRowCol.split.row<6&&!done;roverRowCol.split.row++){
+		for(roverRowCol.split.col=0;roverRowCol.split.col<6&&!done;roverRowCol.split.col++){
+#ifdef BIG
+			char *pointer=(char*)&relaxation[roverRowCol.split.row][roverRowCol.split.col][0][0][0][0][0][0][0][0];
+#else
+			char *pointer=(char*)&relaxation[roverRowCol.split.row][roverRowCol.split.col][0][0][0][0];
+#endif
+			fileIn.read(pointer, sizeof(relaxation[roverRowCol.split.row][roverRowCol.split.col]));
+			if(fileIn.eof()||fileIn.fail()){
+				done=true;
+			}
+		}
+	}
+	fileIn.close();
+	int startRow=roverRowCol.split.row;
+	int startCol=roverRowCol.split.col;
+	if(done){
+		startRow--;
+		startCol--;
+	}
+
+#ifdef BIG
+	ofstream myFile("data2.bin", ios::app | ios::binary);
+#else
+	ofstream myFile("data.bin", ios::app | ios::binary);
+#endif
+	//RowCol roverRowCol;
+	for(roverRowCol.split.row=startRow;roverRowCol.split.row<6;roverRowCol.split.row++){
+		for(roverRowCol.split.col=startCol;roverRowCol.split.col<6;roverRowCol.split.col++){
+			startCol=0;
+			RowCol obs1RowCol;
+			for(obs1RowCol.split.row=0;obs1RowCol.split.row<7;obs1RowCol.split.row++){
+				for(obs1RowCol.split.col=0;obs1RowCol.split.col<7;obs1RowCol.split.col++){
+					cout<<endl<<(int)roverRowCol.split.row<<" "<<(int)roverRowCol.split.col<<" "<<
+							(int)obs1RowCol.split.row<<" "<<(int)obs1RowCol.split.col<<endl;
+					for(int type1=0;type1<4;type1++){
+						for(int orientation1=0;orientation1<2;orientation1++){
+#ifdef BIG
+							RowCol obs2RowCol;
+							for(obs2RowCol.split.row=0;obs2RowCol.split.row<7;obs2RowCol.split.row++){
+								for(obs2RowCol.split.col=0;obs2RowCol.split.col<7;obs2RowCol.split.col++){
+									for(int type2=0;type2<4;type2++){
+										for(int orientation2=0;orientation2<2;orientation2++){
+											numPieces=3;
+											RowCol *pieces=new RowCol[numPieces];
+											pieces[2]=obs2RowCol;
+#else
+											numPieces=2;
+											RowCol *pieces=new RowCol[numPieces];
+#endif
+											pieces[0]=roverRowCol;
+											pieces[1]=obs1RowCol;
+
+											Puzzle puzzle("Test",State(pieces,NULL));
+											int value=puzzle.aStar();
+											relaxation[roverRowCol.split.row]
+											           [roverRowCol.split.col]
+											            [obs1RowCol.split.row]
+											             [obs1RowCol.split.col]
+											              [type1][orientation1]
+#ifdef BIG
+											                      [obs2RowCol.split.row]
+											                       [obs2RowCol.split.col]
+											                        [type2][orientation2]
+#endif
+											                                = value;
+//											cout<<value<<" ";
+#ifdef BIG
+										}
+									}
+								}
+							}
+#endif
+						}
+					}
+				}
+			}
+#ifdef BIG
+			char *pointer=(char*)&relaxation[roverRowCol.split.row][roverRowCol.split.col][0][0][0][0][0][0][0][0];
+#else
+			char *pointer=(char*)&relaxation[roverRowCol.split.row][roverRowCol.split.col][0][0][0][0];
+#endif
+			myFile.write(pointer, sizeof(relaxation[roverRowCol.split.row][roverRowCol.split.col]));
+			myFile.flush();
+			cout<<"wrote "<<(int)roverRowCol.split.row<<" "<<(int)roverRowCol.split.col<<endl;
+		}
+	}
+	myFile.close();
+
+
+	init_done=true;
 }

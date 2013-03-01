@@ -30,8 +30,10 @@
 #include <boost/functional/hash/hash.hpp>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <fstream>
 
 //#define IDA
+#define BIG
 
 using namespace std;
 
@@ -95,7 +97,13 @@ extern bool exit_obstacles2[3][4][2][128];
 extern bool exit_obstacles3[7][4][2][128];
 extern bool exit_obstacles4[13][4][2][128];
 extern bool rover_on_exit[4][128];
-
+extern bool init_done;
+//roverRow roverCol obsRow obsCol type orientation obsRow obsCol type orientation
+#ifdef BIG
+extern uint8_t relaxation[6][6][7][7][4][2][7][7][4][2];
+#else
+extern uint8_t relaxation[6][6][7][7][4][2];
+#endif
 union RowCol{
 	struct _split{
 		uint8_t row:3,col:4;

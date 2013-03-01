@@ -12,67 +12,104 @@ uint16_t State::calculateH() const{
 	RowCol _rover;
 	_rover.packed=pieces[letter_index[(uint8_t)'x']].packed;
 
-	if(_rover.split.row==2){
-		if(_rover.split.col==7){
+	if(init_done){
+		if(_rover.split.row==2&&_rover.split.col==7){
 			_h=0;
 		}else{
-			_h=1;
+			int maxH=0;
+			for(int p=0;p<numPieces;p++){
+				if(p!=letter_index[(uint8_t)'x']){
+#ifdef BIG
+					for(int p2=0;p2<numPieces;p2++){
+						if(p!=p2&&p2!=letter_index[(uint8_t)'x']){
+#endif
+							int value=relaxation[_rover.split.row]
+							                     [_rover.split.col]
+							                      [pieces[p].split.row]
+							                       [pieces[p].split.col]
+							                        [index_type[p]]
+							                         [index_orientation[p]]
+#ifdef BIG
+							                          [pieces[p2].split.row]
+							                           [pieces[p2].split.col]
+							                            [index_type[p2]]
+							                             [index_orientation[p2]]
+#endif
+							                              ;
+							if(value>maxH){
+								maxH=value;
+							}
+#ifdef BIG
+						}
+					}
+#endif
+				}
+			}
+			_h=maxH;
 		}
 	}else{
-		_h=2;
+		if(_rover.split.row==2){
+			if(_rover.split.col==7){
+				_h=0;
+			}else{
+				_h=1;
+			}
+		}else{
+			_h=2;
+		}
 	}
-	if(!rover_on_exit[3][_rover.packed]){
-		int onExit=INT_MAX;
-		for(int i=0;i<13;i++){
-			int count=0;
-			for(int p=0;p<numPieces;p++){
-				if((p!=letter_index[(uint8_t)'x'])&&exit_obstacles4[i][index_type[p]][index_orientation[p]][pieces[p].packed]){
-					count++;
-				}
-			}
-			if(count<onExit){
-				onExit=count;
-			}
-		}
-		_h+=onExit;
-	}else
-		if(!rover_on_exit[2][_rover.packed]){
-			int onExit=INT_MAX;
-		for(int i=0;i<7;i++){
-			int count=0;
-			for(int p=0;p<numPieces;p++){
-				if((p!=letter_index[(uint8_t)'x'])&&exit_obstacles3[i][index_type[p]][index_orientation[p]][pieces[p].packed]){
-					count++;
-				}
-			}
-			if(count<onExit){
-				onExit=count;
-			}
-		}
-		_h+=onExit;
-	}else
-		if(!rover_on_exit[1][_rover.packed]){
-			int onExit=INT_MAX;
-			for(int i=0;i<3;i++){
-				int count=0;
-				for(int p=0;p<numPieces;p++){
-					if((p!=letter_index[(uint8_t)'x'])&&exit_obstacles2[i][index_type[p]][index_orientation[p]][pieces[p].packed]){
-						count++;
-					}
-				}
-				if(count<onExit){
-					onExit=count;
-				}
-			}
-			_h+=onExit;
-		}else
-			if(!rover_on_exit[0][_rover.packed]){
-				for(int p=0;p<numPieces;p++){
-					if((p!=letter_index[(uint8_t)'x'])&&exit_obstacles[index_type[p]][index_orientation[p]][pieces[p].packed]){
-						_h+=1;
-					}
-				}
-			}
+	//	if(!rover_on_exit[3][_rover.packed]){
+	//		int onExit=INT_MAX;
+	//		for(int i=0;i<13;i++){
+	//			int count=0;
+	//			for(int p=0;p<numPieces;p++){
+	//				if((p!=letter_index[(uint8_t)'x'])&&exit_obstacles4[i][index_type[p]][index_orientation[p]][pieces[p].packed]){
+	//					count++;
+	//				}
+	//			}
+	//			if(count<onExit){
+	//				onExit=count;
+	//			}
+	//		}
+	//		_h+=onExit;
+	//	}else
+	//		if(!rover_on_exit[2][_rover.packed]){
+	//			int onExit=INT_MAX;
+	//			for(int i=0;i<7;i++){
+	//				int count=0;
+	//				for(int p=0;p<numPieces;p++){
+	//					if((p!=letter_index[(uint8_t)'x'])&&exit_obstacles3[i][index_type[p]][index_orientation[p]][pieces[p].packed]){
+	//						count++;
+	//					}
+	//				}
+	//				if(count<onExit){
+	//					onExit=count;
+	//				}
+	//			}
+	//			_h+=onExit;
+	//		}else
+	//			if(!rover_on_exit[1][_rover.packed]){
+	//				int onExit=INT_MAX;
+	//				for(int i=0;i<3;i++){
+	//					int count=0;
+	//					for(int p=0;p<numPieces;p++){
+	//						if((p!=letter_index[(uint8_t)'x'])&&exit_obstacles2[i][index_type[p]][index_orientation[p]][pieces[p].packed]){
+	//							count++;
+	//						}
+	//					}
+	//					if(count<onExit){
+	//						onExit=count;
+	//					}
+	//				}
+	//				_h+=onExit;
+	//			}else
+	//				if(!rover_on_exit[0][_rover.packed]){
+	//					for(int p=0;p<numPieces;p++){
+	//						if((p!=letter_index[(uint8_t)'x'])&&exit_obstacles[index_type[p]][index_orientation[p]][pieces[p].packed]){
+	//							_h+=1;
+	//						}
+	//					}
+	//				}
 
 
 	return _h;
@@ -127,37 +164,37 @@ bool State::isGoal() const{
 }
 const RowCol* State::getPieces(const string s) const{
 	RowCol _pieces[19];
-		bool seen[256];
-		for(int i=0;i<256;i++){
-			seen[i]=false;
-		}
-		ORIENTATION dir;
-		PIECE_TYPE type;
-		RowCol rowCol;
-		int size=0;
-		for(int i=0;i<49;i++){
-			if(s[i]!='.' && !seen[(uint8_t)s[i]]){
-				seen[(uint8_t)s[i]]=true;
-				type=piece_type[(uint8_t)s[i]];
-				rowCol.split.col=i%7;
-				rowCol.split.row=i/7;
-				if(s[i]==s[i+1]){//square pieces are horizontal, who cares
-					dir=HOR;//horizontal
-				}else{
-					dir=VERT;//vertical
-				}
-				_pieces[size]=rowCol;
-				index_letter[size]=s[i];
-				letter_index[(uint8_t)s[i]]=size;
-				index_type[size]=type;
-				index_orientation[size]=dir;
-				size++;
+	bool seen[256];
+	for(int i=0;i<256;i++){
+		seen[i]=false;
+	}
+	ORIENTATION dir;
+	PIECE_TYPE type;
+	RowCol rowCol;
+	int size=0;
+	for(int i=0;i<49;i++){
+		if(s[i]!='.' && !seen[(uint8_t)s[i]]){
+			seen[(uint8_t)s[i]]=true;
+			type=piece_type[(uint8_t)s[i]];
+			rowCol.split.col=i%7;
+			rowCol.split.row=i/7;
+			if(s[i]==s[i+1]){//square pieces are horizontal, who cares
+				dir=HOR;//horizontal
+			}else{
+				dir=VERT;//vertical
 			}
+			_pieces[size]=rowCol;
+			index_letter[size]=s[i];
+			letter_index[(uint8_t)s[i]]=size;
+			index_type[size]=type;
+			index_orientation[size]=dir;
+			size++;
 		}
-		numPieces=size;
-		RowCol* __pieces=new RowCol[size];
-		memcpy(__pieces,_pieces,size*sizeof(RowCol));
-		return __pieces;
+	}
+	numPieces=size;
+	RowCol* __pieces=new RowCol[size];
+	memcpy(__pieces,_pieces,size*sizeof(RowCol));
+	return __pieces;
 }
 //2x2 pieces: termite mounds (u,v) and safari rover (x); 3x1 pieces: elephant (o, q, s) and
 //rhino (p, r); 2x1 pieces: lion (a, f),
@@ -228,7 +265,7 @@ const RowCol* State::copyPieces(const RowCol* prevPieces) const{
 State::State(const State &s):prev(s.prev),pieces(copyPieces(s.pieces)),
 		hash(s.hash),hash2(s.hash2),
 		g(s.g),h(s.h){
-//cout<<"copy const"<<endl;
+	//cout<<"copy const"<<endl;
 }
 
 uint16_t State::getF() const {
@@ -291,8 +328,8 @@ uint64_t State::getHash2() const {
 
 State::State(const RowCol* pieces, const State* prev, uint64_t hash,
 		uint64_t hash2):prev(prev),pieces(pieces),
-		hash(hash),hash2(hash2),
-		g(prev==NULL?0:prev->getG()+1),h(calculateH()) {
+				hash(hash),hash2(hash2),
+				g(prev==NULL?0:prev->getG()+1),h(calculateH()) {
 
 }
 State::~State() {
@@ -316,9 +353,9 @@ bool ReverseStatePointerComparator::operator ()(const State* lhs, const State* r
 bool HighFLowGComparator::operator ()(const State* lhs,
 		const State* rhs) const {
 	if(lhs->getF() == rhs->getF()){
-			return lhs->getG() < rhs->getG();
-		}
-		return lhs->getF() > rhs->getF();
+		return lhs->getG() < rhs->getG();
+	}
+	return lhs->getF() > rhs->getF();
 }
 
 bool FGComparator::operator ()(const State* lhs) const {
