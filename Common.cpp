@@ -33,7 +33,8 @@ uint64_t zobrist[256][2][4][2];
 bool exit_obstacles[4][2][128];
 bool exit_obstacles2[3][4][2][128];
 bool exit_obstacles3[7][4][2][128];
-bool rover_on_exit[3][128];
+bool exit_obstacles4[13][4][2][128];
+bool rover_on_exit[4][128];
 
 uint64_t get_board(RowCol rowCol,ORIENTATION orientation,PIECE_TYPE type){
 	uint64_t board=0;
@@ -374,6 +375,10 @@ _dummy_static_initializer::_dummy_static_initializer(){
 						exit_obstacles3[i][type][orientation][rowCol.packed]=
 								(piece_board[rowCol.packed][orientation][type]&pre_pre_pre_exit[i])!=0;
 					}
+					for(int i=0;i<13;i++){
+						exit_obstacles4[i][type][orientation][rowCol.packed]=
+								(piece_board[rowCol.packed][orientation][type]&pre_pre_pre_pre_exit[i])!=0;
+					}
 				}
 			}
 		}
@@ -394,6 +399,11 @@ _dummy_static_initializer::_dummy_static_initializer(){
 				on_exit=on_exit||((piece_board[rowCol.packed][HOR][rover]&pre_pre_pre_exit[i])!=0);
 			}
 			rover_on_exit[2][rowCol.packed]=on_exit;
+			on_exit=false;
+			for(int i=0;i<13;i++){
+				on_exit=on_exit||((piece_board[rowCol.packed][HOR][rover]&pre_pre_pre_pre_exit[i])!=0);
+			}
+			rover_on_exit[3][rowCol.packed]=on_exit;
 		}
 	}
 }

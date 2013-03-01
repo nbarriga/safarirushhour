@@ -21,8 +21,23 @@ uint16_t State::calculateH() const{
 	}else{
 		_h=2;
 	}
-	if(!rover_on_exit[2][_rover.packed]){
+	if(!rover_on_exit[3][_rover.packed]){
 		int onExit=INT_MAX;
+		for(int i=0;i<13;i++){
+			int count=0;
+			for(int p=0;p<numPieces;p++){
+				if((p!=letter_index[(uint8_t)'x'])&&exit_obstacles4[i][index_type[p]][index_orientation[p]][pieces[p].packed]){
+					count++;
+				}
+			}
+			if(count<onExit){
+				onExit=count;
+			}
+		}
+		_h+=onExit;
+	}else
+		if(!rover_on_exit[2][_rover.packed]){
+			int onExit=INT_MAX;
 		for(int i=0;i<7;i++){
 			int count=0;
 			for(int p=0;p<numPieces;p++){
