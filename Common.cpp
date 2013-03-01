@@ -30,6 +30,10 @@ ORIENTATION index_orientation[19];
 
 uint64_t zobrist[256][2][4][2];
 
+bool exit_obstacles[4][2][128];
+bool exit_obstacles2[3][4][2][128];
+bool exit_obstacles3[7][4][2][128];
+bool rover_on_exit[3][128];
 
 uint64_t get_board(RowCol rowCol,ORIENTATION orientation,PIECE_TYPE type){
 	uint64_t board=0;
@@ -352,6 +356,44 @@ _dummy_static_initializer::_dummy_static_initializer(){
 			}
 		}
 			break;
+		}
+	}
+
+	for(auto type=0;type<4;type++){
+		for(auto orientation=0;orientation<2;orientation++){
+			RowCol rowCol;
+			for(rowCol.split.row=0;rowCol.split.row<7;rowCol.split.row++){
+				for(rowCol.split.col=0;rowCol.split.col<7;rowCol.split.col++){
+					exit_obstacles[type][orientation][rowCol.packed]=
+							(piece_board[rowCol.packed][orientation][type]&pre_exit)!=0;
+					for(int i=0;i<3;i++){
+						exit_obstacles2[i][type][orientation][rowCol.packed]=
+								(piece_board[rowCol.packed][orientation][type]&pre_pre_exit[i])!=0;
+					}
+					for(int i=0;i<7;i++){
+						exit_obstacles3[i][type][orientation][rowCol.packed]=
+								(piece_board[rowCol.packed][orientation][type]&pre_pre_pre_exit[i])!=0;
+					}
+				}
+			}
+		}
+	}
+
+	RowCol rowCol;
+	for(rowCol.split.row=0;rowCol.split.row<7;rowCol.split.row++){
+		for(rowCol.split.col=0;rowCol.split.col<9;rowCol.split.col++){
+			rover_on_exit[0][rowCol.packed]=
+					(piece_board[rowCol.packed][HOR][rover]&pre_exit)!=0;
+			bool on_exit=false;
+			for(int i=0;i<3;i++){
+				on_exit=on_exit||((piece_board[rowCol.packed][HOR][rover]&pre_pre_exit[i])!=0);
+			}
+			rover_on_exit[1][rowCol.packed]=on_exit;
+			on_exit=false;
+			for(int i=0;i<7;i++){
+				on_exit=on_exit||((piece_board[rowCol.packed][HOR][rover]&pre_pre_pre_exit[i])!=0);
+			}
+			rover_on_exit[2][rowCol.packed]=on_exit;
 		}
 	}
 }

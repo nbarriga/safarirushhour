@@ -9,8 +9,11 @@
 
 uint16_t State::calculateH() const{
 	uint16_t _h=0;
-	if(pieces[letter_index[(uint8_t)'x']].split.row==2){
-		if(pieces[letter_index[(uint8_t)'x']].split.col==7){
+	RowCol _rover;
+	_rover.packed=pieces[letter_index[(uint8_t)'x']].packed;
+
+	if(_rover.split.row==2){
+		if(_rover.split.col==7){
 			_h=0;
 		}else{
 			_h=1;
@@ -18,16 +21,45 @@ uint16_t State::calculateH() const{
 	}else{
 		_h=2;
 	}
-//	if(pieces[letter_index[(uint8_t)'x']].split.row==2 &&pieces[letter_index[(uint8_t)'x']].split.col==7){
-//        _h=0;
-//    }else{
-//    _h=abs(pieces[letter_index[(uint8_t)'x']].split.row-2)*10+(7-pieces[letter_index[(uint8_t)'x']].split.col);
-//	}
-    for(int p=0;p<numPieces;p++){
-		if((p!=letter_index[(uint8_t)'x'])&&(piece_board[pieces[p].packed][index_orientation[p]][index_type[p]]&pre_exit)!=0){
-			_h+=10;
+	if(!rover_on_exit[2][_rover.packed]){
+		int onExit=INT_MAX;
+		for(int i=0;i<7;i++){
+			int count=0;
+			for(int p=0;p<numPieces;p++){
+				if((p!=letter_index[(uint8_t)'x'])&&exit_obstacles3[i][index_type[p]][index_orientation[p]][pieces[p].packed]){
+					count++;
+				}
+			}
+			if(count<onExit){
+				onExit=count;
+			}
 		}
-	}
+		_h+=onExit;
+	}else
+		if(!rover_on_exit[1][_rover.packed]){
+			int onExit=INT_MAX;
+			for(int i=0;i<3;i++){
+				int count=0;
+				for(int p=0;p<numPieces;p++){
+					if((p!=letter_index[(uint8_t)'x'])&&exit_obstacles2[i][index_type[p]][index_orientation[p]][pieces[p].packed]){
+						count++;
+					}
+				}
+				if(count<onExit){
+					onExit=count;
+				}
+			}
+			_h+=onExit;
+		}else
+			if(!rover_on_exit[0][_rover.packed]){
+				for(int p=0;p<numPieces;p++){
+					if((p!=letter_index[(uint8_t)'x'])&&exit_obstacles[index_type[p]][index_orientation[p]][pieces[p].packed]){
+						_h+=1;
+					}
+				}
+			}
+
+
 	return _h;
 }
 uint16_t State::getH() const {

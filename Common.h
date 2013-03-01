@@ -49,6 +49,14 @@ const uint64_t inside=~outside;
 const uint64_t inside_exit=~outside_exit;
 const uint64_t goal=(3ull<<27)|(3ull<<36);
 const uint64_t pre_exit=goal<<2;
+const uint64_t pre_pre_exit[3]={pre_exit|(pre_exit<<1),pre_exit|(pre_exit<<9),pre_exit|(pre_exit>>9)};
+const uint64_t pre_pre_pre_exit[7]={pre_pre_exit[0]|(pre_pre_exit[0]<<1),
+		pre_pre_exit[0]|(pre_pre_exit[0]<<9),
+		pre_pre_exit[0]|(pre_pre_exit[0]>>9),
+		pre_pre_exit[1]|(pre_pre_exit[1]<<1),
+		pre_pre_exit[1]|(pre_pre_exit[1]<<9),
+		pre_pre_exit[2]|(pre_pre_exit[2]<<1),
+		pre_pre_exit[2]|(pre_pre_exit[2]>>9)};
 const uint64_t illegal=~0ull;
 const uint8_t illegal_pos=~0;
 
@@ -66,9 +74,15 @@ extern uint64_t piece_board[128][2][4];
 //[type][start][end]
 extern uint64_t piece_board_paths[4][128][128];
 
+//type orientation piece
+extern bool exit_obstacles[4][2][128];
+extern bool exit_obstacles2[3][4][2][128];
+extern bool exit_obstacles3[7][4][2][128];
+extern bool rover_on_exit[3][128];
+
 union RowCol{
 	struct _split{
-		uint8_t row:4,col:3;
+		uint8_t row:3,col:4;
 	} split;
 	uint8_t packed;
 	RowCol():packed(0){
