@@ -20,6 +20,7 @@ class State {
 	uint16_t calculateH() const;
 	const RowCol* getPieces(const string s) const;
 	const RowCol* copyPieces(const RowCol* prevPieces) const;
+	uint16_t getTwoOne(const RowCol& rover) const;
 public:
 
 	uint64_t getHash() const;

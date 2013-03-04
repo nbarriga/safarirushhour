@@ -31,19 +31,27 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <fstream>
+#include <boost/program_options.hpp>
 
-//#define IDA
+//#define GENERATE_RELAXED
+#define LOAD_RELAXED
 #define BIG
 
 using namespace std;
 
+
+
 enum ORIENTATION {HOR=0, VERT=1};
 enum DIRECTION {UP=0, DOWN=1, LEFT=2, RIGHT=3};
 enum PIECE_TYPE {rover=0, two_by_two=1, three_by_one=2, two_by_one=3};
-
+enum HEURISTIC {zero, twoonezero, obstacles0,obstacles1,obstacles2,obstacles3,relaxed1,relaxed2};
 extern ORIENTATION ORIENTATIONS[2];
 extern DIRECTION DIRECTIONS[4];
 extern PIECE_TYPE PIECE_TYPES[4];
+
+extern int timeArg;
+extern string algorithmArg;
+extern HEURISTIC heuristic;
 
 const uint64_t outside=3ull|(3ull<<9)|(3ull<<18)|(3ull<<27)|(3ull<<36)|(3ull<<45)|(3ull<<54);
 const uint64_t outside_exit=3ull|(3ull<<9)|(3ull<<18)/*|(3ull<<27)|(3ull<<36)*/|(3ull<<45)|(3ull<<54);
@@ -99,11 +107,12 @@ extern bool exit_obstacles4[13][4][2][128];
 extern bool rover_on_exit[4][128];
 extern bool init_done;
 //roverRow roverCol obsRow obsCol type orientation obsRow obsCol type orientation
+
 #ifdef BIG
-extern uint8_t relaxation[6][6][7][7][4][2][7][7][4][2];
-#else
-extern uint8_t relaxation[6][6][7][7][4][2];
+extern uint8_t relaxationTwo[6][6][7][7][4][2][7][7][4][2];
 #endif
+extern uint8_t relaxationOne[6][6][7][7][4][2];
+
 union RowCol{
 	struct _split{
 		uint8_t row:3,col:4;

@@ -6,110 +6,202 @@
  */
 
 #include "State.h"
-
+uint16_t State::getTwoOne(const RowCol& rover) const{
+	if(rover.split.row==2){
+		return 1;
+	}else{
+		return 2;
+	}
+}
 uint16_t State::calculateH() const{
 	uint16_t _h=0;
 	RowCol _rover;
 	_rover.packed=pieces[letter_index[(uint8_t)'x']].packed;
-
-	if(init_done){
-		if(_rover.split.row==2&&_rover.split.col==7){
-			_h=0;
-		}else{
-			int maxH=0;
+	if(_rover.split.row==2&&_rover.split.col==7){
+		return 0;
+	}
+#ifdef GENERATE_RELAXED
+	return getTwoOne(_rover);
+#endif
+	switch(heuristic){
+	case zero:
+		return 0;
+	case twoonezero:
+		return getTwoOne(_rover);
+	case obstacles0:
+		_h+=getTwoOne(_rover);
+		if(!rover_on_exit[0][_rover.packed]){
 			for(int p=0;p<numPieces;p++){
-				if(p!=letter_index[(uint8_t)'x']){
-#ifdef BIG
-					for(int p2=0;p2<numPieces;p2++){
-						if(p!=p2&&p2!=letter_index[(uint8_t)'x']){
-#endif
-							int value=relaxation[_rover.split.row]
-							                     [_rover.split.col]
-							                      [pieces[p].split.row]
-							                       [pieces[p].split.col]
-							                        [index_type[p]]
-							                         [index_orientation[p]]
-#ifdef BIG
-							                          [pieces[p2].split.row]
-							                           [pieces[p2].split.col]
-							                            [index_type[p2]]
-							                             [index_orientation[p2]]
-#endif
-							                              ;
-							if(value>maxH){
-								maxH=value;
-							}
-#ifdef BIG
-						}
-					}
-#endif
+				if((p!=letter_index[(uint8_t)'x'])&&exit_obstacles[index_type[p]][index_orientation[p]][pieces[p].packed]){
+					_h+=1;
 				}
 			}
-			_h=maxH;
 		}
-	}else{
-		if(_rover.split.row==2){
-			if(_rover.split.col==7){
-				_h=0;
-			}else{
-				_h=1;
+		break;
+	case obstacles1:
+		_h+=getTwoOne(_rover);
+		if(!rover_on_exit[1][_rover.packed]){
+			int onExit=INT_MAX;
+			for(int i=0;i<3;i++){
+				int count=0;
+				for(int p=0;p<numPieces;p++){
+					if((p!=letter_index[(uint8_t)'x'])&&exit_obstacles2[i][index_type[p]][index_orientation[p]][pieces[p].packed]){
+						count++;
+					}
+				}
+				if(count<onExit){
+					onExit=count;
+				}
 			}
-		}else{
-			_h=2;
+			_h+=onExit;
+		}else if(!rover_on_exit[0][_rover.packed]){
+			for(int p=0;p<numPieces;p++){
+				if((p!=letter_index[(uint8_t)'x'])&&exit_obstacles[index_type[p]][index_orientation[p]][pieces[p].packed]){
+					_h+=1;
+				}
+			}
 		}
+		break;
+	case obstacles2:
+		_h+=getTwoOne(_rover);
+		if(!rover_on_exit[2][_rover.packed]){
+			int onExit=INT_MAX;
+			for(int i=0;i<7;i++){
+				int count=0;
+				for(int p=0;p<numPieces;p++){
+					if((p!=letter_index[(uint8_t)'x'])&&exit_obstacles3[i][index_type[p]][index_orientation[p]][pieces[p].packed]){
+						count++;
+					}
+				}
+				if(count<onExit){
+					onExit=count;
+				}
+			}
+			_h+=onExit;
+		}else if(!rover_on_exit[1][_rover.packed]){
+			int onExit=INT_MAX;
+			for(int i=0;i<3;i++){
+				int count=0;
+				for(int p=0;p<numPieces;p++){
+					if((p!=letter_index[(uint8_t)'x'])&&exit_obstacles2[i][index_type[p]][index_orientation[p]][pieces[p].packed]){
+						count++;
+					}
+				}
+				if(count<onExit){
+					onExit=count;
+				}
+			}
+			_h+=onExit;
+		}else if(!rover_on_exit[0][_rover.packed]){
+			for(int p=0;p<numPieces;p++){
+				if((p!=letter_index[(uint8_t)'x'])&&exit_obstacles[index_type[p]][index_orientation[p]][pieces[p].packed]){
+					_h+=1;
+				}
+			}
+		}
+		break;
+	case obstacles3:
+		_h+=getTwoOne(_rover);
+		if(!rover_on_exit[3][_rover.packed]){
+			int onExit=INT_MAX;
+			for(int i=0;i<13;i++){
+				int count=0;
+				for(int p=0;p<numPieces;p++){
+					if((p!=letter_index[(uint8_t)'x'])&&exit_obstacles4[i][index_type[p]][index_orientation[p]][pieces[p].packed]){
+						count++;
+					}
+				}
+				if(count<onExit){
+					onExit=count;
+				}
+			}
+			_h+=onExit;
+		} else if(!rover_on_exit[2][_rover.packed]){
+			int onExit=INT_MAX;
+			for(int i=0;i<7;i++){
+				int count=0;
+				for(int p=0;p<numPieces;p++){
+					if((p!=letter_index[(uint8_t)'x'])&&exit_obstacles3[i][index_type[p]][index_orientation[p]][pieces[p].packed]){
+						count++;
+					}
+				}
+				if(count<onExit){
+					onExit=count;
+				}
+			}
+			_h+=onExit;
+		}else if(!rover_on_exit[1][_rover.packed]){
+			int onExit=INT_MAX;
+			for(int i=0;i<3;i++){
+				int count=0;
+				for(int p=0;p<numPieces;p++){
+					if((p!=letter_index[(uint8_t)'x'])&&exit_obstacles2[i][index_type[p]][index_orientation[p]][pieces[p].packed]){
+						count++;
+					}
+				}
+				if(count<onExit){
+					onExit=count;
+				}
+			}
+			_h+=onExit;
+		}else if(!rover_on_exit[0][_rover.packed]){
+			for(int p=0;p<numPieces;p++){
+				if((p!=letter_index[(uint8_t)'x'])&&exit_obstacles[index_type[p]][index_orientation[p]][pieces[p].packed]){
+					_h+=1;
+				}
+			}
+		}
+		break;
+	case relaxed1:
+	{
+		int maxH=0;
+		for(int p=0;p<numPieces;p++){
+			if(p!=letter_index[(uint8_t)'x']){
+				int value=relaxationOne[_rover.split.row]
+				                        [_rover.split.col]
+				                         [pieces[p].split.row]
+				                          [pieces[p].split.col]
+				                           [index_type[p]]
+				                            [index_orientation[p]]
+				                             ;
+				if(value>maxH){
+					maxH=value;
+				}
+			}
+		}
+		_h=maxH;
 	}
-	//	if(!rover_on_exit[3][_rover.packed]){
-	//		int onExit=INT_MAX;
-	//		for(int i=0;i<13;i++){
-	//			int count=0;
-	//			for(int p=0;p<numPieces;p++){
-	//				if((p!=letter_index[(uint8_t)'x'])&&exit_obstacles4[i][index_type[p]][index_orientation[p]][pieces[p].packed]){
-	//					count++;
-	//				}
-	//			}
-	//			if(count<onExit){
-	//				onExit=count;
-	//			}
-	//		}
-	//		_h+=onExit;
-	//	}else
-	//		if(!rover_on_exit[2][_rover.packed]){
-	//			int onExit=INT_MAX;
-	//			for(int i=0;i<7;i++){
-	//				int count=0;
-	//				for(int p=0;p<numPieces;p++){
-	//					if((p!=letter_index[(uint8_t)'x'])&&exit_obstacles3[i][index_type[p]][index_orientation[p]][pieces[p].packed]){
-	//						count++;
-	//					}
-	//				}
-	//				if(count<onExit){
-	//					onExit=count;
-	//				}
-	//			}
-	//			_h+=onExit;
-	//		}else
-	//			if(!rover_on_exit[1][_rover.packed]){
-	//				int onExit=INT_MAX;
-	//				for(int i=0;i<3;i++){
-	//					int count=0;
-	//					for(int p=0;p<numPieces;p++){
-	//						if((p!=letter_index[(uint8_t)'x'])&&exit_obstacles2[i][index_type[p]][index_orientation[p]][pieces[p].packed]){
-	//							count++;
-	//						}
-	//					}
-	//					if(count<onExit){
-	//						onExit=count;
-	//					}
-	//				}
-	//				_h+=onExit;
-	//			}else
-	//				if(!rover_on_exit[0][_rover.packed]){
-	//					for(int p=0;p<numPieces;p++){
-	//						if((p!=letter_index[(uint8_t)'x'])&&exit_obstacles[index_type[p]][index_orientation[p]][pieces[p].packed]){
-	//							_h+=1;
-	//						}
-	//					}
-	//				}
+	break;
+	case relaxed2:
+	{
+		int maxH=0;
+		for(int p=0;p<numPieces;p++){
+			if(p!=letter_index[(uint8_t)'x']){
+				for(int p2=0;p2<numPieces;p2++){
+					if(p!=p2&&p2!=letter_index[(uint8_t)'x']){
+						int value=relaxationTwo[_rover.split.row]
+						                        [_rover.split.col]
+						                         [pieces[p].split.row]
+						                          [pieces[p].split.col]
+						                           [index_type[p]]
+						                            [index_orientation[p]]
+						                             [pieces[p2].split.row]
+						                              [pieces[p2].split.col]
+						                               [index_type[p2]]
+						                                [index_orientation[p2]]
+						                                 ;
+						if(value>maxH){
+							maxH=value;
+						}
+					}
+				}
+			}
+		}
+		_h=maxH;
+	}
+	break;
+	}
+
 
 
 	return _h;
