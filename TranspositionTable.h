@@ -13,20 +13,20 @@
 class Entry{
 private:
 	uint64_t hash2;
-	uint16_t g;
+	uint16_t bound;
 public:
-	Entry(uint64_t hash2,uint16_t g):
+	Entry(uint64_t hash2,uint16_t bound):
 				hash2(hash2),
-				g(g){}
+				bound(bound){}
 	Entry():
 		hash2(0),
-		g(0){}
+		bound(SHRT_MAX){}
 
 	uint64_t getHash2() const {
 		return hash2;
 	}
-	uint16_t getG() const {
-			return g;
+	uint16_t getBound() const {
+			return bound;
 		}
 
 };
@@ -38,9 +38,9 @@ private:
 public:
 	TranspositionTable();
 	virtual ~TranspositionTable();
-	void TTsave(const State *const s);
+	void TTsave(const State *const s, uint16_t bound);
 	Entry TTLookup(const State *const s) const;
-	uint16_t TTGetG(const State *const s) const;
+	uint16_t TTGetBound(const State *const s) const;
 	void reset();
 	bool exist(const State *const s) const;
 

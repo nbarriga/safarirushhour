@@ -22,8 +22,8 @@ int main(int argc, char* argv[]){
 	desc.add_options()
 	    ("help", "prints this help message")
 	    ("time,t", po::value<int>(&timeArg)->default_value(INT_MAX), "set timeout")
-	    ("heuristic,h", po::value<string>(&heuristicArg)->default_value("2-1-0"), "set heuristic")
-	    ("algorithm,a", po::value<string>(&algorithmArg)->default_value("A*"), "set algorithm")
+	    ("heuristic,h", po::value<string>(&heuristicArg)->default_value("210"), "set heuristic")
+	    ("algorithm,a", po::value<string>(&algorithmArg)->default_value("Astar"), "set algorithm")
 	;
 
 	po::variables_map vm;
@@ -36,7 +36,7 @@ int main(int argc, char* argv[]){
 	}
 	if(heuristicArg=="0"){
 		heuristic=zero;
-	}else if(heuristicArg=="2-1-0"){
+	}else if(heuristicArg=="210"){
 		heuristic=twoonezero;
 	}else if(heuristicArg=="obstacles0"){
 		heuristic=obstacles0;
@@ -77,17 +77,34 @@ int main(int argc, char* argv[]){
 		Puzzle puzzle(name,state);
 
 		int moves;
-		if(algorithmArg=="A*"){
+		if(algorithmArg=="Astar"){
 			moves=puzzle.aStar();
-		}else if(algorithmArg=="IDA*"){
+
+		}else if(algorithmArg=="IDAstar"){
 			moves=puzzle.idaStar();
 		}else if(algorithmArg=="fallback"){
 			//todo: implement a* with IDA* fallback
 		}
+		stringstream timeString;
+		timeString<<(boost::posix_time::microsec_clock::local_time() -start).total_milliseconds()/1000.0;
 		cout<<"solution "<<name<<" "<<
-				(boost::posix_time::microsec_clock::local_time() -start).total_milliseconds()/1000.0<<
+				timeString.str()<<
 				" "<<moves<<" "<<puzzle.getSolution()<<endl;
 
+		times.append(timeString.str()).append(" ");
+		stringstream ss;
+		ss<<puzzle.getInitialH();
+		initialH.append(ss.str()).append(" ");
 		//cout<<"END"<<endl;
+	}
+
+	cout<<"P"<<heuristicArg<<"={"<<Problems.substr(0,Problems.size()-1)<<"};"<<endl;
+	cout<<"T"<<heuristicArg<<"=["<<times<<"];"<<endl;
+
+	cout<<"N"<<heuristicArg<<"=["<<nodesSearched<<"];"<<endl;
+	cout<<"H"<<heuristicArg<<"=["<<initialH<<"];"<<endl;
+	cout<<"G"<<heuristicArg<<"=["<<actualSolution<<"];"<<endl;
+	if(algorithmArg=="A*"){
+		cout<<"M"<<heuristicArg<<"=["<<memories<<"];"<<endl;
 	}
 }

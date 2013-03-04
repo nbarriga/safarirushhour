@@ -6,7 +6,7 @@
  */
 
 #include "Puzzle.h"
-
+string Problems, times, memories, nodesSearched, initialH, actualSolution;
 Puzzle::Puzzle(string name, string state):_name(name), _initial(State(state)) {
 
 
@@ -60,7 +60,16 @@ int Puzzle::aStar(){
 		if (current->isGoal()) {
 			solution=reconstruct(current);;
 			int solutionLength=current->getG();
-
+			Problems.append("'").append(_name).append("',");
+			stringstream ss;
+			ss<<maxLiveNodes*(sizeof(State)+sizeof(RowCol)*numPieces+10*sizeof(State*))/1024/1024;
+			memories.append(ss.str()).append(" ");
+			stringstream ss2;
+			ss2<<nodes;
+			nodesSearched.append(ss2.str()).append(" ");
+			stringstream ss3;
+			ss3<<solutionLength;
+			actualSolution.append(ss3.str()).append(" ");
 			struct rusage usage;
 			getrusage(RUSAGE_SELF , &usage);
 
@@ -135,61 +144,61 @@ int Puzzle::aStar(){
 		//============================SMA*====================================
 		//this needs to make sure that for any deleted node, its parent is in the open list.
 		//So, before deleting a node, if parent is not in open, reopen it from closed.
-//		const int sizeLimit=1000;//,forgottenSize=20000;
-//		if(open_queue.size()>sizeLimit){
-//			//sort_heap(open_queue.begin(), open_queue.end(),comp);
-//			//we want to delete the highest F's, breaking ties by lowest G
-//			sort(open_queue.begin(), open_queue.end(),HighFLowGComparator());
-//			unordered_set<State*> reopen;
-//			vector<State*> erased;
-//
-//			while(erased.size()<100){
-//				auto part=partition(
-//						open_queue.begin(),
-//						open_queue.end(),
-//						FGComparator(open_queue.front()->getF(),open_queue.front()->getG()));
-//
-//
-//				//unordered_set<State*> erased_set;
-//				//erased.insert(erased.begin(),open_queue.begin(),open_queue.begin()+forgottenSize);
-//				erased.insert(erased.end(),open_queue.begin(),part);
-//				//erased_set.insert(open_queue.begin(),open_queue.begin()+forgottenSize);
-//
-//				//open_queue.erase(open_queue.begin(),open_queue.begin()+forgottenSize);
-//				open_queue.erase(open_queue.begin(),part);
-//
-//
-//
-//				cout<<"deleted: "<<erased.size()<<endl;
-//				cout<<erased.front()->getF()<<" "<<erased.front()->getG()<<" "<<
-//						erased.back()->getF()<<" "<<erased.back()->getG()<<" "<<
-//						open_queue.front()->getF()<<" "<<open_queue.front()->getG()<<" "<<
-//						open_queue.back()->getF()<<" "<<open_queue.back()->getG()<<endl;
-//			}
-//			cout<<"DONE ERASING"<<endl<<endl;
-//			for(auto toDel=erased.begin();toDel!=erased.end();toDel++){
-//				open.erase(*toDel);
-//
-//			}
-//			for(auto toDel=erased.begin();toDel!=erased.end();toDel++){
-//				State *parent=const_cast<State*>((*toDel)->getPrev());
-//				if(open.count(parent)==0 && reopen.count(parent)==0){
-//					//reopen parent
-//					if(closed.count(parent)==0){
-//						cout<<"error!!!!! parent should be in one of the lists"<<endl;
-//					}else{
-//						reopen.insert(parent);
-//						closed.erase(parent);
-//					}
-//				}
-//				delete *toDel;
-//			}
-//			cout<<"reopening nodes: "<<reopen.size()<<endl;
-//
-//			open_queue.insert(open_queue.end(),reopen.begin(),reopen.end());
-//			open.insert(reopen.begin(),reopen.end());
-//			make_heap(open_queue.begin(), open_queue.end(),comp);
-//		}
+		//		const int sizeLimit=1000;//,forgottenSize=20000;
+		//		if(open_queue.size()>sizeLimit){
+		//			//sort_heap(open_queue.begin(), open_queue.end(),comp);
+		//			//we want to delete the highest F's, breaking ties by lowest G
+		//			sort(open_queue.begin(), open_queue.end(),HighFLowGComparator());
+		//			unordered_set<State*> reopen;
+		//			vector<State*> erased;
+		//
+		//			while(erased.size()<100){
+		//				auto part=partition(
+		//						open_queue.begin(),
+		//						open_queue.end(),
+		//						FGComparator(open_queue.front()->getF(),open_queue.front()->getG()));
+		//
+		//
+		//				//unordered_set<State*> erased_set;
+		//				//erased.insert(erased.begin(),open_queue.begin(),open_queue.begin()+forgottenSize);
+		//				erased.insert(erased.end(),open_queue.begin(),part);
+		//				//erased_set.insert(open_queue.begin(),open_queue.begin()+forgottenSize);
+		//
+		//				//open_queue.erase(open_queue.begin(),open_queue.begin()+forgottenSize);
+		//				open_queue.erase(open_queue.begin(),part);
+		//
+		//
+		//
+		//				cout<<"deleted: "<<erased.size()<<endl;
+		//				cout<<erased.front()->getF()<<" "<<erased.front()->getG()<<" "<<
+		//						erased.back()->getF()<<" "<<erased.back()->getG()<<" "<<
+		//						open_queue.front()->getF()<<" "<<open_queue.front()->getG()<<" "<<
+		//						open_queue.back()->getF()<<" "<<open_queue.back()->getG()<<endl;
+		//			}
+		//			cout<<"DONE ERASING"<<endl<<endl;
+		//			for(auto toDel=erased.begin();toDel!=erased.end();toDel++){
+		//				open.erase(*toDel);
+		//
+		//			}
+		//			for(auto toDel=erased.begin();toDel!=erased.end();toDel++){
+		//				State *parent=const_cast<State*>((*toDel)->getPrev());
+		//				if(open.count(parent)==0 && reopen.count(parent)==0){
+		//					//reopen parent
+		//					if(closed.count(parent)==0){
+		//						cout<<"error!!!!! parent should be in one of the lists"<<endl;
+		//					}else{
+		//						reopen.insert(parent);
+		//						closed.erase(parent);
+		//					}
+		//				}
+		//				delete *toDel;
+		//			}
+		//			cout<<"reopening nodes: "<<reopen.size()<<endl;
+		//
+		//			open_queue.insert(open_queue.end(),reopen.begin(),reopen.end());
+		//			open.insert(reopen.begin(),reopen.end());
+		//			make_heap(open_queue.begin(), open_queue.end(),comp);
+		//		}
 	}
 	for(auto it=closed.begin();it!=closed.end();it++){
 		delete (*it);
@@ -199,52 +208,69 @@ int Puzzle::aStar(){
 	return -1;
 }
 
-int Puzzle::innerIdaStar(State* s, int depth) {
+int Puzzle::innerIdaStar(State* s, int depth, uint16_t bound) {
 	nodes++;
-	path[depth]=s;
-	auto f=s->getF();
 
 
-	if(TT.exist(s)){
-		if(TT.TTGetG(s)<s->getG()){
-			return -1;//TT cut off
-		}else if(TT.TTGetG(s)>s->getG()){
-			TT.TTsave(s);//replace
-		}
-	}else{
-		TT.TTsave(s);
-	}
-
-	if (f > threshold) {
-		if (f < f_min) {
-			f_min = f;
-		}
-		done=false;
-		return -1;
-	}
-
-	if (s->getH() == 0){
+	if (s->getH() == 0){// goal found
 		done=true;
-		solution=reconstruct(depth);
-		return s->getG();  // goal found
+		path[depth]=new State(*s);
+		return 0;
 	}
 
 
-	const vector<State*>& children=s->genSuccesors(true);
+
+//	auto f=s->getF();
+//
+//	if (f > threshold) {
+//		if (f < f_min) {
+//			f_min = f;
+//		}
+//		done=false;
+//		return -1;
+//	}
+
+
+
+	vector<State*> children=s->genSuccesors(true);//todo: avoid copy
+
 
 	for (auto it=children.begin(); it!=children.end();it++) {
-		int s=innerIdaStar(*it, depth+1);
-		delete(*it);
-		if (done){
+		if (TT.exist(*it)){
+			(*it)->setH(TT.TTGetBound(*it));
+		}
+	}
+	sort(children.begin(), children.end(),ReverseStatePointerComparator());
+	//cout<<(*children.begin())->getF()<<" "<<(*(children.end()-1))->getF()<<endl;
+
+	uint16_t new_bound=SHRT_MAX;
+
+	for (auto it=children.begin(); it!=children.end();it++) {
+
+
+		uint16_t t;
+		if ((*it)->getH() <= bound-1) {
+			t = 1 + innerIdaStar(*it, depth+1, bound - 1);
+		} else {
+			t = 1 + (*it)->getH();
+		}
+		delete (*it);
+		if (done) {
+			path[depth]=new State(*s);
 			for(auto toDel=it+1;toDel!=children.end();toDel++){
 				delete (*toDel);
 			}
-			return s;         // done
+			return t;
+		}
+
+		if (t < new_bound) {
+			new_bound = t ; // better lower bound
 		}
 	}
 
 	solution="Can't find answer";
-	return -1;
+	TT.TTsave(s,new_bound);
+	return new_bound;
 }
 
 string Puzzle::reconstruct(int endPos) {
@@ -265,15 +291,29 @@ int Puzzle::idaStar() {
 	int moves;
 
 	while (!done) {
-		f_min = SHRT_MAX;
-		cout<<"Threshold: "<<threshold<<", nodes: "<<nodes<<endl;
-		moves = innerIdaStar(&_initial,0);
+		//f_min = SHRT_MAX;
+		//cout<<"Threshold: "<<threshold<<", nodes: "<<nodes<<endl;
+		moves = innerIdaStar(&_initial,0, threshold);
 
 		if (!done){
-			threshold = f_min;
+			threshold = moves;
 
 		}
 	}
-	cout<<"total nodes searched: "<<nodes<<endl;
+	solution=reconstruct(moves);
+	for(int i=0;i<=moves;i++){
+		delete path[i];
+	}
+	Problems.append("'").append(_name).append("',");
+				stringstream ss;
+//				ss<<maxLiveNodes*(sizeof(State)+sizeof(RowCol)*numPieces+10*sizeof(State*))/1024/1024;
+//				memories.append(ss.str()).append(" ");
+				stringstream ss2;
+				ss2<<nodes;
+				nodesSearched.append(ss2.str()).append(" ");
+				stringstream ss3;
+				ss3<<moves;
+				actualSolution.append(ss3.str()).append(" ");
+	//cout<<"total nodes searched: "<<nodes<<endl;
 	return moves;
 }

@@ -15,7 +15,7 @@ class State {
 	const uint64_t hash, hash2;
 	uint64_t calculateZobristHash(int n) const;
 	uint16_t g;
-	const uint16_t h;
+	uint16_t h;
 
 	uint16_t calculateH() const;
 	const RowCol* getPieces(const string s) const;
@@ -29,6 +29,7 @@ public:
 	uint16_t getF()const;
 	uint16_t getG() const;
 	void setG(uint16_t g);
+	void setH(uint16_t h);
 	vector<State*> genSuccesors(bool sorted) const;
 	bool isGoal() const;
 	State(const string s);

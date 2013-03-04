@@ -21,16 +21,16 @@ TranspositionTable::~TranspositionTable() {
 	delete[] TT;
 }
 
-void TranspositionTable::TTsave(const State* const s) {
-	TT[s->getHash()%ttSize]=Entry(s->getHash2(),s->getG());
+void TranspositionTable::TTsave(const State* const s, uint16_t bound) {
+	TT[s->getHash()%ttSize]=Entry(s->getHash2(),bound);
 }
 
 Entry TranspositionTable::TTLookup(const State* const s) const {
 	return TT[s->getHash()%ttSize];
 }
 
-uint16_t TranspositionTable::TTGetG(const State* const s) const {
-	return TT[s->getHash()%ttSize].getG();
+uint16_t TranspositionTable::TTGetBound(const State* const s) const {
+	return TT[s->getHash()%ttSize].getBound();
 }
 
 bool TranspositionTable::exist(const State* const s) const {

@@ -113,6 +113,8 @@ extern uint8_t relaxationTwo[6][6][7][7][4][2][7][7][4][2];
 #endif
 extern uint8_t relaxationOne[6][6][7][7][4][2];
 
+extern string Problems, times, memories, nodesSearched, initialH, actualSolution;
+
 union RowCol{
 	struct _split{
 		uint8_t row:3,col:4;

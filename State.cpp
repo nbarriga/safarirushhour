@@ -424,6 +424,11 @@ State::State(const RowCol* pieces, const State* prev, uint64_t hash,
 				g(prev==NULL?0:prev->getG()+1),h(calculateH()) {
 
 }
+
+void State::setH(uint16_t h) {
+	this->h=h;
+}
+
 State::~State() {
 	delete[] pieces;
 }

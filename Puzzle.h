@@ -17,7 +17,7 @@ class Puzzle {
 	State _initial;
 	string reconstruct(const State *const end);
 	string reconstruct(int endPos);
-	int innerIdaStar(State* s, int depth);
+	int innerIdaStar(State* s, int depth, uint16_t bound);
 	uint16_t threshold,f_min;
 	uint64_t nodes;
 	bool done;
@@ -31,7 +31,9 @@ public:
 	virtual ~Puzzle();
 	string toString()const;
 	int aStar();
-
+	uint16_t getInitialH() const{
+		return _initial.getH();
+	}
 	int idaStar();
 
 	const string& getSolution() const {
