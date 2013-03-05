@@ -104,7 +104,7 @@ uint16_t State::calculateH() const{
 		_h+=getTwoOne(_rover);
 		if(!rover_on_exit[3][_rover.packed]){
 			int onExit=INT_MAX;
-			for(int i=0;i<13;i++){
+			for(int i=0;i<16;i++){
 				int count=0;
 				for(int p=0;p<numPieces;p++){
 					if((p!=letter_index[(uint8_t)'x'])&&exit_obstacles4[i][index_type[p]][index_orientation[p]][pieces[p].packed]){
@@ -154,7 +154,7 @@ uint16_t State::calculateH() const{
 		break;
 	case relaxed1:
 	{
-		int maxH=0;
+		uint16_t minH=SHRT_MAX;
 		for(int p=0;p<numPieces;p++){
 			if(p!=letter_index[(uint8_t)'x']){
 				int value=relaxationOne[_rover.split.row]
@@ -164,17 +164,17 @@ uint16_t State::calculateH() const{
 				                           [index_type[p]]
 				                            [index_orientation[p]]
 				                             ;
-				if(value>maxH){
-					maxH=value;
+				if(value<minH){
+					minH=value;
 				}
 			}
 		}
-		_h=maxH;
+		_h=minH;
 	}
 	break;
 	case relaxed2:
 	{
-		int maxH=0;
+		uint16_t minH=SHRT_MAX;
 		for(int p=0;p<numPieces;p++){
 			if(p!=letter_index[(uint8_t)'x']){
 				for(int p2=0;p2<numPieces;p2++){
@@ -190,14 +190,14 @@ uint16_t State::calculateH() const{
 						                               [index_type[p2]]
 						                                [index_orientation[p2]]
 						                                 ;
-						if(value>maxH){
-							maxH=value;
+						if(value<minH){
+							minH=value;
 						}
 					}
 				}
 			}
 		}
-		_h=maxH;
+		_h=minH;
 	}
 	break;
 	}

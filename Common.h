@@ -68,20 +68,23 @@ const uint64_t pre_pre_pre_exit[7]={
 		pre_pre_exit[1]|(pre_pre_exit[1]>>9),
 		pre_pre_exit[2]|(pre_pre_exit[2]<<1),
 		pre_pre_exit[2]|(pre_pre_exit[2]>>9)};
-const uint64_t pre_pre_pre_pre_exit[13]={
+const uint64_t pre_pre_pre_pre_exit[16]={
 		pre_pre_pre_exit[0]|(pre_pre_pre_exit[0]<<1),
 		pre_pre_pre_exit[1]|(pre_pre_pre_exit[1]<<9),
 		pre_pre_pre_exit[1]|(pre_pre_pre_exit[1]<<1),
 		pre_pre_pre_exit[2]|(pre_pre_pre_exit[2]<<9),
 		pre_pre_pre_exit[2]|(pre_pre_pre_exit[2]<<1),
+		pre_pre_pre_exit[2]|(pre_pre_pre_exit[2]>>1),
 		pre_pre_pre_exit[3]|(pre_pre_pre_exit[3]<<9),
 		pre_pre_pre_exit[3]|(pre_pre_pre_exit[3]<<1),
 		pre_pre_pre_exit[3]|(pre_pre_pre_exit[3]>>9),
 		pre_pre_pre_exit[4]|(pre_pre_pre_exit[4]<<1),
 		pre_pre_pre_exit[4]|(pre_pre_pre_exit[4]>>9),
+		pre_pre_pre_exit[4]|(pre_pre_pre_exit[4]>>1),
 		pre_pre_pre_exit[5]|(pre_pre_pre_exit[5]<<1),
 		pre_pre_pre_exit[5]|(pre_pre_pre_exit[5]>>9),
-		pre_pre_pre_exit[6]|(pre_pre_pre_exit[6]<<1)};
+		pre_pre_pre_exit[6]|(pre_pre_pre_exit[6]<<1),
+		pre_pre_pre_exit[6]|(pre_pre_pre_exit[6]>>9)};
 const uint64_t illegal=~0ull;
 const uint8_t illegal_pos=~0;
 
@@ -103,7 +106,7 @@ extern uint64_t piece_board_paths[4][128][128];
 extern bool exit_obstacles[4][2][128];
 extern bool exit_obstacles2[3][4][2][128];
 extern bool exit_obstacles3[7][4][2][128];
-extern bool exit_obstacles4[13][4][2][128];
+extern bool exit_obstacles4[16][4][2][128];
 extern bool rover_on_exit[4][128];
 extern bool init_done;
 //roverRow roverCol obsRow obsCol type orientation obsRow obsCol type orientation

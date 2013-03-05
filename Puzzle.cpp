@@ -73,12 +73,12 @@ int Puzzle::aStar(){
 			struct rusage usage;
 			getrusage(RUSAGE_SELF , &usage);
 
-			if(init_done){
-				cout<<"Usage: "<<usage.ru_maxrss/1024<<"MB"<<endl;
-				cout<<"memory: "<<maxLiveNodes*(sizeof(State)+sizeof(RowCol)*numPieces+10*sizeof(State*))/1024/1024<<"MB"<<endl;
-				cout<<"nodes searched: "<<nodes<<endl;
-
-			}
+//			if(init_done){
+//				cout<<"Usage: "<<usage.ru_maxrss/1024<<"MB"<<endl;
+//				cout<<"memory: "<<maxLiveNodes*(sizeof(State)+sizeof(RowCol)*numPieces+10*sizeof(State*))/1024/1024<<"MB"<<endl;
+//				cout<<"nodes searched: "<<nodes<<endl;
+//
+//			}
 			for(auto it=open.begin();it!=open.end();it++){
 				delete *it;
 			}
@@ -141,64 +141,6 @@ int Puzzle::aStar(){
 
 		closed.insert(current);
 
-		//============================SMA*====================================
-		//this needs to make sure that for any deleted node, its parent is in the open list.
-		//So, before deleting a node, if parent is not in open, reopen it from closed.
-		//		const int sizeLimit=1000;//,forgottenSize=20000;
-		//		if(open_queue.size()>sizeLimit){
-		//			//sort_heap(open_queue.begin(), open_queue.end(),comp);
-		//			//we want to delete the highest F's, breaking ties by lowest G
-		//			sort(open_queue.begin(), open_queue.end(),HighFLowGComparator());
-		//			unordered_set<State*> reopen;
-		//			vector<State*> erased;
-		//
-		//			while(erased.size()<100){
-		//				auto part=partition(
-		//						open_queue.begin(),
-		//						open_queue.end(),
-		//						FGComparator(open_queue.front()->getF(),open_queue.front()->getG()));
-		//
-		//
-		//				//unordered_set<State*> erased_set;
-		//				//erased.insert(erased.begin(),open_queue.begin(),open_queue.begin()+forgottenSize);
-		//				erased.insert(erased.end(),open_queue.begin(),part);
-		//				//erased_set.insert(open_queue.begin(),open_queue.begin()+forgottenSize);
-		//
-		//				//open_queue.erase(open_queue.begin(),open_queue.begin()+forgottenSize);
-		//				open_queue.erase(open_queue.begin(),part);
-		//
-		//
-		//
-		//				cout<<"deleted: "<<erased.size()<<endl;
-		//				cout<<erased.front()->getF()<<" "<<erased.front()->getG()<<" "<<
-		//						erased.back()->getF()<<" "<<erased.back()->getG()<<" "<<
-		//						open_queue.front()->getF()<<" "<<open_queue.front()->getG()<<" "<<
-		//						open_queue.back()->getF()<<" "<<open_queue.back()->getG()<<endl;
-		//			}
-		//			cout<<"DONE ERASING"<<endl<<endl;
-		//			for(auto toDel=erased.begin();toDel!=erased.end();toDel++){
-		//				open.erase(*toDel);
-		//
-		//			}
-		//			for(auto toDel=erased.begin();toDel!=erased.end();toDel++){
-		//				State *parent=const_cast<State*>((*toDel)->getPrev());
-		//				if(open.count(parent)==0 && reopen.count(parent)==0){
-		//					//reopen parent
-		//					if(closed.count(parent)==0){
-		//						cout<<"error!!!!! parent should be in one of the lists"<<endl;
-		//					}else{
-		//						reopen.insert(parent);
-		//						closed.erase(parent);
-		//					}
-		//				}
-		//				delete *toDel;
-		//			}
-		//			cout<<"reopening nodes: "<<reopen.size()<<endl;
-		//
-		//			open_queue.insert(open_queue.end(),reopen.begin(),reopen.end());
-		//			open.insert(reopen.begin(),reopen.end());
-		//			make_heap(open_queue.begin(), open_queue.end(),comp);
-		//		}
 	}
 	for(auto it=closed.begin();it!=closed.end();it++){
 		delete (*it);
@@ -212,24 +154,11 @@ int Puzzle::innerIdaStar(State* s, int depth, uint16_t bound) {
 	nodes++;
 
 
-	if (s->getH() == 0){// goal found
+	if (s->isGoal()){// goal found
 		done=true;
 		path[depth]=new State(*s);
 		return 0;
 	}
-
-
-
-//	auto f=s->getF();
-//
-//	if (f > threshold) {
-//		if (f < f_min) {
-//			f_min = f;
-//		}
-//		done=false;
-//		return -1;
-//	}
-
 
 
 	vector<State*> children=s->genSuccesors(true);//todo: avoid copy
@@ -305,15 +234,18 @@ int Puzzle::idaStar() {
 		delete path[i];
 	}
 	Problems.append("'").append(_name).append("',");
-				stringstream ss;
-//				ss<<maxLiveNodes*(sizeof(State)+sizeof(RowCol)*numPieces+10*sizeof(State*))/1024/1024;
-//				memories.append(ss.str()).append(" ");
-				stringstream ss2;
-				ss2<<nodes;
-				nodesSearched.append(ss2.str()).append(" ");
-				stringstream ss3;
-				ss3<<moves;
-				actualSolution.append(ss3.str()).append(" ");
+	struct rusage usage;
+	getrusage(RUSAGE_SELF , &usage);
+	stringstream ss;
+	ss<<usage.ru_maxrss/1024;
+
+	memories.append(ss.str()).append(" ");
+	stringstream ss2;
+	ss2<<nodes;
+	nodesSearched.append(ss2.str()).append(" ");
+	stringstream ss3;
+	ss3<<moves;
+	actualSolution.append(ss3.str()).append(" ");
 	//cout<<"total nodes searched: "<<nodes<<endl;
 	return moves;
 }

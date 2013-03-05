@@ -55,7 +55,7 @@ int main(int argc, char* argv[]){
 		return EXIT_FAILURE;
 	}
 	_dummy_static_initializer _dummy;
-	cout<<"Initialized in "<<(boost::posix_time::microsec_clock::local_time() -start).total_milliseconds()<<"[ms]"<<endl;
+//	cout<<"Initialized in "<<(boost::posix_time::microsec_clock::local_time() -start).total_milliseconds()<<"[ms]"<<endl;
 
 
 	string line;
@@ -104,7 +104,6 @@ int main(int argc, char* argv[]){
 	cout<<"N"<<heuristicArg<<"=["<<nodesSearched<<"];"<<endl;
 	cout<<"H"<<heuristicArg<<"=["<<initialH<<"];"<<endl;
 	cout<<"G"<<heuristicArg<<"=["<<actualSolution<<"];"<<endl;
-	if(algorithmArg=="A*"){
-		cout<<"M"<<heuristicArg<<"=["<<memories<<"];"<<endl;
-	}
+	cout<<"M"<<heuristicArg<<"=["<<memories<<"];"<<endl;
+
 }
