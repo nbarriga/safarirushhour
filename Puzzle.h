@@ -25,13 +25,14 @@ class Puzzle {
 	TranspositionTable TT;
 	string solution;
 	boost::posix_time::ptime start;
+	float memFactor=(sizeof(State)+sizeof(RowCol)*numPieces+11*sizeof(State*))/1024.0f/1024.0f;
 public:
-
+	void init();
 	Puzzle(string name, string state);
 	Puzzle(string name, const State& state);
 	virtual ~Puzzle();
 	string toString()const;
-	int aStar();
+	int aStar(int memoryLimit);
 	uint16_t getInitialH() const{
 		return _initial.getH();
 	}
@@ -39,6 +40,10 @@ public:
 
 	const string& getSolution() const {
 		return solution;
+	}
+
+	bool isTimeOut() const {
+		return timeOut;
 	}
 };
 

@@ -31,9 +31,8 @@ string Puzzle::reconstruct(const State *const state){
 		return reconstruct(state->getPrev())+" "+state->getPrev()->getMove(state);
 	}
 }
-int Puzzle::aStar(){
-	start=boost::posix_time::microsec_clock::local_time();
-	timeOut=false;
+int Puzzle::aStar(int memoryLimit){
+
 	equal_to<State*> stateEqual;
 	vector<State*> open_queue;
 	StatePointerComparator comp;
@@ -64,7 +63,7 @@ int Puzzle::aStar(){
 			int solutionLength=current->getG();
 			Problems.append("'").append(_name).append("',");
 			stringstream ss;
-			ss<<maxLiveNodes*(sizeof(State)+sizeof(RowCol)*numPieces+10*sizeof(State*))/1024/1024;
+			ss<<(int)maxLiveNodes*memFactor;
 			memories.append(ss.str()).append(" ");
 			stringstream ss2;
 			ss2<<nodes;
@@ -72,12 +71,12 @@ int Puzzle::aStar(){
 			stringstream ss3;
 			ss3<<solutionLength;
 			actualSolution.append(ss3.str()).append(" ");
-			struct rusage usage;
-			getrusage(RUSAGE_SELF , &usage);
-
+//			struct rusage usage;
+//			getrusage(RUSAGE_SELF , &usage);
+//
 //			if(init_done){
 //				cout<<"Usage: "<<usage.ru_maxrss/1024<<"MB"<<endl;
-//				cout<<"memory: "<<maxLiveNodes*(sizeof(State)+sizeof(RowCol)*numPieces+10*sizeof(State*))/1024/1024<<"MB"<<endl;
+//				cout<<"memory: "<<(int)maxLiveNodes*memFactor<<"MB"<<endl;
 //				cout<<"nodes searched: "<<nodes<<endl;
 //
 //			}
@@ -98,13 +97,13 @@ int Puzzle::aStar(){
 		for (auto it=children.begin();it!=children.end();it++){
 			nodes++;
 			if(nodes%5000==0){
-				if((boost::posix_time::microsec_clock::local_time() -start).total_milliseconds()>timeArg*1000){
-					timeOut=true;
-					solution=reconstruct(current);;
+				timeOut=(boost::posix_time::microsec_clock::local_time() -start).total_milliseconds()>timeArg*1000;
+				if(timeOut){
+					//solution=reconstruct(current);;
 					int solutionLength=-1;
 					Problems.append("'").append(_name).append("',");
 					stringstream ss;
-					ss<<maxLiveNodes*(sizeof(State)+sizeof(RowCol)*numPieces+10*sizeof(State*))/1024/1024;
+					ss<<(int)maxLiveNodes*memFactor;
 					memories.append(ss.str()).append(" ");
 					stringstream ss2;
 					ss2<<nodes;
@@ -112,6 +111,22 @@ int Puzzle::aStar(){
 					stringstream ss3;
 					ss3<<solutionLength;
 					actualSolution.append(ss3.str()).append(" ");
+				}
+				if(maxLiveNodes*memFactor>memoryLimit&&algorithmArg=="Astar"){
+					//solution=reconstruct(current);;
+					int solutionLength=-1;
+					Problems.append("'").append(_name).append("',");
+					stringstream ss;
+					ss<<(int)maxLiveNodes*memFactor;
+					memories.append(ss.str()).append(" ");
+					stringstream ss2;
+					ss2<<nodes;
+					nodesSearched.append(ss2.str()).append(" ");
+					stringstream ss3;
+					ss3<<solutionLength;
+					actualSolution.append(ss3.str()).append(" ");
+				}
+				if(timeOut||maxLiveNodes*memFactor>memoryLimit){
 					for(auto toDel=it;toDel!=children.end();toDel++){
 						delete (*toDel);
 					}
@@ -257,10 +272,13 @@ string Puzzle::reconstruct(int endPos) {
 Puzzle::Puzzle(string name,const State& state):_name(name), _initial(state) {
 }
 
-int Puzzle::idaStar() {
+void Puzzle::init() {
 	start=boost::posix_time::microsec_clock::local_time();
 	timeOut=false;
 	nodes=0;
+}
+
+int Puzzle::idaStar() {
 	threshold = _initial.getH();
 	done = false;
 	int moves;

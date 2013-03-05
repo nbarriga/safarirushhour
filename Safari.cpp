@@ -9,7 +9,7 @@
 #include "Puzzle.h"
 
 namespace po = boost::program_options;
-int timeArg;
+int timeArg,memoryArg;
 string algorithmArg,heuristicArg;
 HEURISTIC heuristic;
 
@@ -21,15 +21,16 @@ int main(int argc, char* argv[]){
 
 	desc.add_options()
 	    ("help", "prints this help message")
-	    ("time,t", po::value<int>(&timeArg)->default_value(INT_MAX), "set timeout")
+	    ("time,t", po::value<int>(&timeArg)->default_value(SHRT_MAX), "set timeout")
 	    ("heuristic,h", po::value<string>(&heuristicArg)->default_value("210"), "set heuristic")
 	    ("algorithm,a", po::value<string>(&algorithmArg)->default_value("Astar"), "set algorithm")
+	    ("memory,m", po::value<int>(&memoryArg)->default_value(SHRT_MAX), "set memory limit (in MB)")
 	;
 
 	po::variables_map vm;
 	po::store(po::command_line_parser(argc, argv).options(desc).run(), vm);
 	po::notify(vm);
-
+	cout<<timeArg<<" "<<memoryArg<<endl;
 	if (vm.count("help")) {
 	    cout << desc << "\n";
 	    return 1;
@@ -77,13 +78,18 @@ int main(int argc, char* argv[]){
 		Puzzle puzzle(name,state);
 
 		int moves;
+		puzzle.init();
 		if(algorithmArg=="Astar"){
-			moves=puzzle.aStar();
-
+			moves=puzzle.aStar(memoryArg);
 		}else if(algorithmArg=="IDAstar"){
 			moves=puzzle.idaStar();
 		}else if(algorithmArg=="fallback"){
 			//todo: implement a* with IDA* fallback
+			moves=puzzle.aStar(memoryArg);
+			if(moves<0&&!puzzle.isTimeOut()){
+				cout<<name<<" exceeded memory budget, reverting to IDA*"<<endl;
+				moves=puzzle.idaStar();
+			}
 		}
 
 		stringstream timeString;
@@ -92,7 +98,11 @@ int main(int argc, char* argv[]){
 			cout<<"solution "<<name<<" "<<timeString.str()<<
 					" "<<moves<<" "<<puzzle.getSolution()<<endl;
 		}else{
-			cout<<"solution "<<name<<" "<<"timeout"<<endl;
+			if(puzzle.isTimeOut()){
+				cout<<"solution "<<name<<" "<<"timeout"<<endl;
+			}else{
+				cout<<"solution "<<name<<" "<<"timeout: exceeded memory budget"<<endl;
+			}
 		}
 
 		times.append(timeString.str()).append(" ");
