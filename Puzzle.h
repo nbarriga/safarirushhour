@@ -20,10 +20,11 @@ class Puzzle {
 	int innerIdaStar(State* s, int depth, uint16_t bound);
 	uint16_t threshold,f_min;
 	uint64_t nodes;
-	bool done;
+	bool done,timeOut;
 	State* path[1000];
 	TranspositionTable TT;
 	string solution;
+	boost::posix_time::ptime start;
 public:
 
 	Puzzle(string name, string state);

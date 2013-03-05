@@ -32,6 +32,8 @@ string Puzzle::reconstruct(const State *const state){
 	}
 }
 int Puzzle::aStar(){
+	start=boost::posix_time::microsec_clock::local_time();
+	timeOut=false;
 	equal_to<State*> stateEqual;
 	vector<State*> open_queue;
 	StatePointerComparator comp;
@@ -95,6 +97,38 @@ int Puzzle::aStar(){
 
 		for (auto it=children.begin();it!=children.end();it++){
 			nodes++;
+			if(nodes%5000==0){
+				if((boost::posix_time::microsec_clock::local_time() -start).total_milliseconds()>timeArg*1000){
+					timeOut=true;
+					solution=reconstruct(current);;
+					int solutionLength=-1;
+					Problems.append("'").append(_name).append("',");
+					stringstream ss;
+					ss<<maxLiveNodes*(sizeof(State)+sizeof(RowCol)*numPieces+10*sizeof(State*))/1024/1024;
+					memories.append(ss.str()).append(" ");
+					stringstream ss2;
+					ss2<<nodes;
+					nodesSearched.append(ss2.str()).append(" ");
+					stringstream ss3;
+					ss3<<solutionLength;
+					actualSolution.append(ss3.str()).append(" ");
+					for(auto toDel=it;toDel!=children.end();toDel++){
+						delete (*toDel);
+					}
+					for(auto it=open.begin();it!=open.end();it++){
+						delete *it;
+					}
+					for(auto it=closed.begin();it!=closed.end();it++){
+						delete *it;
+					}
+					delete current;
+					open.clear();
+					closed.clear();
+
+
+					return -1;
+				}
+			}
 			bool updatedInOpen=false;
 
 			auto stored = closed.find(*it);
@@ -152,7 +186,12 @@ int Puzzle::aStar(){
 
 int Puzzle::innerIdaStar(State* s, int depth, uint16_t bound) {
 	nodes++;
-
+	if(nodes%5000==0){
+		if((boost::posix_time::microsec_clock::local_time() -start).total_milliseconds()>timeArg*1000){
+			timeOut=true;
+			return -1;
+		}
+	}
 
 	if (s->isGoal()){// goal found
 		done=true;
@@ -175,7 +214,12 @@ int Puzzle::innerIdaStar(State* s, int depth, uint16_t bound) {
 	uint16_t new_bound=SHRT_MAX;
 
 	for (auto it=children.begin(); it!=children.end();it++) {
-
+		if(timeOut){
+			for(auto toDel=it;toDel!=children.end();toDel++){
+				delete (*toDel);
+			}
+			return -1;
+		}
 
 		uint16_t t;
 		if ((*it)->getH() <= bound-1) {
@@ -214,6 +258,8 @@ Puzzle::Puzzle(string name,const State& state):_name(name), _initial(state) {
 }
 
 int Puzzle::idaStar() {
+	start=boost::posix_time::microsec_clock::local_time();
+	timeOut=false;
 	nodes=0;
 	threshold = _initial.getH();
 	done = false;
@@ -226,12 +272,16 @@ int Puzzle::idaStar() {
 
 		if (!done){
 			threshold = moves;
-
+		}
+		if(moves<0){
+			break;
 		}
 	}
-	solution=reconstruct(moves);
-	for(int i=0;i<=moves;i++){
-		delete path[i];
+	if(moves>=0){
+		solution=reconstruct(moves);
+		for(int i=0;i<=moves;i++){
+			delete path[i];
+		}
 	}
 	Problems.append("'").append(_name).append("',");
 	struct rusage usage;

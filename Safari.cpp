@@ -85,11 +85,15 @@ int main(int argc, char* argv[]){
 		}else if(algorithmArg=="fallback"){
 			//todo: implement a* with IDA* fallback
 		}
+
 		stringstream timeString;
 		timeString<<(boost::posix_time::microsec_clock::local_time() -start).total_milliseconds()/1000.0;
-		cout<<"solution "<<name<<" "<<
-				timeString.str()<<
-				" "<<moves<<" "<<puzzle.getSolution()<<endl;
+		if(moves>=0){
+			cout<<"solution "<<name<<" "<<timeString.str()<<
+					" "<<moves<<" "<<puzzle.getSolution()<<endl;
+		}else{
+			cout<<"solution "<<name<<" "<<"timeout"<<endl;
+		}
 
 		times.append(timeString.str()).append(" ");
 		stringstream ss;
