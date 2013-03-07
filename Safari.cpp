@@ -21,11 +21,11 @@ int main(int argc, char* argv[]){
 
 	desc.add_options()
 	    ("help", "prints this help message")
-	    ("time,t", po::value<int>(&timeArg)->default_value(86400), "set timeout")
-	    ("heuristic,h", po::value<string>(&heuristicArg)->default_value("obstacles3"), "set heuristic")
-	    ("algorithm,a", po::value<string>(&algorithmArg)->default_value("Astar"), "set algorithm")
+	    ("time,t", po::value<int>(&timeArg)->default_value(86400), "set timeout (in seconds)")
+	    ("heuristic,h", po::value<string>(&heuristicArg)->default_value("obstacles0"), "set heuristic")
+	    ("algorithm,a", po::value<string>(&algorithmArg)->default_value("IDAstar"), "set algorithm")
 	    ("memory,m", po::value<int>(&memoryArg)->default_value(200), "set memory limit (in MB)")
-	    ("size,s", po::value<int>(&ttSizeArg)->default_value(256*1024*44), "set TT size (in #entries)")
+	    ("size,s", po::value<int>(&ttSizeArg)->default_value(10000000), "set TT size (in #entries)")
 	;
 
 	po::variables_map vm;
@@ -89,26 +89,26 @@ int main(int argc, char* argv[]){
 		}else if(algorithmArg=="IDAstar"){
 			moves=puzzle.idaStar(ttSizeArg);
 		}else if(algorithmArg=="fallback"){
-			//todo: implement a* with IDA* fallback
 			moves=puzzle.aStar(memoryArg);
 			if(moves<0&&!puzzle.isTimeOut()){
-				cout<<name<<" exceeded memory budget, reverting to IDA*"<<endl;
+				cout<<name<<" exceeded memory budget of "<<memoryArg<<"MB, reverting to IDA*"<<endl;
 				moves=puzzle.idaStar(ttSizeArg);
 			}
 		}
-
+		cout<<"statistics "<<name<<" "<<puzzle.statistics()<<endl;
 		stringstream timeString;
 		timeString<<(boost::posix_time::microsec_clock::local_time() -start).total_milliseconds()/1000.0;
+		times.append(timeString.str()).append(" ");
 		if(moves>=0){
 			cout<<"solution "<<name<<" "<<timeString.str()<<
 					" "<<moves<<" "<<puzzle.getSolution()<<endl;
-			times.append(timeString.str()).append(" ");
+
 		}else{
-			times.append("-1").append(" ");
+
 			if(puzzle.isTimeOut()){
 				cout<<"solution "<<name<<" "<<"timeout"<<endl;
 			}else{
-				cout<<"solution "<<name<<" "<<"timeout: exceeded memory budget"<<endl;
+				cout<<"solution "<<name<<" "<<"timeout -> exceeded memory budget"<<endl;
 			}
 		}
 
@@ -116,20 +116,19 @@ int main(int argc, char* argv[]){
 		stringstream ss;
 		ss<<puzzle.getInitialH();
 		initialH.append(ss.str()).append(" ");
-		//cout<<"END"<<endl;
 
-		getrusage(RUSAGE_SELF , &usage);
-
-
-		cout<<"Usage: "<<usage.ru_maxrss/1024<<"MB"<<endl;
+//		getrusage(RUSAGE_SELF , &usage);
+//
+//
+//		cout<<"Usage: "<<usage.ru_maxrss/1024<<"MB"<<endl;
 	}
-
-	cout<<"P"<<algorithmArg<<heuristicArg<<"={"<<Problems.substr(0,Problems.size()-1)<<"};"<<endl;
-	cout<<"T"<<algorithmArg<<heuristicArg<<"=["<<times<<"];"<<endl;
-
-	cout<<"N"<<algorithmArg<<heuristicArg<<"=["<<nodesSearched<<"];"<<endl;
-	cout<<"H"<<algorithmArg<<heuristicArg<<"=["<<initialH<<"];"<<endl;
-	cout<<"G"<<algorithmArg<<heuristicArg<<"=["<<actualSolution<<"];"<<endl;
-	cout<<"M"<<algorithmArg<<heuristicArg<<"=["<<memories<<"];"<<endl;
+//
+//	cout<<"P"<<algorithmArg<<heuristicArg<<"={"<<Problems.substr(0,Problems.size()-1)<<"};"<<endl;
+//	cout<<"T"<<algorithmArg<<heuristicArg<<"=["<<times<<"];"<<endl;
+//
+//	cout<<"N"<<algorithmArg<<heuristicArg<<"=["<<nodesSearched<<"];"<<endl;
+//	cout<<"H"<<algorithmArg<<heuristicArg<<"=["<<initialH<<"];"<<endl;
+//	cout<<"G"<<algorithmArg<<heuristicArg<<"=["<<actualSolution<<"];"<<endl;
+//	cout<<"M"<<algorithmArg<<heuristicArg<<"=["<<memories<<"];"<<endl;
 
 }

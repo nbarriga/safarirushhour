@@ -127,6 +127,7 @@ int Puzzle::aStar(int memoryLimit){
 					actualSolution.append(ss3.str()).append(" ");
 				}
 				if(timeOut||maxLiveNodes*memFactor+baseMemory>memoryLimit){
+					threshold=current->getF();
 					for(auto toDel=it;toDel!=children.end();toDel++){
 						delete (*toDel);
 					}
@@ -226,7 +227,19 @@ int Puzzle::innerIdaStar(State* s, int depth, uint16_t bound) {
 
 	for (auto it=children.begin(); it!=children.end();it++) {
 		if (TT->exist(*it)){
-			(*it)->setH(TT->TTGetBound(*it));
+			auto newH=TT->TTGetBound(*it);
+			if(newH>(*it)->getH()){
+				if(depth<cutMin){
+					cutMin=depth;
+				}
+				if(depth>cutMax){
+					cutMax=depth;
+				}
+				cutTotal+=depth;
+				cutCount++;
+			}
+			(*it)->setH(newH);
+
 		}
 	}
 	sort(children.begin(), children.end(),ReverseStatePointerComparator());
@@ -243,6 +256,8 @@ int Puzzle::innerIdaStar(State* s, int depth, uint16_t bound) {
 		}
 
 		uint16_t t;
+		totalH+=(*it)->getH();
+		countH++;
 		if ((*it)->getH() <= bound-1) {
 			t = 1 + innerIdaStar(*it, depth+1, bound - 1);
 		} else {
@@ -284,17 +299,21 @@ void Puzzle::init(int baseMemory) {
 	nodes=0;
 	this->baseMemory=baseMemory;
 	maxLiveNodes=0;
+	threshold=0;
 }
 
 int Puzzle::idaStar(unsigned int ttSize) {
 	TT=new TranspositionTable(ttSize);
-	threshold = _initial.getH();
+//	if(threshold==0){
+		threshold = _initial.getH();
+//	}
+//	cout<<"threshold: "<<threshold<<" H: "<<_initial.getH()<<endl;
 	done = false;
 	int moves;
 
 	while (!done) {
 		//f_min = SHRT_MAX;
-		//cout<<"Threshold: "<<threshold<<", nodes: "<<nodes<<endl;
+//		cout<<"Threshold: "<<threshold<<", nodes: "<<nodes<<endl;
 		moves = innerIdaStar(&_initial,0, threshold);
 
 		if (!done){
@@ -332,4 +351,16 @@ int Puzzle::idaStar(unsigned int ttSize) {
 	//cout<<"total nodes searched: "<<nodes<<endl;
 	delete TT;
 	return moves;
+}
+
+string Puzzle::statistics() {
+	// nodes searched,
+	//execution time,
+	//average h-value for all nodes where an evaluation occurred in the tree,
+	//and min/average/max depth of nodes where a cutoff occurred
+	stringstream ss;
+	ss<<"Nodes: "<<nodes<<", average H: "<<totalH/(float)countH<<", cut-off depth (min/average/max): "<<
+			cutMin<<"/"<<cutTotal/(float)cutCount<<"/"<<cutMax;
+
+	return ss.str();
 }

@@ -443,7 +443,7 @@ State* State::applyMove(const string move) const {
 
 	auto index=letter_index[(uint8_t)letter];
 
-	DIRECTION direction;
+	DIRECTION direction=UP;
 	switch(dir){
 	case 'u':
 		direction=UP;
