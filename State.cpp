@@ -429,6 +429,42 @@ void State::setH(uint16_t h) {
 	this->h=h;
 }
 
+void State::setParent(const State* const parent) {
+	prev=parent;
+}
+
+State* State::applyMove(const string move) const {
+	char letter=move[0];
+	char dir=move[1];
+	int d=move[2]-'0';
+
+	RowCol* newPieces=new RowCol[numPieces];
+	memcpy(newPieces,pieces,numPieces*sizeof(RowCol));
+
+	auto index=letter_index[(uint8_t)letter];
+
+	DIRECTION direction;
+	switch(dir){
+	case 'u':
+		direction=UP;
+		break;
+	case 'd':
+		direction=DOWN;
+		break;
+	case 'l':
+		direction=LEFT;
+		break;
+	case 'r':
+		direction=RIGHT;
+		break;
+	}
+
+	RowCol newPos=piece_neighbours[direction][d-1][pieces[index].packed][index_type[index]][index_orientation[index]];
+
+	newPieces[index].packed=newPos.packed;
+	return new State(newPieces,this);
+}
+
 State::~State() {
 	delete[] pieces;
 }

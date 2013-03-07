@@ -10,7 +10,7 @@
 #include "Common.h"
 
 class State {
-	const State *const prev;
+	const State *prev;
 	const RowCol *const pieces;
 	const uint64_t hash, hash2;
 	uint64_t calculateZobristHash(int n) const;
@@ -29,6 +29,7 @@ public:
 	uint16_t getF()const;
 	uint16_t getG() const;
 	void setG(uint16_t g);
+	void setParent(const State *const parent);
 	void setH(uint16_t h);
 	vector<State*> genSuccesors(bool sorted) const;
 	bool isGoal() const;
@@ -38,6 +39,7 @@ public:
 	State(const RowCol *pieces, const State* prev, uint64_t hash, uint64_t hash2);
 	string toString()const;
 	const string getMove(const State *const next)const;
+	State* applyMove(const string move)const;
 	virtual ~State();
 	friend class equal_to<State*>;
 	friend class equal_to<State>;

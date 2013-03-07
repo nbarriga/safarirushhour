@@ -22,12 +22,14 @@ class Puzzle {
 	uint64_t nodes;
 	bool done,timeOut;
 	State* path[1000];
-	TranspositionTable TT;
+	TranspositionTable *TT;
 	string solution;
 	boost::posix_time::ptime start;
 	float memFactor=(sizeof(State)+sizeof(RowCol)*numPieces+11*sizeof(State*))/1024.0f/1024.0f;
+	int baseMemory;
+	uint32_t maxLiveNodes;
 public:
-	void init();
+	void init(int baseMemory);
 	Puzzle(string name, string state);
 	Puzzle(string name, const State& state);
 	virtual ~Puzzle();
@@ -36,7 +38,7 @@ public:
 	uint16_t getInitialH() const{
 		return _initial.getH();
 	}
-	int idaStar();
+	int idaStar(unsigned int ttSize);
 
 	const string& getSolution() const {
 		return solution;

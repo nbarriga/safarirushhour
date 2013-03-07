@@ -9,7 +9,7 @@
 #include "Puzzle.h"
 
 namespace po = boost::program_options;
-int timeArg,memoryArg;
+int timeArg,memoryArg,ttSizeArg;
 string algorithmArg,heuristicArg;
 HEURISTIC heuristic;
 
@@ -21,16 +21,17 @@ int main(int argc, char* argv[]){
 
 	desc.add_options()
 	    ("help", "prints this help message")
-	    ("time,t", po::value<int>(&timeArg)->default_value(SHRT_MAX), "set timeout")
-	    ("heuristic,h", po::value<string>(&heuristicArg)->default_value("210"), "set heuristic")
+	    ("time,t", po::value<int>(&timeArg)->default_value(86400), "set timeout")
+	    ("heuristic,h", po::value<string>(&heuristicArg)->default_value("obstacles3"), "set heuristic")
 	    ("algorithm,a", po::value<string>(&algorithmArg)->default_value("Astar"), "set algorithm")
-	    ("memory,m", po::value<int>(&memoryArg)->default_value(SHRT_MAX), "set memory limit (in MB)")
+	    ("memory,m", po::value<int>(&memoryArg)->default_value(200), "set memory limit (in MB)")
+	    ("size,s", po::value<int>(&ttSizeArg)->default_value(256*1024*44), "set TT size (in #entries)")
 	;
 
 	po::variables_map vm;
 	po::store(po::command_line_parser(argc, argv).options(desc).run(), vm);
 	po::notify(vm);
-	cout<<timeArg<<" "<<memoryArg<<endl;
+//	cout<<timeArg<<" "<<memoryArg<<endl;
 	if (vm.count("help")) {
 	    cout << desc << "\n";
 	    return 1;
@@ -58,7 +59,11 @@ int main(int argc, char* argv[]){
 	_dummy_static_initializer _dummy;
 //	cout<<"Initialized in "<<(boost::posix_time::microsec_clock::local_time() -start).total_milliseconds()<<"[ms]"<<endl;
 
+	struct rusage usage;
+	getrusage(RUSAGE_SELF , &usage);
 
+
+	int baseMemory=usage.ru_maxrss/1024;
 	string line;
 	while(getline(cin,line)){
 		if(line==""){
@@ -78,17 +83,17 @@ int main(int argc, char* argv[]){
 		Puzzle puzzle(name,state);
 
 		int moves;
-		puzzle.init();
+		puzzle.init(baseMemory);
 		if(algorithmArg=="Astar"){
 			moves=puzzle.aStar(memoryArg);
 		}else if(algorithmArg=="IDAstar"){
-			moves=puzzle.idaStar();
+			moves=puzzle.idaStar(ttSizeArg);
 		}else if(algorithmArg=="fallback"){
 			//todo: implement a* with IDA* fallback
 			moves=puzzle.aStar(memoryArg);
 			if(moves<0&&!puzzle.isTimeOut()){
 				cout<<name<<" exceeded memory budget, reverting to IDA*"<<endl;
-				moves=puzzle.idaStar();
+				moves=puzzle.idaStar(ttSizeArg);
 			}
 		}
 
@@ -97,7 +102,9 @@ int main(int argc, char* argv[]){
 		if(moves>=0){
 			cout<<"solution "<<name<<" "<<timeString.str()<<
 					" "<<moves<<" "<<puzzle.getSolution()<<endl;
+			times.append(timeString.str()).append(" ");
 		}else{
+			times.append("-1").append(" ");
 			if(puzzle.isTimeOut()){
 				cout<<"solution "<<name<<" "<<"timeout"<<endl;
 			}else{
@@ -105,19 +112,24 @@ int main(int argc, char* argv[]){
 			}
 		}
 
-		times.append(timeString.str()).append(" ");
+
 		stringstream ss;
 		ss<<puzzle.getInitialH();
 		initialH.append(ss.str()).append(" ");
 		//cout<<"END"<<endl;
+
+		getrusage(RUSAGE_SELF , &usage);
+
+
+		cout<<"Usage: "<<usage.ru_maxrss/1024<<"MB"<<endl;
 	}
 
-	cout<<"P"<<heuristicArg<<"={"<<Problems.substr(0,Problems.size()-1)<<"};"<<endl;
-	cout<<"T"<<heuristicArg<<"=["<<times<<"];"<<endl;
+	cout<<"P"<<algorithmArg<<heuristicArg<<"={"<<Problems.substr(0,Problems.size()-1)<<"};"<<endl;
+	cout<<"T"<<algorithmArg<<heuristicArg<<"=["<<times<<"];"<<endl;
 
-	cout<<"N"<<heuristicArg<<"=["<<nodesSearched<<"];"<<endl;
-	cout<<"H"<<heuristicArg<<"=["<<initialH<<"];"<<endl;
-	cout<<"G"<<heuristicArg<<"=["<<actualSolution<<"];"<<endl;
-	cout<<"M"<<heuristicArg<<"=["<<memories<<"];"<<endl;
+	cout<<"N"<<algorithmArg<<heuristicArg<<"=["<<nodesSearched<<"];"<<endl;
+	cout<<"H"<<algorithmArg<<heuristicArg<<"=["<<initialH<<"];"<<endl;
+	cout<<"G"<<algorithmArg<<heuristicArg<<"=["<<actualSolution<<"];"<<endl;
+	cout<<"M"<<algorithmArg<<heuristicArg<<"=["<<memories<<"];"<<endl;
 
 }

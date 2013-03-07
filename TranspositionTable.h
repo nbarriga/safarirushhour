@@ -34,9 +34,9 @@ public:
 class TranspositionTable {
 private:
 	Entry *TT;
-	unsigned int ttSize=256*1024;
+	unsigned int ttSize;
 public:
-	TranspositionTable();
+	TranspositionTable(unsigned int ttSize);
 	virtual ~TranspositionTable();
 	void TTsave(const State *const s, uint16_t bound);
 	Entry TTLookup(const State *const s) const;

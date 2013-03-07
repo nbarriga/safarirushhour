@@ -8,7 +8,7 @@
 #include "TranspositionTable.h"
 
 
-TranspositionTable::TranspositionTable() {
+TranspositionTable::TranspositionTable(unsigned int ttSize):ttSize(ttSize) {
 	TT=new Entry[ttSize];
 
 	//cout<<"TT entry size: "<<sizeof(Entry)<<"B, total "<<sizeof(Entry)*ttSize/1024<<"kB"<<endl;

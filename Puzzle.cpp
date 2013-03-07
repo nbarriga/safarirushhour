@@ -48,7 +48,7 @@ int Puzzle::aStar(int memoryLimit){
 	open.insert(initial);
 
 	nodes=0;
-	uint32_t maxLiveNodes=0;
+
 
 	while (!open_queue.empty()) {
 
@@ -63,7 +63,7 @@ int Puzzle::aStar(int memoryLimit){
 			int solutionLength=current->getG();
 			Problems.append("'").append(_name).append("',");
 			stringstream ss;
-			ss<<(int)maxLiveNodes*memFactor;
+			ss<<(int)maxLiveNodes*memFactor+baseMemory;
 			memories.append(ss.str()).append(" ");
 			stringstream ss2;
 			ss2<<nodes;
@@ -112,12 +112,12 @@ int Puzzle::aStar(int memoryLimit){
 					ss3<<solutionLength;
 					actualSolution.append(ss3.str()).append(" ");
 				}
-				if(maxLiveNodes*memFactor>memoryLimit&&algorithmArg=="Astar"){
+				if(maxLiveNodes*memFactor+baseMemory>memoryLimit&&algorithmArg=="Astar"){
 					//solution=reconstruct(current);;
 					int solutionLength=-1;
 					Problems.append("'").append(_name).append("',");
 					stringstream ss;
-					ss<<(int)maxLiveNodes*memFactor;
+					ss<<(int)maxLiveNodes*memFactor+baseMemory;
 					memories.append(ss.str()).append(" ");
 					stringstream ss2;
 					ss2<<nodes;
@@ -126,7 +126,7 @@ int Puzzle::aStar(int memoryLimit){
 					ss3<<solutionLength;
 					actualSolution.append(ss3.str()).append(" ");
 				}
-				if(timeOut||maxLiveNodes*memFactor>memoryLimit){
+				if(timeOut||maxLiveNodes*memFactor+baseMemory>memoryLimit){
 					for(auto toDel=it;toDel!=children.end();toDel++){
 						delete (*toDel);
 					}
@@ -152,6 +152,7 @@ int Puzzle::aStar(int memoryLimit){
 					delete *it;
 					continue;
 				}
+//				cout<<"closed";
 				closed.erase(*it); // re-open node to
 				delete *stored;
 			}
@@ -167,12 +168,17 @@ int Puzzle::aStar(int memoryLimit){
 				for(auto toUpdate=open_queue.begin();toUpdate!=open_queue.end();toUpdate++){
 					if(stateEqual(*toUpdate,*it)){
 						updatedInOpen=true;
-
+						if((*stored)!=(*toUpdate)){
+							cout<<"jdjdjdjdjd";
+						}
 						(*toUpdate)->setG((*it)->getG());
+						(*toUpdate)->setParent((*it)->getPrev());
+
 						std::push_heap(open_queue.begin(), toUpdate+1,comp);
 
-						open.erase(stored);
-						open.insert(*toUpdate);
+                        //dont touch the open set.
+//						open.erase(stored);
+//						open.insert(*toUpdate);
 						delete *it;
 						break;
 					}
@@ -219,8 +225,8 @@ int Puzzle::innerIdaStar(State* s, int depth, uint16_t bound) {
 
 
 	for (auto it=children.begin(); it!=children.end();it++) {
-		if (TT.exist(*it)){
-			(*it)->setH(TT.TTGetBound(*it));
+		if (TT->exist(*it)){
+			(*it)->setH(TT->TTGetBound(*it));
 		}
 	}
 	sort(children.begin(), children.end(),ReverseStatePointerComparator());
@@ -257,7 +263,7 @@ int Puzzle::innerIdaStar(State* s, int depth, uint16_t bound) {
 	}
 
 	solution="Can't find answer";
-	TT.TTsave(s,new_bound);
+	TT->TTsave(s,new_bound);
 	return new_bound;
 }
 
@@ -272,13 +278,16 @@ string Puzzle::reconstruct(int endPos) {
 Puzzle::Puzzle(string name,const State& state):_name(name), _initial(state) {
 }
 
-void Puzzle::init() {
+void Puzzle::init(int baseMemory) {
 	start=boost::posix_time::microsec_clock::local_time();
 	timeOut=false;
 	nodes=0;
+	this->baseMemory=baseMemory;
+	maxLiveNodes=0;
 }
 
-int Puzzle::idaStar() {
+int Puzzle::idaStar(unsigned int ttSize) {
+	TT=new TranspositionTable(ttSize);
 	threshold = _initial.getH();
 	done = false;
 	int moves;
@@ -302,12 +311,18 @@ int Puzzle::idaStar() {
 		}
 	}
 	Problems.append("'").append(_name).append("',");
-	struct rusage usage;
-	getrusage(RUSAGE_SELF , &usage);
-	stringstream ss;
-	ss<<usage.ru_maxrss/1024;
+	if(algorithmArg=="fallback"){
+		stringstream ss;
+				ss<<maxLiveNodes*memFactor+baseMemory;
+		memories.append(ss.str()).append(" ");
+	}else{
+		struct rusage usage;
+		getrusage(RUSAGE_SELF , &usage);
+		stringstream ss;
+		ss<<usage.ru_maxrss/1024;
 
-	memories.append(ss.str()).append(" ");
+		memories.append(ss.str()).append(" ");
+	}
 	stringstream ss2;
 	ss2<<nodes;
 	nodesSearched.append(ss2.str()).append(" ");
@@ -315,5 +330,6 @@ int Puzzle::idaStar() {
 	ss3<<moves;
 	actualSolution.append(ss3.str()).append(" ");
 	//cout<<"total nodes searched: "<<nodes<<endl;
+	delete TT;
 	return moves;
 }
