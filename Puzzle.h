@@ -28,7 +28,7 @@ class Puzzle {
 	float memFactor=(sizeof(State)+sizeof(RowCol)*numPieces+11*sizeof(State*))/1024.0f/1024.0f;
 	int baseMemory;
 	uint32_t maxLiveNodes;
-	uint64_t totalH=0, countH=0,cutMin=INT_MAX,cutTotal=0,cutCount=0,cutMax=0;
+	int64_t totalH=0, countH=0,cutMin=INT_MAX,cutTotal=0,cutCount=0,cutMax=0;
 public:
 	void init(int baseMemory);
 	Puzzle(string name, string state);
