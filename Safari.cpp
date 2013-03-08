@@ -82,12 +82,13 @@ int main(int argc, char* argv[]){
 		start =boost::posix_time::microsec_clock::local_time();
 		Puzzle puzzle(name,state);
 
-		int moves;
+		int moves=-1;
 		puzzle.init(baseMemory);
 		if(algorithmArg=="Astar"){
 			moves=puzzle.aStar(memoryArg);
 		}else if(algorithmArg=="IDAstar"){
 			moves=puzzle.idaStar(ttSizeArg);
+			cout<<"statistics "<<name<<" "<<puzzle.statistics()<<endl;
 		}else if(algorithmArg=="fallback"){
 			moves=puzzle.aStar(memoryArg);
 			if(moves<0&&!puzzle.isTimeOut()){
@@ -95,7 +96,7 @@ int main(int argc, char* argv[]){
 				moves=puzzle.idaStar(ttSizeArg);
 			}
 		}
-		cout<<"statistics "<<name<<" "<<puzzle.statistics()<<endl;
+
 		stringstream timeString;
 		timeString<<(boost::posix_time::microsec_clock::local_time() -start).total_milliseconds()/1000.0;
 		times.append(timeString.str()).append(" ");
