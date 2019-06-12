@@ -20,14 +20,14 @@
 #include <bitset>
 #include <utility>
 #include <climits>
-#include <boost/date_time/posix_time/posix_time.hpp>
+#include <chrono>
 #include <cinttypes>
-#include <boost/random.hpp>
+#include <random>
 #include <queue>
 #include <unordered_map>
 #include <unordered_set>
 #include <functional>
-#include <boost/functional/hash/hash.hpp>
+//#include <boost/functional/hash/hash.hpp>
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <fstream>

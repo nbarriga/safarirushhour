@@ -14,7 +14,7 @@ string algorithmArg,heuristicArg;
 HEURISTIC heuristic;
 
 int main(int argc, char* argv[]){
-	auto start =boost::posix_time::microsec_clock::local_time();
+	auto start =chrono::high_resolution_clock::now();
 
 	// Declare the supported options.
 	po::options_description desc("Allowed options");
@@ -79,7 +79,7 @@ int main(int argc, char* argv[]){
 			getline(cin,line);
 			state.append(line.substr(0,7));
 		}
-		start =boost::posix_time::microsec_clock::local_time();
+		start =chrono::high_resolution_clock::now();
 		Puzzle puzzle(name,state);
 
 		int moves=-1;
@@ -98,7 +98,7 @@ int main(int argc, char* argv[]){
 		}
 
 		stringstream timeString;
-		timeString<<(boost::posix_time::microsec_clock::local_time() -start).total_milliseconds()/1000.0;
+		timeString<<chrono::duration_cast<std::chrono::milliseconds>(chrono::high_resolution_clock::now() -start).count()/1000.0;
 		times.append(timeString.str()).append(" ");
 		if(moves>=0){
 			cout<<"solution "<<name<<" "<<timeString.str()<<

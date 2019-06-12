@@ -1,2 +1,0 @@
-#!/bin/bash
-PATH=/local/scratch/mburo/etc/bin:$PATH LD_LIBRARY_PATH=/local/scratch/mburo/etc/lib:/local/scratch/mburo/etc/lib32:/local/scratch/mburo/etc/lib64:$LD_LIBRARY_PATH ./safari-bin $@

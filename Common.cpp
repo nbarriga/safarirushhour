@@ -159,12 +159,13 @@ _dummy_static_initializer::_dummy_static_initializer(){
 	type_sizeX[two_by_one][VERT]=1;
 	type_sizeY[two_by_one][VERT]=2;
 
-	boost::random::mt19937_64 rng;//use a seed?
+	std::mt19937_64 e;
+	std::uniform_int_distribution<int> uniform_dist;
 	for(auto i=0;i<256;i++){
 		for(auto orientation=0;orientation<2;orientation++){
 			for(auto type=0;type<4;type++){
 				for(auto z=0;z<2;z++){
-					zobrist[i][orientation][type][z]=rng();
+					zobrist[i][orientation][type][z]=uniform_dist(e);
 				}
 			}
 		}

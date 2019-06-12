@@ -24,7 +24,7 @@ class Puzzle {
 	State* path[1000];
 	TranspositionTable *TT;
 	string solution;
-	boost::posix_time::ptime start;
+	chrono::time_point<chrono::high_resolution_clock> start;
 	float memFactor=(sizeof(State)+sizeof(RowCol)*numPieces+11*sizeof(State*))/1024.0f/1024.0f;
 	int baseMemory;
 	uint32_t maxLiveNodes;

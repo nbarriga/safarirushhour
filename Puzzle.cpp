@@ -97,7 +97,7 @@ int Puzzle::aStar(int memoryLimit){
 		for (auto it=children.begin();it!=children.end();it++){
 			nodes++;
 			if(nodes%5000==0){
-				timeOut=(boost::posix_time::microsec_clock::local_time() -start).total_milliseconds()>timeArg*1000;
+				timeOut=chrono::duration_cast<std::chrono::milliseconds>(chrono::high_resolution_clock::now() -start).count()>timeArg*1000;
 				if(timeOut){
 					//solution=reconstruct(current);;
 					int solutionLength=-1;
@@ -209,7 +209,7 @@ int Puzzle::aStar(int memoryLimit){
 int Puzzle::innerIdaStar(State* s, int depth, uint16_t bound) {
 	nodes++;
 	if(nodes%5000==0){
-		if((boost::posix_time::microsec_clock::local_time() -start).total_milliseconds()>timeArg*1000){
+		if(chrono::duration_cast<std::chrono::milliseconds>(chrono::high_resolution_clock::now() -start).count()>timeArg*1000){
 			timeOut=true;
 			return -1;
 		}
@@ -294,7 +294,7 @@ Puzzle::Puzzle(string name,const State& state):_name(name), _initial(state) {
 }
 
 void Puzzle::init(int baseMemory) {
-	start=boost::posix_time::microsec_clock::local_time();
+	start=chrono::high_resolution_clock::now();
 	timeOut=false;
 	nodes=0;
 	this->baseMemory=baseMemory;
