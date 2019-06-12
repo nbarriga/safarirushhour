@@ -32,6 +32,11 @@ int main(int argc, char* argv[]){
 		}
 		State *s= new State(state);
 		getline(cin,line);
+		if(line!=""){
+			cerr<<"Formatting problem"<<endl;
+			return EXIT_FAILURE;
+		}
+		getline(cin,line);
 		stringstream str(line);
 		string solution,problem;
 		float time;
