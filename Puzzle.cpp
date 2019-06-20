@@ -112,7 +112,8 @@ int Puzzle::aStar(int memoryLimit){
 					ss3<<solutionLength;
 					actualSolution.append(ss3.str()).append(" ");
 				}
-				if(maxLiveNodes*memFactor+baseMemory>memoryLimit&&algorithmArg=="Astar"){
+				overMemBudget=maxLiveNodes*memFactor+baseMemory>memoryLimit;
+				if(overMemBudget&&algorithmArg=="Astar"){
 					//solution=reconstruct(current);;
 					int solutionLength=-1;
 					Problems.append("'").append(_name).append("',");
@@ -126,7 +127,7 @@ int Puzzle::aStar(int memoryLimit){
 					ss3<<solutionLength;
 					actualSolution.append(ss3.str()).append(" ");
 				}
-				if(timeOut||maxLiveNodes*memFactor+baseMemory>memoryLimit){
+				if(timeOut||overMemBudget){
 					threshold=current->getF();
 					for(auto toDel=it;toDel!=children.end();toDel++){
 						delete (*toDel);
@@ -174,10 +175,9 @@ int Puzzle::aStar(int memoryLimit){
 						}
 						(*toUpdate)->setG((*it)->getG());
 						(*toUpdate)->setParent((*it)->getPrev());
-
 						std::push_heap(open_queue.begin(), toUpdate+1,comp);
 
-                        //dont touch the open set.
+                        //dont touch the open set.it is already updated
 //						open.erase(stored);
 //						open.insert(*toUpdate);
 						delete *it;
@@ -194,7 +194,7 @@ int Puzzle::aStar(int memoryLimit){
 			maxLiveNodes=maxLiveNodes>closed.size()+open.size()?maxLiveNodes:closed.size()+open.size();
 
 		}
-
+		//cout<<closed.size()<<" "<<open.size()<<endl;
 		closed.insert(current);
 
 	}
@@ -296,14 +296,16 @@ Puzzle::Puzzle(string name,const State& state):_name(name), _initial(state) {
 void Puzzle::init(int baseMemory) {
 	start=chrono::high_resolution_clock::now();
 	timeOut=false;
+	overMemBudget=false;
 	nodes=0;
 	this->baseMemory=baseMemory;
 	maxLiveNodes=0;
 	threshold=0;
 }
 
-int Puzzle::idaStar(unsigned int ttSize) {
+int Puzzle::idaStar(unsigned int ttSize, unsigned int maxSolLength) {
 	TT=new TranspositionTable(ttSize);
+	path=new State*[maxSolLength];
 //	if(threshold==0){
 		threshold = _initial.getH();
 //	}
@@ -318,6 +320,10 @@ int Puzzle::idaStar(unsigned int ttSize) {
 
 		if (!done){
 			threshold = moves;
+			if(threshold>maxSolLength){
+				moves=-1;
+				break;
+			}
 		}
 		if(moves<0){
 			break;
@@ -350,6 +356,7 @@ int Puzzle::idaStar(unsigned int ttSize) {
 	actualSolution.append(ss3.str()).append(" ");
 	//cout<<"total nodes searched: "<<nodes<<endl;
 	delete TT;
+	delete path;
 	return moves;
 }
 

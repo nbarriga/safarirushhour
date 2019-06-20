@@ -9,7 +9,7 @@
 #include "Puzzle.h"
 
 namespace po = boost::program_options;
-int timeArg,memoryArg,ttSizeArg;
+int timeArg,memoryArg,ttSizeArg,maxSolLength;
 string algorithmArg,heuristicArg;
 HEURISTIC heuristic;
 
@@ -26,6 +26,7 @@ int main(int argc, char* argv[]){
 	    ("algorithm,a", po::value<string>(&algorithmArg)->default_value("IDAstar"), "set algorithm")
 	    ("memory,m", po::value<int>(&memoryArg)->default_value(200), "set memory limit (in MB)")
 	    ("size,s", po::value<int>(&ttSizeArg)->default_value(10000000), "set TT size (in #entries)")
+	    ("length,l", po::value<int>(&maxSolLength)->default_value(1000), "set maximum solution length to look for in IDA*")
 	;
 
 	po::variables_map vm;
@@ -87,13 +88,13 @@ int main(int argc, char* argv[]){
 		if(algorithmArg=="Astar"){
 			moves=puzzle.aStar(memoryArg);
 		}else if(algorithmArg=="IDAstar"){
-			moves=puzzle.idaStar(ttSizeArg);
+			moves=puzzle.idaStar(ttSizeArg,maxSolLength);
 			cout<<"statistics "<<name<<" "<<puzzle.statistics()<<endl;
 		}else if(algorithmArg=="fallback"){
 			moves=puzzle.aStar(memoryArg);
-			if(moves<0&&!puzzle.isTimeOut()){
+			if(puzzle.isOverMemBudget()){
 				cout<<name<<" exceeded memory budget of "<<memoryArg<<"MB, reverting to IDA*"<<endl;
-				moves=puzzle.idaStar(ttSizeArg);
+				moves=puzzle.idaStar(ttSizeArg,maxSolLength);
 			}
 		}
 
@@ -104,14 +105,18 @@ int main(int argc, char* argv[]){
 			cout<<"solution "<<name<<" "<<timeString.str()<<
 					" "<<moves<<" "<<puzzle.getSolution()<<endl;
 
+		}else if(puzzle.isTimeOut()){
+			cout<<"solution "<<name<<" "<<"timeout"<<endl;
+		}else if(puzzle.isOverMemBudget()){
+			cout<<"solution "<<name<<" "<<"timeout -> exceeded memory budget"<<endl;
 		}else{
-
-			if(puzzle.isTimeOut()){
-				cout<<"solution "<<name<<" "<<"timeout"<<endl;
+			if(algorithmArg=="IDAstar"){
+				cout<<"solution "<<name<<" "<<"No solution exists with length < "<<maxSolLength<<endl;
 			}else{
-				cout<<"solution "<<name<<" "<<"timeout -> exceeded memory budget"<<endl;
+				cout<<"solution "<<name<<" "<<"No solution exists"<<endl;
 			}
 		}
+		
 
 
 		stringstream ss;

@@ -20,8 +20,8 @@ class Puzzle {
 	int innerIdaStar(State* s, int depth, uint16_t bound);
 	uint16_t threshold;
 	uint64_t nodes;
-	bool done,timeOut;
-	State* path[1000];
+	bool done,timeOut,overMemBudget;
+	State** path;
 	TranspositionTable *TT;
 	string solution;
 	chrono::time_point<chrono::high_resolution_clock> start;
@@ -39,7 +39,7 @@ public:
 	uint16_t getInitialH() const{
 		return _initial.getH();
 	}
-	int idaStar(unsigned int ttSize);
+	int idaStar(unsigned int ttSize, unsigned int maxSolLength);
 
 	const string& getSolution() const {
 		return solution;
@@ -47,6 +47,9 @@ public:
 
 	bool isTimeOut() const {
 		return timeOut;
+	}
+	bool isOverMemBudget() const {
+		return overMemBudget;
 	}
 	string statistics();
 };
