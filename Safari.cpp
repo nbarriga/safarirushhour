@@ -13,7 +13,7 @@ int timeArg,memoryArg,ttSizeArg,maxSolLength;
 string algorithmArg,heuristicArg;
 HEURISTIC heuristic;
 
-int main(int argc, char* argv[]){
+int main(int argc, char* argv[]){	
 	auto start =chrono::high_resolution_clock::now();
 
 	// Declare the supported options.
@@ -21,7 +21,7 @@ int main(int argc, char* argv[]){
 
 	desc.add_options()
 	    ("help", "prints this help message")
-	    ("time,t", po::value<int>(&timeArg)->default_value(86400), "set timeout (in seconds)")
+	    ("time,t", po::value<int>(&timeArg)->default_value(60), "set timeout (in seconds)")
 	    ("heuristic,h", po::value<string>(&heuristicArg)->default_value("obstacles0"), "set heuristic")
 	    ("algorithm,a", po::value<string>(&algorithmArg)->default_value("IDAstar"), "set algorithm")
 	    ("memory,m", po::value<int>(&memoryArg)->default_value(200), "set memory limit (in MB)")
@@ -55,7 +55,7 @@ int main(int argc, char* argv[]){
 		heuristic=relaxed2;
 	}else{
 		cout << desc << "\n";
-		return EXIT_FAILURE;
+		return 1;
 	}
 	_dummy_static_initializer _dummy;
 //	cout<<"Initialized in "<<(boost::posix_time::microsec_clock::local_time() -start).total_milliseconds()<<"[ms]"<<endl;
@@ -72,7 +72,7 @@ int main(int argc, char* argv[]){
 		}
 		if(line[0]!='P'){
 			cerr<<"Formatting problem"<<endl;
-			return EXIT_FAILURE;
+			return 4;
 		}
 		string name= line.substr(2,string::npos);
 		string state;
@@ -89,11 +89,11 @@ int main(int argc, char* argv[]){
 			moves=puzzle.aStar(memoryArg);
 		}else if(algorithmArg=="IDAstar"){
 			moves=puzzle.idaStar(ttSizeArg,maxSolLength);
-			cout<<"statistics "<<name<<" "<<puzzle.statistics()<<endl;
+			//cout<<"statistics "<<name<<" "<<puzzle.statistics()<<endl;
 		}else if(algorithmArg=="fallback"){
 			moves=puzzle.aStar(memoryArg);
 			if(puzzle.isOverMemBudget()){
-				cout<<name<<" exceeded memory budget of "<<memoryArg<<"MB, reverting to IDA*"<<endl;
+				//cout<<name<<" exceeded memory budget of "<<memoryArg<<"MB, reverting to IDA*"<<endl;
 				moves=puzzle.idaStar(ttSizeArg,maxSolLength);
 			}
 		}
@@ -102,8 +102,9 @@ int main(int argc, char* argv[]){
 		timeString<<chrono::duration_cast<std::chrono::milliseconds>(chrono::high_resolution_clock::now() -start).count()/1000.0;
 		times.append(timeString.str()).append(" ");
 		if(moves>=0){
-			cout<<"solution "<<name<<" "<<timeString.str()<<
-					" "<<moves<<" "<<puzzle.getSolution()<<endl;
+			//cout<<"solution "<<name<<" "<<timeString.str()<<
+			//		" "<<moves<<" "<<puzzle.getSolution()<<endl;
+			cout<<puzzle.getSolution()<<endl;
 
 		}else if(puzzle.isTimeOut()){
 			cout<<"solution "<<name<<" "<<"timeout"<<endl;
