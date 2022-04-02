@@ -67,7 +67,8 @@ int main(int argc, char* argv[]){
 	int baseMemory=usage.ru_maxrss/1024;
 	string line;
 	while(getline(cin,line)){
-		if(line==""){
+		if(line.back()=='\r')line.pop_back();
+		if(line.length()==0||isspace(line[0])||isblank(line[0])){
 			continue;
 		}
 		if(line[0]!='P'){
@@ -78,6 +79,7 @@ int main(int argc, char* argv[]){
 		string state;
 		for(int i=0;i<7;i++){
 			getline(cin,line);
+			if(line.back()=='\r')line.pop_back();
 			state.append(line.substr(0,7));
 		}
 		start =chrono::high_resolution_clock::now();
@@ -102,9 +104,9 @@ int main(int argc, char* argv[]){
 		timeString<<chrono::duration_cast<std::chrono::milliseconds>(chrono::high_resolution_clock::now() -start).count()/1000.0;
 		times.append(timeString.str()).append(" ");
 		if(moves>=0){
-			//cout<<"solution "<<name<<" "<<timeString.str()<<
-			//		" "<<moves<<" "<<puzzle.getSolution()<<endl;
-			cout<<puzzle.getSolution()<<endl;
+			cout<<"solution "<<name<<" "<<timeString.str()<<
+					" "<<moves<<" "<<puzzle.getSolution()<<endl;
+			//cout<<puzzle.getSolution()<<endl;
 
 		}else if(puzzle.isTimeOut()){
 			cout<<"solution "<<name<<" "<<"timeout"<<endl;
