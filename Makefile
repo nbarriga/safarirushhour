@@ -1,4 +1,5 @@
 CXXFLAGS = -O3 -msse -msse2 -Wall -Wextra -std=c++14 
+#CXXFLAGS = -g
 CXX=g++
 OBJS = Common.o State.o TranspositionTable.o Puzzle.o 
 
@@ -13,3 +14,6 @@ verify:	$(OBJS) Verify.o
 	$(CXX)  -o verify $(OBJS) Verify.o $(LIBS)
 clean:
 	rm -f $(OBJS) safari $(TARGET)
+
+lib: $(OBJS)
+	ar rvs safari.a $(OBJS)

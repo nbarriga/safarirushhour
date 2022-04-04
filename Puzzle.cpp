@@ -62,15 +62,16 @@ int Puzzle::aStar(int memoryLimit){
 			solution=reconstruct(current);;
 			int solutionLength=current->getG();
 			Problems.append("'").append(_name).append("',");
-			stringstream ss;
-			ss<<(int)maxLiveNodes*memFactor+baseMemory;
-			memories.append(ss.str()).append(" ");
-			stringstream ss2;
-			ss2<<nodes;
-			nodesSearched.append(ss2.str()).append(" ");
-			stringstream ss3;
-			ss3<<solutionLength;
-			actualSolution.append(ss3.str()).append(" ");
+			// stringstream ss;
+			// ss<<(int)maxLiveNodes*memFactor+baseMemory;
+			// memories.append(ss.str()).append(" ");
+			// stringstream ss2;
+			// ss2<<nodes;
+			// nodesSearched.append(ss2.str()).append(" ");
+			// stringstream ss3;
+			// ss3<<solutionLength;
+			// actualSolution.append(ss3.str()).append(" ");
+
 //			struct rusage usage;
 //			getrusage(RUSAGE_SELF , &usage);
 //
@@ -102,30 +103,30 @@ int Puzzle::aStar(int memoryLimit){
 					//solution=reconstruct(current);;
 					int solutionLength=-1;
 					Problems.append("'").append(_name).append("',");
-					stringstream ss;
-					ss<<(int)maxLiveNodes*memFactor;
-					memories.append(ss.str()).append(" ");
-					stringstream ss2;
-					ss2<<nodes;
-					nodesSearched.append(ss2.str()).append(" ");
-					stringstream ss3;
-					ss3<<solutionLength;
-					actualSolution.append(ss3.str()).append(" ");
+					// stringstream ss;
+					// ss<<(int)maxLiveNodes*memFactor;
+					// memories.append(ss.str()).append(" ");
+					// stringstream ss2;
+					// ss2<<nodes;
+					// nodesSearched.append(ss2.str()).append(" ");
+					// stringstream ss3;
+					// ss3<<solutionLength;
+					// actualSolution.append(ss3.str()).append(" ");
 				}
 				overMemBudget=maxLiveNodes*memFactor+baseMemory>memoryLimit;
 				if(overMemBudget&&algorithmArg=="Astar"){
 					//solution=reconstruct(current);;
 					int solutionLength=-1;
 					Problems.append("'").append(_name).append("',");
-					stringstream ss;
-					ss<<(int)maxLiveNodes*memFactor+baseMemory;
-					memories.append(ss.str()).append(" ");
-					stringstream ss2;
-					ss2<<nodes;
-					nodesSearched.append(ss2.str()).append(" ");
-					stringstream ss3;
-					ss3<<solutionLength;
-					actualSolution.append(ss3.str()).append(" ");
+					// stringstream ss;
+					// ss<<(int)maxLiveNodes*memFactor+baseMemory;
+					// memories.append(ss.str()).append(" ");
+					// stringstream ss2;
+					// ss2<<nodes;
+					// nodesSearched.append(ss2.str()).append(" ");
+					// stringstream ss3;
+					// ss3<<solutionLength;
+					// actualSolution.append(ss3.str()).append(" ");
 				}
 				if(timeOut||overMemBudget){
 					threshold=current->getF();
@@ -191,7 +192,7 @@ int Puzzle::aStar(int memoryLimit){
 				open_queue.push_back(*it);
 				std::push_heap(open_queue.begin(), open_queue.end(),comp);
 			}
-			maxLiveNodes=maxLiveNodes>closed.size()+open.size()?maxLiveNodes:closed.size()+open.size();
+			// maxLiveNodes=maxLiveNodes>closed.size()+open.size()?maxLiveNodes:closed.size()+open.size();
 
 		}
 		//cout<<closed.size()<<" "<<open.size()<<endl;
@@ -336,24 +337,24 @@ int Puzzle::idaStar(unsigned int ttSize, unsigned int maxSolLength) {
 		}
 	}
 	Problems.append("'").append(_name).append("',");
-	if(algorithmArg=="fallback"){
-		stringstream ss;
-				ss<<maxLiveNodes*memFactor+baseMemory;
-		memories.append(ss.str()).append(" ");
-	}else{
-		struct rusage usage;
-		getrusage(RUSAGE_SELF , &usage);
-		stringstream ss;
-		ss<<usage.ru_maxrss/1024;
+	// if(algorithmArg=="fallback"){
+	// 	stringstream ss;
+	// 			ss<<maxLiveNodes*memFactor+baseMemory;
+	// 	memories.append(ss.str()).append(" ");
+	// }else{
+	// 	struct rusage usage;
+	// 	getrusage(RUSAGE_SELF , &usage);
+	// 	stringstream ss;
+	// 	ss<<usage.ru_maxrss/1024;
 
-		memories.append(ss.str()).append(" ");
-	}
-	stringstream ss2;
-	ss2<<nodes;
-	nodesSearched.append(ss2.str()).append(" ");
-	stringstream ss3;
-	ss3<<moves;
-	actualSolution.append(ss3.str()).append(" ");
+	// 	memories.append(ss.str()).append(" ");
+	// }
+	// stringstream ss2;
+	// ss2<<nodes;
+	// nodesSearched.append(ss2.str()).append(" ");
+	// stringstream ss3;
+	// ss3<<moves;
+	// actualSolution.append(ss3.str()).append(" ");
 	//cout<<"total nodes searched: "<<nodes<<endl;
 	delete TT;
 	delete path;
