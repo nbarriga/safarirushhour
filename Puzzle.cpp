@@ -156,8 +156,9 @@ int Puzzle::aStar(int memoryLimit){
 					continue;
 				}
 //				cout<<"closed";
+				auto toDel=*stored;//needed because iterator gets invalidated on next line
 				closed.erase(*it); // re-open node to
-				delete *stored;
+				delete toDel;
 			}
 
 			stored = open.find(*it);
