@@ -115,7 +115,7 @@ int Puzzle::aStar(int memoryLimit){
 					// ss3<<solutionLength;
 					// actualSolution.append(ss3.str()).append(" ");
 				}
-				overMemBudget=maxLiveNodes*memFactor+baseMemory>memoryLimit;
+				overMemBudget=memoryLimit!=-1?maxLiveNodes*memFactor+baseMemory>memoryLimit:false;
 				if(overMemBudget&&algorithmArg=="Astar"){
 					//solution=reconstruct(current);;
 					int solutionLength=-1;

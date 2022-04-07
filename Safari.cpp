@@ -25,7 +25,7 @@ int main(int argc, char* argv[]){
 	    ("time,t", po::value<int>(&timeArg)->default_value(60), "set timeout (in seconds)")
 	    ("heuristic,h", po::value<string>(&heuristicArg)->default_value("obstacles0"), "set heuristic")
 	    ("algorithm,a", po::value<string>(&algorithmArg)->default_value("IDAstar"), "set algorithm")
-	    ("memory,m", po::value<int>(&memoryArg)->default_value(200), "set memory limit (in MB)")
+	    ("memory,m", po::value<int>(&memoryArg)->default_value(-1), "set memory limit (in MB), -1: disabled")
 	    ("size,s", po::value<int>(&ttSizeArg)->default_value(10000000), "set TT size (in #entries)")
 	    ("length,l", po::value<int>(&maxSolLength)->default_value(1000), "set maximum solution length to look for in IDA*")
 	;
