@@ -6,6 +6,8 @@
  */
 
 #include "State.h"
+#include <algorithm>
+
 uint16_t State::getTwoOne(const RowCol& rover) const{
 	if(rover.split.row==2){
 		return 1;

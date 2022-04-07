@@ -6,6 +6,8 @@
  */
 
 #include "Puzzle.h"
+#include <algorithm>
+
 string Problems, times, memories, nodesSearched, initialH, actualSolution;
 Puzzle::Puzzle(string name, string state):_name(name), _initial(State(state)) {
 
