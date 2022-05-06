@@ -321,8 +321,12 @@ string State::toString() const {
 			break;
 		case three_by_one:
 			if(index_orientation[i]==HOR){
+				s[pieces[i].split.row*7+pieces[i].split.col]=index_letter[i];
+				s[pieces[i].split.row*7+pieces[i].split.col+1]=index_letter[i];
 				s[pieces[i].split.row*7+pieces[i].split.col+2]=index_letter[i];
 			}else{
+				s[(pieces[i].split.row)*7+pieces[i].split.col]=index_letter[i];
+				s[(pieces[i].split.row+1)*7+pieces[i].split.col]=index_letter[i];
 				s[(pieces[i].split.row+2)*7+pieces[i].split.col]=index_letter[i];
 			}
 			break;
