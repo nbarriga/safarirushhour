@@ -13,7 +13,7 @@ safari:	$(OBJS) Safari.o
 verify:	$(OBJS) Verify.o
 	$(CXX)  -o verify $(OBJS) Verify.o $(LIBS)
 clean:
-	rm -f $(OBJS) safari $(TARGET)
+	rm -f $(OBJS) safari verify safari.a $(TARGET)
 
 lib: $(OBJS)
 	ar rvs safari.a $(OBJS)
