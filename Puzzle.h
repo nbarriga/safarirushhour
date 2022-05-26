@@ -25,12 +25,10 @@ class Puzzle {
 	TranspositionTable *TT;
 	string solution;
 	chrono::time_point<chrono::high_resolution_clock> start;
-	float memFactor=(sizeof(State)+sizeof(RowCol)*numPieces+11*sizeof(State*))/1024.0f/1024.0f;
-	int baseMemory;
-	uint32_t maxLiveNodes;
+	float memFactor=(sizeof(State)+sizeof(RowCol)*numPieces+11*sizeof(State*)+16)/1024.0f/1024.0f;
 	int64_t totalH=0, countH=0,cutMin=INT_MAX,cutTotal=0,cutCount=0,cutMax=0;
 public:
-	void init(int baseMemory);
+	void init();
 	Puzzle(string name, string state);
 	Puzzle(string name, const State& state);
 	virtual ~Puzzle();

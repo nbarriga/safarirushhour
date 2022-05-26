@@ -52,7 +52,7 @@ extern PIECE_TYPE PIECE_TYPES[4];
 extern int timeArg;
 extern string algorithmArg;
 extern HEURISTIC heuristic;
-
+extern bool clusterCache;
 
 const uint64_t outside=3ull|(3ull<<9)|(3ull<<18)|(3ull<<27)|(3ull<<36)|(3ull<<45)|(3ull<<54);
 const uint64_t outside_exit=3ull|(3ull<<9)|(3ull<<18)/*|(3ull<<27)|(3ull<<36)*/|(3ull<<45)|(3ull<<54);

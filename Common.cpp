@@ -545,3 +545,5 @@ _dummy_static_initializer::_dummy_static_initializer(){
 #endif
 	init_done=true;
 }
+
+bool clusterCache=false;
