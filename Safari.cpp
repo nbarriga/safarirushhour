@@ -41,8 +41,10 @@ int main(int argc, char* argv[]){
 	    cout << desc << "\n";
 	    return 1;
 	}
+	TranspositionTable *TT=nullptr;
 	if (vm.count("cluster")) {
 	    clusterCache=true;
+		TT=new TranspositionTable(ttSizeArg);
 	}
 	if(heuristicArg=="0"){
 		heuristic=zero;
@@ -86,7 +88,9 @@ int main(int argc, char* argv[]){
 		}
 		start =chrono::high_resolution_clock::now();
 		Puzzle puzzle(name,state);
-
+		if(clusterCache){
+			puzzle.setTTForReuse(TT);
+		}
 		int moves=-1;
 		puzzle.init();
 		if(algorithmArg=="Astar"){
@@ -132,6 +136,9 @@ int main(int argc, char* argv[]){
 //
 //
 //		cout<<"Usage: "<<usage.ru_maxrss/1024<<"MB"<<endl;
+	}
+	if(clusterCache){
+		delete TT;
 	}
 //
 //	cout<<"P"<<algorithmArg<<heuristicArg<<"={"<<Problems.substr(0,Problems.size()-1)<<"};"<<endl;

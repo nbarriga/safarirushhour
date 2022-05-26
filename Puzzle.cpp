@@ -297,11 +297,13 @@ void Puzzle::init() {
 	threshold=0;
 }
 
+void Puzzle::setTTForReuse(TranspositionTable *_TT){
+	TT=_TT;
+}
+
 int Puzzle::idaStar(unsigned int ttSize, unsigned int maxSolLength) {
-	static bool a=true;
-	if (!clusterCache||a){
+	if (!clusterCache||TT==nullptr){
 		TT=new TranspositionTable(ttSize);
-		a=false;
 	}
 	path=new State*[maxSolLength];
 //	if(threshold==0){
@@ -356,7 +358,7 @@ int Puzzle::idaStar(unsigned int ttSize, unsigned int maxSolLength) {
 	if(!clusterCache){
 		delete TT;
 	}
-	delete path;
+	delete[] path;
 	return moves;
 }
 
