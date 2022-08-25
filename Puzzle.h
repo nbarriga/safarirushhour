@@ -22,7 +22,7 @@ class Puzzle {
 	uint64_t nodes;
 	bool done,timeOut,overMemBudget;
 	State** path;
-	TranspositionTable *TT=nullptr;
+	TTInterface *TT=nullptr;
 	string solution;
 	chrono::time_point<chrono::high_resolution_clock> start;
 	float memFactor=(sizeof(State)+sizeof(RowCol)*numPieces+11*sizeof(State*)+16)/1024.0f/1024.0f;
@@ -34,7 +34,7 @@ public:
 	virtual ~Puzzle();
 	string toString()const;
 	int aStar(int memoryLimit);
-	void setTTForReuse(TranspositionTable *_TT);
+	void setTTForReuse(TTInterface *_TT);
 	uint16_t getInitialH() const{
 		return _initial.getH();
 	}

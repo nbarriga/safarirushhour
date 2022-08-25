@@ -44,7 +44,7 @@ using namespace std;
 enum ORIENTATION {HOR=0, VERT=1};
 enum DIRECTION {UP=0, DOWN=1, LEFT=2, RIGHT=3};
 enum PIECE_TYPE {rover=0, two_by_two=1, three_by_one=2, two_by_one=3};
-enum HEURISTIC {zero, twoonezero, obstacles0,obstacles1,obstacles2,obstacles3,relaxed1,relaxed2};
+enum HEURISTIC {zero, twoonezero, obstacles0,obstacles1,obstacles2,obstacles3,relaxed1,relaxed2, goalOccupancy};
 extern ORIENTATION ORIENTATIONS[2];
 extern DIRECTION DIRECTIONS[4];
 extern PIECE_TYPE PIECE_TYPES[4];
@@ -53,6 +53,7 @@ extern int timeArg;
 extern string algorithmArg;
 extern HEURISTIC heuristic;
 extern bool clusterCache;
+extern bool useMapTT;
 
 const uint64_t outside=3ull|(3ull<<9)|(3ull<<18)|(3ull<<27)|(3ull<<36)|(3ull<<45)|(3ull<<54);
 const uint64_t outside_exit=3ull|(3ull<<9)|(3ull<<18)/*|(3ull<<27)|(3ull<<36)*/|(3ull<<45)|(3ull<<54);

@@ -202,6 +202,32 @@ uint16_t State::calculateH() const{
 		_h=minH;
 	}
 	break;
+	// case goalOccupancy:
+	// {
+	// 	int count = 0;
+	// 	int extraMoves = 0;
+	// 	for(int p = 0; p < numPieces; p++)
+	// 	{
+	// 		if((p!=letter_index[(uint8_t)'x'])&&exit_obstacles[index_type[p]][index_orientation[p]][pieces[p].packed])
+	// 		{
+	// 			count++;
+
+	// 			if(_rover.split.row == 2 && pieces[p].split.row == 2 && pieces[p].split.col > _rover.split.col){
+	// 				extraMoves++;
+	// 			}
+
+	// 		}
+	// 	}
+
+	// 	if(_rover.split.row == 2)
+	// 		return count + extraMoves;
+	// 	else
+
+
+
+	// }
+	// break;
+
 	}
 
 

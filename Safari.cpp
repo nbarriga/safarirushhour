@@ -12,7 +12,7 @@
 namespace po = boost::program_options;
 int timeArg,memoryArg,ttSizeArg,maxSolLength;
 
-string algorithmArg,heuristicArg;
+string algorithmArg,heuristicArg,ttTypeArg;
 HEURISTIC heuristic;
 
 int main(int argc, char* argv[]){	
@@ -31,6 +31,7 @@ int main(int argc, char* argv[]){
 	    ("size,s", po::value<int>(&ttSizeArg)->default_value(10000000), "set TT size (in #entries, approximately 16 bytes per node)")
 	    ("length,l", po::value<int>(&maxSolLength)->default_value(1000), "set maximum solution length to look for in IDA*")
 		("cluster,c", "Enable caching of solutions between boards, for reuse in the same cluster")
+		("typett", po::value<string>(&ttTypeArg)->default_value("normal")->implicit_value("stdin"), "set transposition table type (map = std::unordered_map, normal = array")
 	;
 
 	po::variables_map vm;
@@ -41,10 +42,20 @@ int main(int argc, char* argv[]){
 	    cout << desc << "\n";
 	    return 1;
 	}
-	TranspositionTable *TT=nullptr;
+	//TranspositionTable *TT=nullptr;
+	TTInterface *TT = nullptr;
 	if (vm.count("cluster")) {
 	    clusterCache=true;
-		TT=new TranspositionTable(ttSizeArg);
+		if(ttTypeArg == "map"){
+			useMapTT=true;
+			TT=new TranspositionTableMap();
+		}
+		else if(ttTypeArg == "normal")
+			TT=new TranspositionTable(ttSizeArg);
+		else{
+			cerr <<"No correct transposition table type specified." << endl;
+			return 1;
+		}
 	}
 	if(heuristicArg=="0"){
 		heuristic=zero;

@@ -223,21 +223,22 @@ int Puzzle::innerIdaStar(State* s, int depth, uint16_t bound) {
 
 	for (auto it=children.begin(); it!=children.end();it++) {
 		if (TT->exist(*it)){
-			auto newH=TT->TTGetBound(*it);
-			if(newH>(*it)->getH()){
-				if(depth<cutMin){
-					cutMin=depth;
+				auto newH=TT->TTGetBound(*it);
+				if(newH>(*it)->getH()){
+					if(depth<cutMin){
+						cutMin=depth;
+					}
+					if(depth>cutMax){
+						cutMax=depth;
+					}
+					cutTotal+=depth;
+					cutCount++;
 				}
-				if(depth>cutMax){
-					cutMax=depth;
-				}
-				cutTotal+=depth;
-				cutCount++;
-			}
-			(*it)->setH(newH);
+				(*it)->setH(newH);
 
+			}
 		}
-	}
+
 	sort(children.begin(), children.end(),ReverseStatePointerComparator());
 	//cout<<(*children.begin())->getF()<<" "<<(*(children.end()-1))->getF()<<endl;
 
@@ -297,13 +298,14 @@ void Puzzle::init() {
 	threshold=0;
 }
 
-void Puzzle::setTTForReuse(TranspositionTable *_TT){
-	TT=_TT;
+void Puzzle::setTTForReuse(TTInterface*_TT){
+	TT= _TT;
 }
 
 int Puzzle::idaStar(unsigned int ttSize, unsigned int maxSolLength) {
 	if (!clusterCache||TT==nullptr){
-		TT=new TranspositionTable(ttSize);
+			if(useMapTT) TT=new TranspositionTableMap();
+			else TT=new TranspositionTable(ttSize);
 	}
 	path=new State*[maxSolLength];
 //	if(threshold==0){
