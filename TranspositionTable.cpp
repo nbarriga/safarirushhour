@@ -13,11 +13,8 @@ TranspositionTable::TranspositionTable(unsigned int ttSize):ttSize(ttSize) {
 
 	//cout<<"TT entry size: "<<sizeof(Entry)<<"B, total "<<sizeof(Entry)*ttSize/1024<<"kB"<<endl;
 }
-void TranspositionTable::reset(){
-	memset(TT,0,sizeof(Entry)*ttSize);
-}
+
 TranspositionTable::~TranspositionTable() {
-	// TODO Auto-generated destructor stub
 	delete[] TT;
 }
 
@@ -65,9 +62,7 @@ uint16_t TranspositionTableMap::TTGetBound(const State *const s) const {
 		return SHRT_MAX;
 	}
 }
-void TranspositionTableMap::reset() {
-	mapTT.clear();
-}
+
 bool TranspositionTableMap::exist(const State *const s) const {
 	return mapTT.count(s->getHash2())>0;
 }

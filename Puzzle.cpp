@@ -95,7 +95,7 @@ int Puzzle::aStar(int memoryLimit){
 				timeOut=chrono::duration_cast<std::chrono::milliseconds>(chrono::high_resolution_clock::now() -start).count()>timeArg*1000;
 				if(timeOut){
 					//solution=reconstruct(current);;
-					int solutionLength=-1;
+					//int solutionLength=-1;
 					Problems.append("'").append(_name).append("',");
 					// stringstream ss;
 					// ss<<(int)maxLiveNodes*memFactor;
@@ -110,7 +110,7 @@ int Puzzle::aStar(int memoryLimit){
 				overMemBudget=memoryLimit!=-1?(closed.size()+open.size())*memFactor>memoryLimit:false;
 				if(overMemBudget&&algorithmArg=="Astar"){
 					//solution=reconstruct(current);;
-					int solutionLength=-1;
+					//int solutionLength=-1;
 					Problems.append("'").append(_name).append("',");
 					// stringstream ss;
 					// ss<<(int)maxLiveNodes*memFactor+baseMemory;

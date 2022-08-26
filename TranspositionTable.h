@@ -40,7 +40,6 @@ class TTInterface
 		virtual void TTsave(const State *const s, uint16_t bound) = 0;
 		virtual Entry TTLookup(const State *const s) const = 0;
 		virtual uint16_t TTGetBound(const State *const s) const = 0;
-		virtual void reset() = 0;
 		virtual bool exist(const State *const s) const = 0;
 
 };
@@ -55,7 +54,6 @@ public:
 	virtual void TTsave(const State *const s, uint16_t bound);
 	virtual Entry TTLookup(const State *const s) const;
 	virtual uint16_t TTGetBound(const State *const s) const;
-	virtual void reset();
 	virtual bool exist(const State *const s) const;
 
 };
@@ -68,7 +66,6 @@ class TranspositionTableMap : public TTInterface{
 	virtual void TTsave(const State *const s, uint16_t bound);
 	virtual Entry TTLookup(const State *const s) const;
 	virtual uint16_t TTGetBound(const State *const s) const;
-	virtual void reset();
 	virtual bool exist(const State *const s) const;
 };
 
