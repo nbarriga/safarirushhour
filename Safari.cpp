@@ -1,16 +1,9 @@
-/*
- * Safari.cpp
- *
- *  Created on: Feb 19, 2013
- *      Author: nbarriga
- */
-
 #include "Common.h"
 #include "Puzzle.h"
 #include <boost/program_options.hpp>
 
 namespace po = boost::program_options;
-int timeArg,memoryArg,ttSizeArg,maxSolLength;
+int timeArg,ttSizeArg,maxSolLength;
 
 string algorithmArg,heuristicArg,ttTypeArg;
 HEURISTIC heuristic;
@@ -27,7 +20,6 @@ int main(int argc, char* argv[]){
 	    ("time,t", po::value<int>(&timeArg)->default_value(60), "set timeout (in seconds)")
 	    ("heuristic,h", po::value<string>(&heuristicArg)->default_value("obstacles0"), "set heuristic")
 	    ("algorithm,a", po::value<string>(&algorithmArg)->default_value("IDAstar"), "set algorithm")
-	    ("memory,m", po::value<int>(&memoryArg)->default_value(-1), "set memory limit (in MB, approximately 136 bytes per node), -1: disabled")
 	    ("size,s", po::value<int>(&ttSizeArg)->default_value(10000000), "set TT size (in #entries, approximately 16 bytes per node)")
 	    ("length,l", po::value<int>(&maxSolLength)->default_value(1000), "set maximum solution length to look for in IDA*")
 		("cluster,c", "Enable caching of solutions between boards, for reuse in the same cluster")
@@ -42,19 +34,23 @@ int main(int argc, char* argv[]){
 	    cout << desc << "\n";
 	    return 1;
 	}
-	//TranspositionTable *TT=nullptr;
 	TTInterface *TT = nullptr;
+	if(ttTypeArg == "map"){
+		useMapTT=true;
+	}
+	else if(ttTypeArg == "normal")
+		useMapTT=false;
+	else{
+		cerr <<"No correct transposition table type specified." << endl;
+		return 1;
+	}
 	if (vm.count("cluster")) {
 	    clusterCache=true;
-		if(ttTypeArg == "map"){
-			useMapTT=true;
-			TT=new TranspositionTableMap();
+		if(useMapTT){
+			TT=new TranspositionTableMap(ttSizeArg);
 		}
-		else if(ttTypeArg == "normal")
+		else {
 			TT=new TranspositionTable(ttSizeArg);
-		else{
-			cerr <<"No correct transposition table type specified." << endl;
-			return 1;
 		}
 	}
 	if(heuristicArg=="0"){
@@ -78,7 +74,6 @@ int main(int argc, char* argv[]){
 		return 1;
 	}
 	_dummy_static_initializer _dummy;
-//	cout<<"Initialized in "<<(boost::posix_time::microsec_clock::local_time() -start).total_milliseconds()<<"[ms]"<<endl;
 
 	string line;
 	while(getline(cin,line)){
@@ -105,16 +100,10 @@ int main(int argc, char* argv[]){
 		int moves=-1;
 		puzzle.init();
 		if(algorithmArg=="Astar"){
-			moves=puzzle.aStar(memoryArg);
+			moves=puzzle.aStar();
 		}else if(algorithmArg=="IDAstar"){
 			moves=puzzle.idaStar(ttSizeArg,maxSolLength);
 			//cout<<"statistics "<<name<<" "<<puzzle.statistics()<<endl;
-		}else if(algorithmArg=="fallback"){
-			moves=puzzle.aStar(memoryArg);
-			if(puzzle.isOverMemBudget()){
-				//cout<<name<<" exceeded memory budget of "<<memoryArg<<"MB, reverting to IDA*"<<endl;
-				moves=puzzle.idaStar(ttSizeArg,maxSolLength);
-			}
 		}
 
 		stringstream timeString;
@@ -123,12 +112,8 @@ int main(int argc, char* argv[]){
 		if(moves>=0){
 			cout<<"solution "<<name<<" "<<timeString.str()<<
 					" "<<moves<<" "<<puzzle.getSolution()<<endl;
-			//cout<<puzzle.getSolution()<<endl;
-
 		}else if(puzzle.isTimeOut()){
 			cout<<"solution "<<name<<" "<<"timeout"<<endl;
-		}else if(puzzle.isOverMemBudget()){
-			cout<<"solution "<<name<<" "<<"timeout -> exceeded memory budget"<<endl;
 		}else{
 			if(algorithmArg=="IDAstar"){
 				cout<<"solution "<<name<<" "<<"No solution exists with length < "<<maxSolLength<<endl;
@@ -137,27 +122,9 @@ int main(int argc, char* argv[]){
 			}
 		}
 		
-
-
-		stringstream ss;
-		ss<<puzzle.getInitialH();
-		initialH.append(ss.str()).append(" ");
-
-//		getrusage(RUSAGE_SELF , &usage);
-//
-//
-//		cout<<"Usage: "<<usage.ru_maxrss/1024<<"MB"<<endl;
 	}
 	if(clusterCache){
 		delete TT;
 	}
-//
-//	cout<<"P"<<algorithmArg<<heuristicArg<<"={"<<Problems.substr(0,Problems.size()-1)<<"};"<<endl;
-//	cout<<"T"<<algorithmArg<<heuristicArg<<"=["<<times<<"];"<<endl;
-//
-//	cout<<"N"<<algorithmArg<<heuristicArg<<"=["<<nodesSearched<<"];"<<endl;
-//	cout<<"H"<<algorithmArg<<heuristicArg<<"=["<<initialH<<"];"<<endl;
-//	cout<<"G"<<algorithmArg<<heuristicArg<<"=["<<actualSolution<<"];"<<endl;
-//	cout<<"M"<<algorithmArg<<heuristicArg<<"=["<<memories<<"];"<<endl;
 
 }

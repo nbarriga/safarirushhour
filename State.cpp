@@ -1,10 +1,3 @@
-/*
- * State.cpp
- *
- *  Created on: Feb 19, 2013
- *      Author: nbarriga
- */
-
 #include "State.h"
 #include <algorithm>
 
@@ -202,32 +195,6 @@ uint16_t State::calculateH() const{
 		_h=minH;
 	}
 	break;
-	// case goalOccupancy:
-	// {
-	// 	int count = 0;
-	// 	int extraMoves = 0;
-	// 	for(int p = 0; p < numPieces; p++)
-	// 	{
-	// 		if((p!=letter_index[(uint8_t)'x'])&&exit_obstacles[index_type[p]][index_orientation[p]][pieces[p].packed])
-	// 		{
-	// 			count++;
-
-	// 			if(_rover.split.row == 2 && pieces[p].split.row == 2 && pieces[p].split.col > _rover.split.col){
-	// 				extraMoves++;
-	// 			}
-
-	// 		}
-	// 	}
-
-	// 	if(_rover.split.row == 2)
-	// 		return count + extraMoves;
-	// 	else
-
-
-
-	// }
-	// break;
-
 	}
 
 
@@ -390,7 +357,6 @@ const RowCol* State::copyPieces(const RowCol* prevPieces) const{
 State::State(const State &s):prev(s.prev),pieces(copyPieces(s.pieces)),
 		hash(s.hash),hash2(s.hash2),
 		g(s.g),h(s.h){
-	//cout<<"copy const"<<endl;
 }
 
 uint16_t State::getF() const {

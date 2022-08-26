@@ -1,10 +1,3 @@
-/*
- * Common.cpp
- *
- *  Created on: Feb 21, 2013
- *      Author: nbarriga
- */
-
 #include "Common.h"
 #include "Puzzle.h"
 #include "State.h"

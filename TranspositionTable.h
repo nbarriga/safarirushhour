@@ -1,10 +1,3 @@
-/*
- * TranspositionTable.h
- *
- *  Created on: Jan 25, 2013
- *      Author: nbarriga
- */
-
 #ifndef TRANSPOSITIONTABLE_H_
 #define TRANSPOSITIONTABLE_H_
 #include "Common.h"
@@ -39,9 +32,6 @@ class TTInterface
 		virtual ~TTInterface(){};
 		virtual void TTsave(const State *const s, uint16_t bound) = 0;
 		virtual Entry TTLookup(const State *const s) const = 0;
-		virtual uint16_t TTGetBound(const State *const s) const = 0;
-		virtual bool exist(const State *const s) const = 0;
-
 };
 
 class TranspositionTable : public TTInterface {
@@ -53,20 +43,15 @@ public:
 	virtual ~TranspositionTable();
 	virtual void TTsave(const State *const s, uint16_t bound);
 	virtual Entry TTLookup(const State *const s) const;
-	virtual uint16_t TTGetBound(const State *const s) const;
-	virtual bool exist(const State *const s) const;
-
 };
 
 class TranspositionTableMap : public TTInterface{ 
-	std::unordered_map<uint64_t,uint16_t> mapTT;
+	std::unordered_map<uint64_t,Entry> mapTT;
 	public:
-	TranspositionTableMap();
+	TranspositionTableMap(unsigned int startingSize);
 	virtual ~TranspositionTableMap();
 	virtual void TTsave(const State *const s, uint16_t bound);
 	virtual Entry TTLookup(const State *const s) const;
-	virtual uint16_t TTGetBound(const State *const s) const;
-	virtual bool exist(const State *const s) const;
 };
 
 #endif /* TRANSPOSITIONTABLE_H_ */

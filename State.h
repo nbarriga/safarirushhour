@@ -1,10 +1,3 @@
-/*
- * State.h
- *
- *  Created on: Feb 19, 2013
- *      Author: nbarriga
- */
-
 #ifndef STATE_H_
 #define STATE_H_
 #include "Common.h"

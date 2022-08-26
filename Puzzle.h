@@ -1,10 +1,3 @@
-/*
- * Puzzle.h
- *
- *  Created on: Feb 19, 2013
- *      Author: nbarriga
- */
-
 #ifndef PUZZLE_H_
 #define PUZZLE_H_
 #include "Common.h"
@@ -20,7 +13,7 @@ class Puzzle {
 	int innerIdaStar(State* s, int depth, uint16_t bound);
 	uint16_t threshold;
 	uint64_t nodes;
-	bool done,timeOut,overMemBudget;
+	bool done,timeOut;
 	State** path;
 	TTInterface *TT=nullptr;
 	string solution;
@@ -33,11 +26,9 @@ public:
 	Puzzle(string name, const State& state);
 	virtual ~Puzzle();
 	string toString()const;
-	int aStar(int memoryLimit);
+	int aStar();
 	void setTTForReuse(TTInterface *_TT);
-	uint16_t getInitialH() const{
-		return _initial.getH();
-	}
+
 	int idaStar(unsigned int ttSize, unsigned int maxSolLength);
 
 	const string& getSolution() const {
@@ -47,9 +38,7 @@ public:
 	bool isTimeOut() const {
 		return timeOut;
 	}
-	bool isOverMemBudget() const {
-		return overMemBudget;
-	}
+
 	string statistics();
 };
 

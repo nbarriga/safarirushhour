@@ -1,10 +1,3 @@
-/*
- * Common.h
- *
- *  Created on: Jan 23, 2013
- *      Author: nbarriga
- */
-
 #ifndef COMMON_H_
 #define COMMON_H_
 
@@ -27,11 +20,9 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <functional>
-//#include <boost/functional/hash/hash.hpp>
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <fstream>
-// #include <boost/program_options.hpp>
 
 //#define GENERATE_RELAXED
 #define LOAD_RELAXED
@@ -104,15 +95,15 @@ extern uint64_t piece_board[128][2][4];
 //[type][start][end]
 extern uint64_t piece_board_paths[4][128][128];
 
-//type orientation piece
+//[type][orientation][piece]
 extern bool exit_obstacles[4][2][128];
 extern bool exit_obstacles2[3][4][2][128];
 extern bool exit_obstacles3[7][4][2][128];
 extern bool exit_obstacles4[16][4][2][128];
 extern bool rover_on_exit[4][128];
 extern bool init_done;
-//roverRow roverCol obsRow obsCol type orientation obsRow obsCol type orientation
 
+//[roverRow][roverCol][obsRow][obsCol][type][orientation][obsRow][obsCol][type][orientation]
 #ifdef BIG
 extern uint8_t relaxationTwo[6][6][7][7][4][2][7][7][4][2];
 #endif

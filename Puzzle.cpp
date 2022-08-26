@@ -1,12 +1,6 @@
-/*
- * Puzzle.cpp
- *
- *  Created on: Feb 19, 2013
- *      Author: nbarriga
- */
-
 #include "Puzzle.h"
 #include <algorithm>
+#include <cassert>
 
 string Problems, times, memories, nodesSearched, initialH, actualSolution;
 Puzzle::Puzzle(string name, string state):_name(name), _initial(State(state)) {
@@ -33,7 +27,7 @@ string Puzzle::reconstruct(const State *const state){
 		return reconstruct(state->getPrev())+" "+state->getPrev()->getMove(state);
 	}
 }
-int Puzzle::aStar(int memoryLimit){
+int Puzzle::aStar(){
 
 	equal_to<State*> stateEqual;
 	vector<State*> open_queue;
@@ -64,16 +58,6 @@ int Puzzle::aStar(int memoryLimit){
 			solution=reconstruct(current);;
 			int solutionLength=current->getG();
 			Problems.append("'").append(_name).append("',");
-			// stringstream ss;
-			// ss<<(int)maxLiveNodes*memFactor+baseMemory;
-			// memories.append(ss.str()).append(" ");
-			// stringstream ss2;
-			// ss2<<nodes;
-			// nodesSearched.append(ss2.str()).append(" ");
-			// stringstream ss3;
-			// ss3<<solutionLength;
-			// actualSolution.append(ss3.str()).append(" ");
-			//std::cout<<"Closed: "<<closed.size()<<std::endl;
 
 			for(auto it=open.begin();it!=open.end();it++){
 				delete *it;
@@ -93,36 +77,8 @@ int Puzzle::aStar(int memoryLimit){
 			nodes++;
 			if(nodes%5000==0){
 				timeOut=chrono::duration_cast<std::chrono::milliseconds>(chrono::high_resolution_clock::now() -start).count()>timeArg*1000;
+			
 				if(timeOut){
-					//solution=reconstruct(current);;
-					//int solutionLength=-1;
-					Problems.append("'").append(_name).append("',");
-					// stringstream ss;
-					// ss<<(int)maxLiveNodes*memFactor;
-					// memories.append(ss.str()).append(" ");
-					// stringstream ss2;
-					// ss2<<nodes;
-					// nodesSearched.append(ss2.str()).append(" ");
-					// stringstream ss3;
-					// ss3<<solutionLength;
-					// actualSolution.append(ss3.str()).append(" ");
-				}
-				overMemBudget=memoryLimit!=-1?(closed.size()+open.size())*memFactor>memoryLimit:false;
-				if(overMemBudget&&algorithmArg=="Astar"){
-					//solution=reconstruct(current);;
-					//int solutionLength=-1;
-					Problems.append("'").append(_name).append("',");
-					// stringstream ss;
-					// ss<<(int)maxLiveNodes*memFactor+baseMemory;
-					// memories.append(ss.str()).append(" ");
-					// stringstream ss2;
-					// ss2<<nodes;
-					// nodesSearched.append(ss2.str()).append(" ");
-					// stringstream ss3;
-					// ss3<<solutionLength;
-					// actualSolution.append(ss3.str()).append(" ");
-				}
-				if(timeOut||overMemBudget){
 					threshold=current->getF();
 					for(auto toDel=it;toDel!=children.end();toDel++){
 						delete (*toDel);
@@ -149,7 +105,6 @@ int Puzzle::aStar(int memoryLimit){
 					delete *it;
 					continue;
 				}
-//				cout<<"closed";
 				auto toDel=*stored;//needed because iterator gets invalidated on next line
 				closed.erase(*it); // re-open node to
 				delete toDel;
@@ -166,16 +121,10 @@ int Puzzle::aStar(int memoryLimit){
 				for(auto toUpdate=open_queue.begin();toUpdate!=open_queue.end();toUpdate++){
 					if(stateEqual(*toUpdate,*it)){
 						updatedInOpen=true;
-						if((*stored)!=(*toUpdate)){
-							cout<<"jdjdjdjdjd";
-						}
+						assert((*stored)==(*toUpdate));
 						(*toUpdate)->setG((*it)->getG());
 						(*toUpdate)->setParent((*it)->getPrev());
 						std::push_heap(open_queue.begin(), toUpdate+1,comp);
-
-                        //dont touch the open set.it is already updated
-//						open.erase(stored);
-//						open.insert(*toUpdate);
 						delete *it;
 						break;
 					}
@@ -187,10 +136,7 @@ int Puzzle::aStar(int memoryLimit){
 				open_queue.push_back(*it);
 				std::push_heap(open_queue.begin(), open_queue.end(),comp);
 			}
-			// maxLiveNodes=maxLiveNodes>closed.size()+open.size()?maxLiveNodes:closed.size()+open.size();
-
 		}
-		//cout<<closed.size()<<" "<<open.size()<<endl;
 		closed.insert(current);
 
 	}
@@ -222,8 +168,9 @@ int Puzzle::innerIdaStar(State* s, int depth, uint16_t bound) {
 
 
 	for (auto it=children.begin(); it!=children.end();it++) {
-		if (TT->exist(*it)){
-				auto newH=TT->TTGetBound(*it);
+		auto entry=TT->TTLookup(*it);
+		if (entry.getHash2()==(*it)->getHash2()){
+				auto newH=entry.getBound();
 				if(newH>(*it)->getH()){
 					if(depth<cutMin){
 						cutMin=depth;
@@ -239,8 +186,10 @@ int Puzzle::innerIdaStar(State* s, int depth, uint16_t bound) {
 			}
 		}
 
-	sort(children.begin(), children.end(),ReverseStatePointerComparator());
-	//cout<<(*children.begin())->getF()<<" "<<(*(children.end()-1))->getF()<<endl;
+	//Sorting needs to reduce number of nodes a bit, but it's slower
+ 	//sort(children.begin(), children.end(),ReverseStatePointerComparator());
+
+
 
 	uint16_t new_bound=SHRT_MAX;
 
@@ -293,7 +242,6 @@ Puzzle::Puzzle(string name,const State& state):_name(name), _initial(state) {
 void Puzzle::init() {
 	start=chrono::high_resolution_clock::now();
 	timeOut=false;
-	overMemBudget=false;
 	nodes=0;
 	threshold=0;
 }
@@ -304,20 +252,26 @@ void Puzzle::setTTForReuse(TTInterface*_TT){
 
 int Puzzle::idaStar(unsigned int ttSize, unsigned int maxSolLength) {
 	if (!clusterCache||TT==nullptr){
-			if(useMapTT) TT=new TranspositionTableMap();
+			if(useMapTT) TT=new TranspositionTableMap(ttSize);
 			else TT=new TranspositionTable(ttSize);
 	}
 	path=new State*[maxSolLength];
-//	if(threshold==0){
-		threshold = _initial.getH();
-//	}
-// cout<<"threshold: "<<threshold<<" H: "<<_initial.getH()<<endl;
+	threshold = _initial.getH();
+
+	//Let's see if we can improve threshold it from previous searches
+	if(clusterCache){
+		auto entry=TT->TTLookup(&_initial);
+		if (entry.getHash2()==_initial.getHash2()){
+			auto newH=entry.getBound();
+			if(newH>_initial.getH()){
+				threshold = newH;
+			}
+		}
+	}
 	done = false;
 	int moves;
 
 	while (!done) {
-		//f_min = SHRT_MAX;
-		// cout<<"Threshold: "<<threshold<<", nodes: "<<nodes<<endl;
 		moves = innerIdaStar(&_initial,0, threshold);
 
 		if (!done){
@@ -338,25 +292,6 @@ int Puzzle::idaStar(unsigned int ttSize, unsigned int maxSolLength) {
 		}
 	}
 	Problems.append("'").append(_name).append("',");
-	// if(algorithmArg=="fallback"){
-	// 	stringstream ss;
-	// 			ss<<maxLiveNodes*memFactor+baseMemory;
-	// 	memories.append(ss.str()).append(" ");
-	// }else{
-	// 	struct rusage usage;
-	// 	getrusage(RUSAGE_SELF , &usage);
-	// 	stringstream ss;
-	// 	ss<<usage.ru_maxrss/1024;
-
-	// 	memories.append(ss.str()).append(" ");
-	// }
-	// stringstream ss2;
-	// ss2<<nodes;
-	// nodesSearched.append(ss2.str()).append(" ");
-	// stringstream ss3;
-	// ss3<<moves;
-	// actualSolution.append(ss3.str()).append(" ");
-	//cout<<"total nodes searched: "<<nodes<<endl;
 	if(!clusterCache){
 		delete TT;
 	}
