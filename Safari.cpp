@@ -103,7 +103,7 @@ int main(int argc, char* argv[]){
 			moves=puzzle.aStar();
 		}else if(algorithmArg=="IDAstar"){
 			moves=puzzle.idaStar(ttSizeArg,maxSolLength);
-			//cout<<"statistics "<<name<<" "<<puzzle.statistics()<<endl;
+			cout<<"statistics "<<name<<" "<<puzzle.statistics()<<endl;
 		}
 
 		stringstream timeString;

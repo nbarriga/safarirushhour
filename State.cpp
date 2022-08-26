@@ -34,9 +34,9 @@ uint16_t State::calculateH() const{
 		}
 		break;
 	case obstacles1:
-		_h+=getTwoOne(_rover);
+		//_h+=getTwoOne(_rover);
 		if(!rover_on_exit[1][_rover.packed]){
-			int onExit=INT_MAX;
+			int minVal=INT_MAX;
 			for(int i=0;i<3;i++){
 				int count=0;
 				for(int p=0;p<numPieces;p++){
@@ -44,23 +44,55 @@ uint16_t State::calculateH() const{
 						count++;
 					}
 				}
-				if(count<onExit){
-					onExit=count;
+				switch(i){
+				case 0://up
+					if(_rover.split.row<2){
+						count+=2;
+					}else{
+						count+=3;
+					}
+					if(_rover.split.col<5){
+						count+=1;
+					}
+					break;
+				case 1://left
+					if(_rover.split.row==2){
+						count+=1;
+					}else{
+						count+=2;
+					}
+					break;
+				case 2://down
+					if(_rover.split.row>2){
+						count+=2;
+					}else{
+						count+=3;
+					}
+					if(_rover.split.col<5){
+						count+=1;
+					}
+					break;
+				}
+				if(count<minVal){
+					minVal=count;
 				}
 			}
-			_h+=onExit;
+			_h+=minVal;
 		}else if(!rover_on_exit[0][_rover.packed]){
+			_h+=getTwoOne(_rover);
 			for(int p=0;p<numPieces;p++){
 				if((p!=letter_index[(uint8_t)'x'])&&exit_obstacles[index_type[p]][index_orientation[p]][pieces[p].packed]){
 					_h+=1;
 				}
 			}
+		}else{
+			_h+=getTwoOne(_rover);
 		}
 		break;
 	case obstacles2:
-		_h+=getTwoOne(_rover);
+		//_h+=getTwoOne(_rover);
 		if(!rover_on_exit[2][_rover.packed]){
-			int onExit=INT_MAX;
+			int minVal=INT_MAX;
 			for(int i=0;i<7;i++){
 				int count=0;
 				for(int p=0;p<numPieces;p++){
@@ -68,13 +100,69 @@ uint16_t State::calculateH() const{
 						count++;
 					}
 				}
-				if(count<onExit){
-					onExit=count;
+				switch(i){
+				case 0://up-up
+					if(_rover.split.row==0){
+						count+=3;
+					}else{
+						count+=4;
+					}
+					break;
+				case 1://up-left
+					if(_rover.split.row==1){
+						count+=3;
+					}else if(_rover.split.row==0 && _rover.split.col==4){
+						count+=4;
+					}else{
+						count+=5;
+					}
+					break;
+				case 2://left-up
+					if(_rover.split.row==0 && _rover.split.col==4){
+						count+=2;
+					}else if(_rover.split.row<=1){
+						count+=3;
+					}else{
+						count+=4;
+					}
+					break;
+				case 3://left-left
+					if(_rover.split.row==2){
+						count+=1;
+					}else{
+						count+=2;
+					}
+					break;
+				case 4://left-down
+					if(_rover.split.row==4){
+						count+=3;
+					}else{
+						count+=4;
+					}
+					break;
+				case 5://down-left
+					if(_rover.split.row==4){
+						count+=3;
+					}else{
+						count+=4;
+					}
+					break;
+				case 6://down-down
+					if(_rover.split.row==5){
+						count+=3;
+					}else{
+						count+=4;
+					}
+					break;
+				}
+				if(count<minVal){
+					minVal=count;
 				}
 			}
-			_h+=onExit;
+			_h+=minVal;
 		}else if(!rover_on_exit[1][_rover.packed]){
-			int onExit=INT_MAX;
+			//_h+=getTwoOne(_rover);
+			int minVal=INT_MAX;
 			for(int i=0;i<3;i++){
 				int count=0;
 				for(int p=0;p<numPieces;p++){
@@ -82,37 +170,104 @@ uint16_t State::calculateH() const{
 						count++;
 					}
 				}
-				if(count<onExit){
-					onExit=count;
+				switch(i){
+				case 0://up
+					count+=2;
+					break;
+				case 1://left
+					count+=1;
+					break;
+				case 2://down
+					count+=2;
+					break;
+				}
+				if(count<minVal){
+					minVal=count;
 				}
 			}
-			_h+=onExit;
+			_h+=minVal;
 		}else if(!rover_on_exit[0][_rover.packed]){
+			_h+=getTwoOne(_rover);
 			for(int p=0;p<numPieces;p++){
 				if((p!=letter_index[(uint8_t)'x'])&&exit_obstacles[index_type[p]][index_orientation[p]][pieces[p].packed]){
 					_h+=1;
 				}
 			}
+		}else{
+			_h+=getTwoOne(_rover);
 		}
 		break;
 	case obstacles3:
-		_h+=getTwoOne(_rover);
+		//_h+=getTwoOne(_rover);
 		if(!rover_on_exit[3][_rover.packed]){
-			int onExit=INT_MAX;
-			for(int i=0;i<16;i++){
+			int minVal=INT_MAX;
+			for(int i=0;i<14;i++){
 				int count=0;
 				for(int p=0;p<numPieces;p++){
 					if((p!=letter_index[(uint8_t)'x'])&&exit_obstacles4[i][index_type[p]][index_orientation[p]][pieces[p].packed]){
 						count++;
 					}
 				}
-				if(count<onExit){
-					onExit=count;
+				switch(i){
+				case 0://up-up-left
+				case 1://up-left-up
+				case 3://left-up-up
+					if(_rover.split.row==0){
+						count+=3;
+					}else{
+						count+=4;
+					}
+					break;
+				case 2://up-left-left
+				case 4://left-up-left
+				case 5://left-left-up
+					if(_rover.split.row==1){
+						count+=3;
+					}else{
+						count+=4;
+					}
+					break;
+				case 6://left-left-left
+					if(_rover.split.row==2){
+						count+=1;
+					}else{
+						count+=2;
+					}
+					break;
+				case 7://left-left-down
+				case 8://left-down-left
+				case 10://down-left-left
+					if(_rover.split.row==3){
+						count+=3;
+					}else{
+						count+=4;
+					}
+					break;
+				case 9://left-down-down
+				case 11://down-left-down
+				case 12://down-down-left
+					if(_rover.split.row==4){
+						count+=3;
+					}else{
+						count+=4;
+					}
+					break;
+				case 13://down-down-down
+					if(_rover.split.row==5){
+						count+=3;
+					}else{
+						count+=4;
+					}
+					break;
+				}
+				if(count<minVal){
+					minVal=count;
 				}
 			}
-			_h+=onExit;
+			_h+=minVal;
 		} else if(!rover_on_exit[2][_rover.packed]){
-			int onExit=INT_MAX;
+			//_h+=getTwoOne(_rover);
+			int minVal=INT_MAX;
 			for(int i=0;i<7;i++){
 				int count=0;
 				for(int p=0;p<numPieces;p++){
@@ -120,13 +275,37 @@ uint16_t State::calculateH() const{
 						count++;
 					}
 				}
-				if(count<onExit){
-					onExit=count;
+				switch(i){
+				case 0://up-up
+					count+=2;
+					break;
+				case 1://up-left
+					count+=3;
+					break;
+				case 2://left-up
+					count+=2;
+					break;
+				case 3://left-left
+					count+=1;
+					break;
+				case 4://left-down
+					count+=2;
+					break;
+				case 5://down-left
+					count+=3;
+					break;
+				case 6://down-down
+					count+=2;
+					break;
+				}
+				if(count<minVal){
+					minVal=count;
 				}
 			}
-			_h+=onExit;
+			_h+=minVal;
 		}else if(!rover_on_exit[1][_rover.packed]){
-			int onExit=INT_MAX;
+			//_h+=getTwoOne(_rover);
+			int minVal=INT_MAX;
 			for(int i=0;i<3;i++){
 				int count=0;
 				for(int p=0;p<numPieces;p++){
@@ -134,17 +313,31 @@ uint16_t State::calculateH() const{
 						count++;
 					}
 				}
-				if(count<onExit){
-					onExit=count;
+				switch(i){
+				case 0://up
+					count+=2;
+					break;
+				case 1://left
+					count+=1;
+					break;
+				case 2://down
+					count+=2;
+					break;
+				}
+				if(count<minVal){
+					minVal=count;
 				}
 			}
-			_h+=onExit;
+			_h+=minVal;
 		}else if(!rover_on_exit[0][_rover.packed]){
+			_h+=getTwoOne(_rover);
 			for(int p=0;p<numPieces;p++){
 				if((p!=letter_index[(uint8_t)'x'])&&exit_obstacles[index_type[p]][index_orientation[p]][pieces[p].packed]){
 					_h+=1;
 				}
 			}
+		}else{
+			_h+=getTwoOne(_rover);
 		}
 		break;
 	case relaxed1:

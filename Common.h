@@ -61,19 +61,19 @@ const uint64_t pre_pre_pre_exit[7]={
 		pre_pre_exit[1]|(pre_pre_exit[1]>>9),
 		pre_pre_exit[2]|(pre_pre_exit[2]<<1),
 		pre_pre_exit[2]|(pre_pre_exit[2]>>9)};
-const uint64_t pre_pre_pre_pre_exit[16]={
+const uint64_t pre_pre_pre_pre_exit[14]={
 		pre_pre_pre_exit[0]|(pre_pre_pre_exit[0]<<1),
 		pre_pre_pre_exit[1]|(pre_pre_pre_exit[1]<<9),
 		pre_pre_pre_exit[1]|(pre_pre_pre_exit[1]<<1),
 		pre_pre_pre_exit[2]|(pre_pre_pre_exit[2]<<9),
 		pre_pre_pre_exit[2]|(pre_pre_pre_exit[2]<<1),
-		pre_pre_pre_exit[2]|(pre_pre_pre_exit[2]>>1),
+		//pre_pre_pre_exit[2]|(pre_pre_pre_exit[2]>>1),
 		pre_pre_pre_exit[3]|(pre_pre_pre_exit[3]<<9),
 		pre_pre_pre_exit[3]|(pre_pre_pre_exit[3]<<1),
 		pre_pre_pre_exit[3]|(pre_pre_pre_exit[3]>>9),
 		pre_pre_pre_exit[4]|(pre_pre_pre_exit[4]<<1),
 		pre_pre_pre_exit[4]|(pre_pre_pre_exit[4]>>9),
-		pre_pre_pre_exit[4]|(pre_pre_pre_exit[4]>>1),
+		//pre_pre_pre_exit[4]|(pre_pre_pre_exit[4]>>1),
 		pre_pre_pre_exit[5]|(pre_pre_pre_exit[5]<<1),
 		pre_pre_pre_exit[5]|(pre_pre_pre_exit[5]>>9),
 		pre_pre_pre_exit[6]|(pre_pre_pre_exit[6]<<1),

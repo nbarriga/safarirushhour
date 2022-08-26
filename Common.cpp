@@ -377,7 +377,7 @@ _dummy_static_initializer::_dummy_static_initializer(){
 						exit_obstacles3[i][type][orientation][rowCol.packed]=
 								(piece_board[rowCol.packed][orientation][type]&pre_pre_pre_exit[i])!=0;
 					}
-					for(int i=0;i<16;i++){
+					for(int i=0;i<14;i++){
 						exit_obstacles4[i][type][orientation][rowCol.packed]=
 								(piece_board[rowCol.packed][orientation][type]&pre_pre_pre_pre_exit[i])!=0;
 					}
@@ -402,7 +402,7 @@ _dummy_static_initializer::_dummy_static_initializer(){
 			}
 			rover_on_exit[2][rowCol.packed]=on_exit;
 			on_exit=false;
-			for(int i=0;i<16;i++){
+			for(int i=0;i<14;i++){
 				on_exit=on_exit||((piece_board[rowCol.packed][HOR][rover]&pre_pre_pre_pre_exit[i])!=0);
 			}
 			rover_on_exit[3][rowCol.packed]=on_exit;
