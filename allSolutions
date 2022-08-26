@@ -1,0 +1,42 @@
+solution J1 0 5  xu1 fu1 el2 qd2 xr5
+solution J2 0 6  ou2 xr2 rd2 cl2 xu3 xr2
+solution J3 0.023 7  bl2 el1 dl1 ju3 xr3 xu3 xr2
+solution J4 0.004 7  al1 hu2 bl4 cu3 xr4 xu2 xr2
+solution J5 0.015 8  xr4 xd1 du2 el1 pu1 ql1 od4 xr3
+solution J6 0.002 9  ql2 pl2 rr2 hd5 rl2 al2 xr5 xd2 xr2
+solution J7 0.001 9  au1 il2 bl1 dd1 xl1 xu1 fl5 xd1 xr5
+solution J8 0.07 9  du1 xu2 ql3 eu1 bl4 pd3 xr4 xd1 xr2
+solution J9 0.262 10  qd1 bu5 el3 ou3 xl3 xu2 od4 rd3 pd3 xr7
+solution J10 0.005 8  ol2 xl1 pu4 ql4 el3 rd3 pd4 xr6
+solution B1 0.299 14  hd3 jl2 rd1 il4 cu2 ru1 fl2 kl3 el3 vl1 vu5 xr3 xu3 xr2
+solution B2 0.053 13  qd2 sd1 ir1 ud1 pl3 xu1 ir2 qu4 il2 xd1 rl1 od3 xr3
+solution B3 1.391 15  cu1 xu1 xr1 jr2 xu3 el2 ad2 gl5 ud2 rd2 xr4 ru2 ul1 xd2 xr2
+solution B4 1.762 16  xr1 xd1 er2 jd3 vr2 cd4 ql2 vu1 el4 xu1 vl2 ju4 xl2 pd4 xu1 xr4
+solution B5 0.055 14  fu1 br3 xu3 bl2 ul2 fd3 xr4 fu3 jl2 au2 gl2 hd1 xd2 xr2
+solution B6 0.053 13  eu2 ou1 rr2 qr1 xr1 pd2 fl3 al3 xu3 rl2 ql2 od3 xr5
+solution B7 3.997 14  au1 ud1 bl1 fl2 jl4 vu5 hu1 fr3 eu2 xr4 ed3 fl3 xu2 xr3
+solution B8 0.115 16  pr1 al1 ul1 uu1 ar2 xd4 ru2 ul1 al1 qu2 xr5 rd2 qd2 cl2 xu2 xr2
+solution B9 1.025 17  au1 xu1 jr2 hd3 xl2 fd2 ad2 jl2 br2 dd1 cl3 ed2 pd1 xu2 xr5 xd2 xr2
+solution B10 0.761 15  qd2 rd2 cl3 ad1 fl4 eu2 au2 gu2 ru4 vu1 xr4 gd3 vl2 xu3 xr3
+solution I11 0.324 18  iu2 pr3 dd1 ol1 ur2 ud2 qr4 xu2 xr2 vd4 xl2 cd2 xu2 xr3 cu2 ql4 xd2 xr4
+solution I12 0.104 17  ul1 vu3 xl2 ud2 vr2 xu2 ul2 ol2 id1 vr3 xr3 uu1 ol2 xd2 vl2 iu2 xr4
+solution I13 6.991 21  er1 ru1 hu3 fl1 ol1 ad2 qr3 xd1 ju4 vl4 xr1 xd2 ql3 xr2 xu1 xr1 rd1 el1 cu1 xu1 xr2
+solution I14 0.095 19  iu1 or3 pu1 bu1 rr4 qd1 pd1 ol4 id1 dr1 pu3 rl2 bd2 xr3 pd1 dl1 iu1 xu1 xr3
+solution I15 11.764 21  qd1 cu3 gu1 pd1 ru2 au1 ir4 xu2 pu2 vl3 rd4 pd2 il2 cd5 ur3 uu1 xu2 il3 xr1 xd1 xr5
+solution I16 4.439 19  qd1 hl1 bl1 fl2 vr2 vu2 ar4 ou3 ir5 xu2 el3 od4 xr3 xu1 il4 xd2 al4 xu1 xr4
+solution I17 0.418 21  cr1 ad1 or4 au2 pu2 vu2 cl4 el1 ql1 ku3 fr1 ju3 rr2 xr2 qr2 xu3 rl4 ql2 jd3 kd2 xr5
+solution I18 1.914 21  ul1 cu3 pr1 rr1 fu3 vr4 fd3 jd5 hl1 xd3 pl4 fu3 rl4 vu3 xr3 fd3 dd2 ul2 vu2 xu3 xr3
+solution I19 0.518 25  or3 rr1 er1 cu5 pr1 hu3 al1 xl1 vl2 vu2 xr4 vd2 ar1 hd3 pl1 al1 vl1 cd5 el1 ol1 rl2 fu5 xr1 xu3 xr2
+solution I20 0.025 24  ul1 ud2 dr2 pu2 eu1 ql1 rd1 ur1 or2 bd3 ol2 ul1 ru1 qr1 ed1 pd2 dl3 uu2 xu2 pu1 eu1 ql1 rd1 xr3
+solution A21 3.135 23  ul2 cl3 vu2 hr2 au1 ju1 dr2 bd3 id3 dl2 ad1 jd1 hl4 vd2 cr2 ju3 au3 xu3 fl2 el3 vd2 qd2 xr5
+solution A22 3.947 23  qu3 gu4 fr1 jr1 vr1 cd3 fl1 gd2 pr3 uu2 ul1 hu4 ar1 xr1 ed3 fl4 al2 xu3 xr2 hd2 pl1 gu2 xr3
+solution A23 43.793 28  cd1 vd1 iu2 el4 vu1 qd1 vr2 su3 ou4 bl3 xl3 pd4 qd2 rd2 xu2 br2 id2 xl2 od3 sd3 er2 cu1 xu1 iu1 bl2 od1 sd1 xr7
+solution A24 0.765 23  cd4 qd1 dr1 ur1 ad3 vr1 or3 xu2 dl4 au1 qu2 uu1 pr4 qd3 rd2 xr1 dl1 xd2 il3 ol3 uu2 au2 xr5
+solution A25 0.722 22  xr1 hd1 er2 xd3 ur3 gu2 ju1 xl2 ud3 vl2 el2 hu2 ur2 xr2 jd2 gd3 el3 vl2 xu3 ul2 hd1 xr4
+solution A26 0.055 25  er1 cu3 el1 vr2 qd2 xd2 ol1 bu2 au2 vr3 ad2 er1 cd2 il3 bd2 ud2 or3 xu2 xr2 il2 xd2 ol3 uu2 bu2 xr5
+solution A27 3.28 29  qd1 cd1 rr1 iu1 vd1 ar2 xl1 xu1 dl3 pl2 ud2 vl2 vu1 uu1 ul1 qu2 cu1 pr4 ud2 ul2 od4 vl1 vu1 xr3 ou2 pl2 qd2 cd1 xr4
+solution A28 1.203 27  rr2 uu1 vr1 ou1 iu1 qu2 er2 pd2 dd1 xd2 ul2 sl2 rl2 vu2 cu2 er3 id1 br3 od2 xr2 qd2 ud2 rl2 sl2 vl2 cu3 xr5
+solution A29 10.09 29  er1 cd1 vd1 pd2 dr2 ir3 pu1 rr4 cu1 kr2 xu2 br2 ar2 ud5 bl2 al2 cu2 rl4 pd1 cd2 xd2 dl4 il5 xu2 xr3 pu2 el3 xd2 xr2
+solution A30 0.226 27  vu2 ar2 hd1 dr1 iu2 xr2 ou3 pl1 ql1 rl1 hd3 xr1 id2 pr1 od1 dl2 xu2 al2 vd2 xr2 dr2 iu1 ou2 al2 vl2 xd2 xr2
+solution E31 1.705 28  il2 pr1 eu1 vu1 rl3 ou3 br1 ur1 uu1 ur2 bl2 ud1 rr3 qd2 vd1 il3 qu2 rl1 uu1 br2 xr3 vd2 rl2 xu3 ul1 bl1 od3 xr4
+solution E40 timeout
