@@ -134,7 +134,9 @@ uint16_t State::calculateH() const{
 					}
 					break;
 				case 4://left-down
-					if(_rover.split.row==4){
+					if(_rover.split.row>4 && _rover.split.col==4){
+						count+=2;
+					}else if(_rover.split.row==4){
 						count+=3;
 					}else{
 						count+=4;
@@ -143,8 +145,10 @@ uint16_t State::calculateH() const{
 				case 5://down-left
 					if(_rover.split.row==4){
 						count+=3;
-					}else{
+					}else if(_rover.split.row>4 && _rover.split.col==4){
 						count+=4;
+					}else{
+						count+=5;
 					}
 					break;
 				case 6://down-down
