@@ -4,6 +4,8 @@
 #include "State.h"
 #include "TranspositionTable.h"
 
+extern vector<TTInterface*> TTs;
+
 class Puzzle {
 
 	string _name;
@@ -15,7 +17,8 @@ class Puzzle {
 	uint64_t nodes;
 	bool done,timeOut;
 	State** path;
-	TTInterface *TT=nullptr;
+	TTInterface *TT=nullptr;	
+	bool foundTT=false;
 	string solution;
 	chrono::time_point<chrono::high_resolution_clock> start;
 	float memFactor=(sizeof(State)+sizeof(RowCol)*numPieces+11*sizeof(State*)+16)/1024.0f/1024.0f;
@@ -30,6 +33,8 @@ public:
 	void setTTForReuse(TTInterface *_TT);
 
 	int idaStar(unsigned int ttSize, unsigned int maxSolLength);
+
+	Entry Lookup(const State *s);
 
 	const string& getSolution() const {
 		return solution;

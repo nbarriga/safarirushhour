@@ -19,12 +19,18 @@ Entry TranspositionTable::TTLookup(const State* const s) const {
 	return TT[s->getHash()%ttSize];
 }
 
+void TranspositionTable::TTmerge(TTInterface* other)
+{
+	throw std::logic_error("Not Implemented");
+}
+
 
 TranspositionTableMap::TranspositionTableMap(unsigned int startingSize){
-	mapTT.reserve(startingSize);
+	//mapTT.reserve(startingSize);
 }
 TranspositionTableMap::~TranspositionTableMap(){
-
+	mapTT.clear();
+	delete bestState;
 }
 void TranspositionTableMap::TTsave(const State *const s, uint16_t bound)  {
 	mapTT[s->getHash()]=Entry(s->getHash2(),bound);
@@ -36,5 +42,43 @@ Entry TranspositionTableMap::TTLookup(const State *const s) const {
 		return Entry();
 	}
 }
+
+void TranspositionTableMap::TTmerge(TTInterface* other)
+{
+	//mapTT.merge(other.mapTT);
+	cout << "Merge." << endl;
+
+	auto otherMap = dynamic_cast< TranspositionTableMap*>(other);
+
+	mapTT.insert(otherMap->mapTT.cbegin(), otherMap->mapTT.cend());
+
+	
+}
+
+void TTInterface::TTRegisterBoard(const State *const s, int solutionLength)
+{
+	cout << bestLength << endl;
+	if(solutionLength > bestLength != (solutionLength==-1 && bestLength==-1))
+	{
+		if(bestState != nullptr) delete bestState;
+		bestState = new State(*s);
+		bestLength = solutionLength;
+	
+
+		cout << "New best found: " << bestLength << endl;
+		if(bestState!=nullptr)	cout << bestState->toString() << endl;
+	}	
+}
+
+int TTInterface::getBestLength() const
+{
+	return bestLength;
+}
+	
+State* TTInterface::getBestState() const
+{
+	return bestState;
+}
+
 
 

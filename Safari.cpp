@@ -46,11 +46,13 @@ int main(int argc, char* argv[]){
 	}
 	if (vm.count("cluster")) {
 	    clusterCache=true;
+		if(!connectedComponents){
 		if(useMapTT){
 			TT=new TranspositionTableMap(ttSizeArg);
 		}
 		else {
 			TT=new TranspositionTable(ttSizeArg);
+		}
 		}
 	}
 	if(heuristicArg=="0"){
@@ -94,7 +96,7 @@ int main(int argc, char* argv[]){
 		}
 		start =chrono::high_resolution_clock::now();
 		Puzzle puzzle(name,state);
-		if(clusterCache){
+		if(clusterCache && !connectedComponents){
 			puzzle.setTTForReuse(TT);
 		}
 		int moves=-1;
@@ -123,8 +125,14 @@ int main(int argc, char* argv[]){
 		}
 		
 	}
-	if(clusterCache){
+	if(clusterCache && !connectedComponents){
 		delete TT;
+	}else if(connectedComponents)
+	{
+		for(auto tt : TTs)
+		{
+			delete tt;
+		}
 	}
 
 }

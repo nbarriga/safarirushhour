@@ -3,6 +3,9 @@
 #include <cassert>
 
 string Problems, times, memories, nodesSearched, initialH, actualSolution;
+vector<TTInterface*> TTs;
+
+
 Puzzle::Puzzle(string name, string state):_name(name), _initial(State(state)) {
 
 
@@ -160,15 +163,18 @@ int Puzzle::innerIdaStar(State* s, int depth, uint16_t bound) {
 	if (s->isGoal()){// goal found
 		done=true;
 		path[depth]=new State(*s);
+
+		TT->TTsave(s, 0);
+
 		return 0;
 	}
 
 
-	vector<State*> children=s->genSuccesors(true);//todo: avoid copy
+	vector<State*> children=s->genSuccesors(false);//todo: avoid copy
 
 
 	for (auto it=children.begin(); it!=children.end();it++) {
-		auto entry=TT->TTLookup(*it);
+		auto entry=Lookup(*it);
 		if (entry.getHash2()==(*it)->getHash2()){
 				auto newH=entry.getBound();
 				if(newH>(*it)->getH()){
@@ -255,25 +261,27 @@ int Puzzle::idaStar(unsigned int ttSize, unsigned int maxSolLength) {
 			if(useMapTT) TT=new TranspositionTableMap(ttSize);
 			else TT=new TranspositionTable(ttSize);
 	}
+	
+
 	path=new State*[maxSolLength];
 	threshold = _initial.getH();
 
 	//Let's see if we can improve threshold it from previous searches
 	if(clusterCache){
-		auto entry=TT->TTLookup(&_initial);
-		if (entry.getHash2()==_initial.getHash2()){
+		auto entry=Lookup(&_initial);
+		if (entry.getHash2()==_initial.getHash2()){ 
 			auto newH=entry.getBound();
 			if(newH>_initial.getH()){
 				threshold = newH;
 			}
-		}
+		}	
+		
 	}
 	done = false;
 	int moves;
 
 	while (!done) {
 		moves = innerIdaStar(&_initial,0, threshold);
-
 		if (!done){
 			threshold = moves;
 			if(threshold>maxSolLength){
@@ -296,7 +304,72 @@ int Puzzle::idaStar(unsigned int ttSize, unsigned int maxSolLength) {
 		delete TT;
 	}
 	delete[] path;
+
+	if(connectedComponents && find(TTs.begin(), TTs.end(), TT) == TTs.end())
+	{
+		TTs.push_back(TT);
+
+		
+
+	}
+
+	if(connectedComponents)
+	{
+		TT->TTRegisterBoard(&_initial, moves);
+		cout << "Connected components: " << TTs.size() << endl;
+	}
+
+
 	return moves;
+}
+
+Entry Puzzle::Lookup(const State * s)
+{
+	if(connectedComponents)
+	{
+		if(foundTT)
+		{
+			
+			for(auto it = TTs.begin(); it != TTs.end(); it++)
+			{
+				if(*it == TT) continue;
+				//cout << "Checking TT list..." << endl;
+				auto entry = (*it)->TTLookup(s);
+				if(entry.getHash2() == s->getHash2())
+				{
+					cout << "Merge 2" << endl;
+					TT->TTmerge(*it);
+					TTs.erase(it);
+					return entry;
+				}
+			}
+
+			return TT->TTLookup(s);
+		}
+		else
+		{
+			for(auto otherTT : TTs)
+			{
+				//cout << "Checking TT list..." << endl;
+				auto entry = otherTT->TTLookup(s);
+				if(entry.getHash2() == s->getHash2())
+				{
+					otherTT->TTmerge(TT);
+					delete TT;
+					TT = otherTT;
+					foundTT = true;
+					return entry;
+				}
+			}
+			//cout << "TT list done." << endl;
+			return TT->TTLookup(s);
+
+		}
+			
+	}
+
+
+
 }
 
 string Puzzle::statistics() {
