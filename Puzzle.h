@@ -13,6 +13,7 @@ class Puzzle {
 	string reconstruct(const State *const end);
 	string reconstruct(int endPos);
 	int innerIdaStar(State* s, int depth, uint16_t bound);
+	void innerBFS(const State *s);
 	uint16_t threshold;
 	uint64_t nodes;
 	bool done,timeOut;
@@ -30,6 +31,7 @@ public:
 	virtual ~Puzzle();
 	string toString()const;
 	int aStar();
+	void BFS();
 	void setTTForReuse(TTInterface *_TT);
 
 	int idaStar(unsigned int ttSize, unsigned int maxSolLength);

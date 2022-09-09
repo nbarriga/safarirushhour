@@ -29,16 +29,21 @@ public:
 class TTInterface
 {
 	protected:
-		State* bestState = nullptr;
+		string bestState;
 		int bestLength = -1;
+		bool hasSolution=false;
 	public:
+		
 		int getBestLength() const;
-		State* getBestState() const;
+		string getBestState() const;
+		void setSolvable();
+		bool isSolvable() const;
 		virtual ~TTInterface(){};
 		virtual void TTsave(const State *const s, uint16_t bound) = 0;
 		virtual Entry TTLookup(const State *const s) const = 0;
 		virtual void TTmerge( TTInterface * other) = 0;
 		virtual void TTRegisterBoard(const State *const s, int solutionLength);
+		virtual string statistics() const = 0;
 };
 
 class TranspositionTable : public TTInterface {
@@ -51,6 +56,7 @@ public:
 	virtual void TTsave(const State *const s, uint16_t bound);
 	virtual Entry TTLookup(const State *const s) const;
 	virtual void TTmerge( TTInterface * other);
+	virtual string statistics() const;
 };
 
 class TranspositionTableMap : public TTInterface{ 
@@ -61,6 +67,7 @@ class TranspositionTableMap : public TTInterface{
 	virtual void TTsave(const State *const s, uint16_t bound);
 	virtual Entry TTLookup(const State *const s) const;
 	virtual void TTmerge(TTInterface * other);
+	virtual string statistics() const;
 	
 };
 

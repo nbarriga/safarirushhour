@@ -30,7 +30,7 @@ TranspositionTableMap::TranspositionTableMap(unsigned int startingSize){
 }
 TranspositionTableMap::~TranspositionTableMap(){
 	mapTT.clear();
-	delete bestState;
+	bestState.clear();
 }
 void TranspositionTableMap::TTsave(const State *const s, uint16_t bound)  {
 	mapTT[s->getHash()]=Entry(s->getHash2(),bound);
@@ -49,7 +49,7 @@ void TranspositionTableMap::TTmerge(TTInterface* other)
 	cout << "Merge." << endl;
 
 	auto otherMap = dynamic_cast< TranspositionTableMap*>(other);
-
+	if(other->isSolvable()) setSolvable();
 	mapTT.insert(otherMap->mapTT.cbegin(), otherMap->mapTT.cend());
 
 	
@@ -58,15 +58,15 @@ void TranspositionTableMap::TTmerge(TTInterface* other)
 void TTInterface::TTRegisterBoard(const State *const s, int solutionLength)
 {
 	cout << bestLength << endl;
+
 	if(solutionLength > bestLength != (solutionLength==-1 && bestLength==-1))
 	{
-		if(bestState != nullptr) delete bestState;
-		bestState = new State(*s);
+		bestState = s->toString();
 		bestLength = solutionLength;
 	
 
 		cout << "New best found: " << bestLength << endl;
-		if(bestState!=nullptr)	cout << bestState->toString() << endl;
+		if(!bestState.empty()) cout << bestState << endl;
 	}	
 }
 
@@ -75,9 +75,28 @@ int TTInterface::getBestLength() const
 	return bestLength;
 }
 	
-State* TTInterface::getBestState() const
+string TTInterface::getBestState() const
 {
 	return bestState;
+}
+
+string TranspositionTableMap::statistics() const
+{
+	return "Size:"+to_string(mapTT.size())+", Has solution:"+to_string(hasSolution);
+}
+
+string TranspositionTable::statistics() const{
+	return "";
+}
+
+void TTInterface::setSolvable()
+{
+	hasSolution=true;
+}
+
+bool TTInterface::isSolvable() const
+{
+	return hasSolution;
 }
 
 

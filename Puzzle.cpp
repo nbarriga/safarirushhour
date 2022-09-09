@@ -229,6 +229,7 @@ int Puzzle::innerIdaStar(State* s, int depth, uint16_t bound) {
 		}
 	}
 
+
 	solution="Can't find answer";
 	TT->TTsave(s,new_bound);
 	return new_bound;
@@ -308,9 +309,6 @@ int Puzzle::idaStar(unsigned int ttSize, unsigned int maxSolLength) {
 	if(connectedComponents && find(TTs.begin(), TTs.end(), TT) == TTs.end())
 	{
 		TTs.push_back(TT);
-
-		
-
 	}
 
 	if(connectedComponents)
@@ -322,6 +320,60 @@ int Puzzle::idaStar(unsigned int ttSize, unsigned int maxSolLength) {
 
 	return moves;
 }
+
+void Puzzle::BFS()
+{
+	if (!clusterCache||TT==nullptr){
+			if(useMapTT) TT=new TranspositionTableMap(10000000);
+			else TT=new TranspositionTable(10000000);
+	}
+	
+	if(clusterCache){
+		auto entry=Lookup(&_initial);
+		if (entry.getHash2()==_initial.getHash2()){ 
+			return ;
+		}
+
+
+	}
+	innerBFS(&_initial);
+
+	if(connectedComponents && find(TTs.begin(), TTs.end(), TT) == TTs.end())
+	{
+		TTs.push_back(TT);
+	}
+
+	if(connectedComponents)
+	{
+		TT->TTRegisterBoard(&_initial, -1);
+		cout << "Connected components: " << TTs.size() << endl;
+	}
+
+	
+}
+
+void Puzzle::innerBFS(const State *s)
+{
+	if(s->isGoal())
+	{
+		TT->setSolvable();
+		return;
+	}
+
+	auto entry=Lookup(s);
+	if (entry.getHash2()==s->getHash2()){ 
+		return;
+	}	
+
+	TT->TTsave(s, -1);
+
+	vector<State*> children=s->genSuccesors(false);//todo: avoid copy
+
+	for (auto it=children.begin(); it!=children.end();it++) {
+		innerBFS(*it);
+	}
+}
+
 
 Entry Puzzle::Lookup(const State * s)
 {
@@ -367,10 +419,16 @@ Entry Puzzle::Lookup(const State * s)
 		}
 			
 	}
+	else
+	{
+		return TT->TTLookup(s);
+	}
 
 
 
 }
+
+
 
 string Puzzle::statistics() {
 	// nodes searched,

@@ -541,4 +541,4 @@ _dummy_static_initializer::_dummy_static_initializer(){
 
 bool clusterCache=false;
 bool useMapTT=false;
-bool connectedComponents = true;
+bool connectedComponents = false;

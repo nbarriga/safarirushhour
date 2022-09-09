@@ -24,6 +24,7 @@ int main(int argc, char* argv[]){
 	    ("length,l", po::value<int>(&maxSolLength)->default_value(1000), "set maximum solution length to look for in IDA*")
 		("cluster,c", "Enable caching of solutions between boards, for reuse in the same cluster")
 		("typett", po::value<string>(&ttTypeArg)->default_value("normal")->implicit_value("stdin"), "set transposition table type (map = std::unordered_map, normal = array")
+		("ccomp", "Enable connected components")
 	;
 
 	po::variables_map vm;
@@ -44,6 +45,12 @@ int main(int argc, char* argv[]){
 		cerr <<"No correct transposition table type specified." << endl;
 		return 1;
 	}
+
+	if(vm.count("ccomp"))
+	{
+		connectedComponents = true;
+	}
+
 	if (vm.count("cluster")) {
 	    clusterCache=true;
 		if(!connectedComponents){
@@ -106,6 +113,8 @@ int main(int argc, char* argv[]){
 		}else if(algorithmArg=="IDAstar"){
 			moves=puzzle.idaStar(ttSizeArg,maxSolLength);
 			cout<<"statistics "<<name<<" "<<puzzle.statistics()<<endl;
+		}else if(algorithmArg=="BFS"){
+			puzzle.BFS();
 		}
 
 		stringstream timeString;
@@ -131,6 +140,7 @@ int main(int argc, char* argv[]){
 	{
 		for(auto tt : TTs)
 		{
+			cout << tt->statistics() << endl;
 			delete tt;
 		}
 	}
