@@ -163,7 +163,7 @@ int Puzzle::innerIdaStar(State* s, int depth, uint16_t bound) {
 	if (s->isGoal()){// goal found
 		done=true;
 		path[depth]=new State(*s);
-
+		TT->setSolvable();
 		TT->TTsave(s, 0);
 
 		return 0;
@@ -314,7 +314,7 @@ int Puzzle::idaStar(unsigned int ttSize, unsigned int maxSolLength) {
 	if(connectedComponents)
 	{
 		TT->TTRegisterBoard(&_initial, moves);
-		cout << "Connected components: " << TTs.size() << endl;
+		//cout << "Connected components: " << TTs.size() << endl;
 	}
 
 
@@ -323,6 +323,8 @@ int Puzzle::idaStar(unsigned int ttSize, unsigned int maxSolLength) {
 
 void Puzzle::BFS()
 {
+	cout << "hello" << endl;
+
 	if (!clusterCache||TT==nullptr){
 			if(useMapTT) TT=new TranspositionTableMap(10000000);
 			else TT=new TranspositionTable(10000000);
@@ -330,8 +332,8 @@ void Puzzle::BFS()
 	
 	if(clusterCache){
 		auto entry=Lookup(&_initial);
-		if (entry.getHash2()==_initial.getHash2()){ 
-			return ;
+		if (entry.getHash2()==_initial.getHash2()){
+			return;
 		}
 
 
@@ -346,7 +348,7 @@ void Puzzle::BFS()
 	if(connectedComponents)
 	{
 		TT->TTRegisterBoard(&_initial, -1);
-		cout << "Connected components: " << TTs.size() << endl;
+		//cout << "Connected components: " << TTs.size() << endl;
 	}
 
 	
@@ -354,6 +356,8 @@ void Puzzle::BFS()
 
 void Puzzle::innerBFS(const State *s)
 {
+	cout << "InnerBFS" << endl;
+
 	if(s->isGoal())
 	{
 		TT->setSolvable();
@@ -389,7 +393,6 @@ Entry Puzzle::Lookup(const State * s)
 				auto entry = (*it)->TTLookup(s);
 				if(entry.getHash2() == s->getHash2())
 				{
-					cout << "Merge 2" << endl;
 					TT->TTmerge(*it);
 					TTs.erase(it);
 					return entry;
@@ -427,7 +430,6 @@ Entry Puzzle::Lookup(const State * s)
 
 
 }
-
 
 
 string Puzzle::statistics() {

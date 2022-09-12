@@ -46,10 +46,11 @@ Entry TranspositionTableMap::TTLookup(const State *const s) const {
 void TranspositionTableMap::TTmerge(TTInterface* other)
 {
 	//mapTT.merge(other.mapTT);
-	cout << "Merge." << endl;
 
 	auto otherMap = dynamic_cast< TranspositionTableMap*>(other);
-	if(other->isSolvable()) setSolvable();
+	if(other->isSolvable()) {
+		setSolvable();
+	}
 	mapTT.insert(otherMap->mapTT.cbegin(), otherMap->mapTT.cend());
 
 	
@@ -57,16 +58,15 @@ void TranspositionTableMap::TTmerge(TTInterface* other)
 
 void TTInterface::TTRegisterBoard(const State *const s, int solutionLength)
 {
-	cout << bestLength << endl;
-
+	//cout << bestLength << endl;
 	if(solutionLength > bestLength != (solutionLength==-1 && bestLength==-1))
 	{
 		bestState = s->toString();
 		bestLength = solutionLength;
 	
 
-		cout << "New best found: " << bestLength << endl;
-		if(!bestState.empty()) cout << bestState << endl;
+		//cout << "New best found: " << bestLength << endl;
+		//if(!bestState.empty()) cout << bestState << endl;
 	}	
 }
 
