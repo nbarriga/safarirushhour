@@ -3,8 +3,6 @@
 
 TranspositionTable::TranspositionTable(unsigned int ttSize):ttSize(ttSize) {
 	TT=new Entry[ttSize];
-
-	//cout<<"TT entry size: "<<sizeof(Entry)<<"B, total "<<sizeof(Entry)*ttSize/1024<<"kB"<<endl;
 }
 
 TranspositionTable::~TranspositionTable() {
@@ -21,12 +19,19 @@ Entry TranspositionTable::TTLookup(const State* const s) const {
 
 void TranspositionTable::TTmerge(TTInterface* other)
 {
+	if(other->isSolvable()) setSolvable();
 	throw std::logic_error("Not Implemented");
 }
 
+string TranspositionTable::statistics() const{
+	return "";
+}
+
+
+
 
 TranspositionTableMap::TranspositionTableMap(unsigned int startingSize){
-	//mapTT.reserve(startingSize);
+
 }
 TranspositionTableMap::~TranspositionTableMap(){
 	mapTT.clear();
@@ -42,10 +47,8 @@ Entry TranspositionTableMap::TTLookup(const State *const s) const {
 		return Entry();
 	}
 }
-
 void TranspositionTableMap::TTmerge(TTInterface* other)
 {
-	//mapTT.merge(other.mapTT);
 
 	auto otherMap = dynamic_cast< TranspositionTableMap*>(other);
 	if(other->isSolvable()) {
@@ -55,19 +58,34 @@ void TranspositionTableMap::TTmerge(TTInterface* other)
 
 	
 }
-
-void TTInterface::TTRegisterBoard(const State *const s, int solutionLength)
+string TranspositionTableMap::statistics() const
 {
-	//cout << bestLength << endl;
-	if(solutionLength > bestLength != (solutionLength==-1 && bestLength==-1))
-	{
-		bestState = s->toString();
-		bestLength = solutionLength;
-	
+	return "Size:"+to_string(mapTT.size())+", Has solution:"+to_string(hasSolution);
+}
 
-		//cout << "New best found: " << bestLength << endl;
-		//if(!bestState.empty()) cout << bestState << endl;
-	}	
+
+BFSCache::BFSCache(unsigned int startingSize){
+
+}
+BFSCache::~BFSCache(){
+	setTT.clear();
+}
+void BFSCache::save(const State *const s){
+	setTT.insert(std::make_pair(s->getHash(), s->getHash2()));
+}
+
+bool BFSCache::lookup(const State *const s) const{
+	return setTT.find(std::make_pair(s->getHash(), s->getHash2())) != setTT.end();
+
+}
+void BFSCache::merge(BFSCache * other){
+	if(other->isSolvable()){
+		setSolvable();
+	}
+	setTT.insert(other->setTT.cbegin(), other->setTT.cend());
+}
+string BFSCache::statistics() const{
+	return "Size:"+to_string(setTT.size())+", Has solution:"+to_string(hasSolution);;
 }
 
 int TTInterface::getBestLength() const
@@ -80,14 +98,6 @@ string TTInterface::getBestState() const
 	return bestState;
 }
 
-string TranspositionTableMap::statistics() const
-{
-	return "Size:"+to_string(mapTT.size())+", Has solution:"+to_string(hasSolution);
-}
-
-string TranspositionTable::statistics() const{
-	return "";
-}
 
 void TTInterface::setSolvable()
 {
@@ -95,6 +105,16 @@ void TTInterface::setSolvable()
 }
 
 bool TTInterface::isSolvable() const
+{
+	return hasSolution;
+}
+
+void BFSCache::setSolvable()
+{
+	hasSolution=true;
+}
+
+bool BFSCache::isSolvable() const
 {
 	return hasSolution;
 }

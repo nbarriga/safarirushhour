@@ -13,3 +13,4 @@
 *.a
 safari
 verify
+.vscode/*

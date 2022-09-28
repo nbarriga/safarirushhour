@@ -3,7 +3,7 @@
 #include <cassert>
 
 string Problems, times, memories, nodesSearched, initialH, actualSolution;
-vector<TTInterface*> TTs;
+vector<BFSCache*> TTs;
 
 
 Puzzle::Puzzle(string name, string state):_name(name), _initial(State(state)) {
@@ -163,9 +163,7 @@ int Puzzle::innerIdaStar(State* s, int depth, uint16_t bound) {
 	if (s->isGoal()){// goal found
 		done=true;
 		path[depth]=new State(*s);
-		TT->setSolvable();
 		TT->TTsave(s, 0);
-
 		return 0;
 	}
 
@@ -174,7 +172,7 @@ int Puzzle::innerIdaStar(State* s, int depth, uint16_t bound) {
 
 
 	for (auto it=children.begin(); it!=children.end();it++) {
-		auto entry=Lookup(*it);
+		auto entry=TT->TTLookup(*it);
 		if (entry.getHash2()==(*it)->getHash2()){
 				auto newH=entry.getBound();
 				if(newH>(*it)->getH()){
@@ -269,7 +267,7 @@ int Puzzle::idaStar(unsigned int ttSize, unsigned int maxSolLength) {
 
 	//Let's see if we can improve threshold it from previous searches
 	if(clusterCache){
-		auto entry=Lookup(&_initial);
+		auto entry=TT->TTLookup(&_initial);
 		if (entry.getHash2()==_initial.getHash2()){ 
 			auto newH=entry.getBound();
 			if(newH>_initial.getH()){
@@ -305,130 +303,143 @@ int Puzzle::idaStar(unsigned int ttSize, unsigned int maxSolLength) {
 		delete TT;
 	}
 	delete[] path;
-
-	if(connectedComponents && find(TTs.begin(), TTs.end(), TT) == TTs.end())
-	{
-		TTs.push_back(TT);
-	}
-
-	if(connectedComponents)
-	{
-		TT->TTRegisterBoard(&_initial, moves);
-		//cout << "Connected components: " << TTs.size() << endl;
-	}
-
-
 	return moves;
 }
 
-void Puzzle::BFS()
+void Puzzle::BFS(unsigned int ttSize)
 {
-	cout << "hello" << endl;
-
-	if (!clusterCache||TT==nullptr){
-			if(useMapTT) TT=new TranspositionTableMap(10000000);
-			else TT=new TranspositionTable(10000000);
-	}
+	assert(clusterCache && connectedComponents);
 	
-	if(clusterCache){
-		auto entry=Lookup(&_initial);
-		if (entry.getHash2()==_initial.getHash2()){
-			return;
+	foundInPreviousTT = false;
+
+	if(Lookup(&_initial)){
+		return;
+	}
+	else
+	{
+		bfsTT = new BFSCache(ttSize);
+	}
+
+	
+
+	//innerBFS(&_initial);
+	std::unordered_set<State*> set;
+
+	std::deque<State*> queue;
+	State* copy = new State(_initial);
+	set.insert(copy); queue.push_back(copy);
+
+	while(!queue.empty())
+	{
+		auto s = queue.front();
+		queue.pop_front();
+		set.erase(s);
+
+		if(s->isGoal())
+		{
+			delete s;
+			bfsTT->setSolvable();
+			continue;
 		}
 
+		if(Lookup(s))
+		{
+			delete s;
+			continue;
+		}
 
+		bfsTT->save(s);
+		vector<State*> children=(s)->genSuccesors(false);//todo: avoid copy
+
+		for (auto it=children.begin(); it!=children.end();it++) {
+			if(!Lookup(*it) && (set.count(*it) <= 0))
+			{
+				queue.push_back(*it); set.insert(*it);
+			}
+			else
+			{
+				delete *it;
+			}
+		}
+		delete s;
 	}
-	innerBFS(&_initial);
-
-	if(connectedComponents && find(TTs.begin(), TTs.end(), TT) == TTs.end())
+	if(find(TTs.begin(), TTs.end(), bfsTT) == TTs.end())
 	{
-		TTs.push_back(TT);
+		TTs.push_back(bfsTT);
 	}
 
-	if(connectedComponents)
-	{
-		TT->TTRegisterBoard(&_initial, -1);
-		//cout << "Connected components: " << TTs.size() << endl;
-	}
-
+	cout << "Connected components: " << TTs.size() << endl;
 	
 }
 
 void Puzzle::innerBFS(const State *s)
 {
-	cout << "InnerBFS" << endl;
-
 	if(s->isGoal())
 	{
-		TT->setSolvable();
+		bfsTT->setSolvable();
 		return;
 	}
 
-	auto entry=Lookup(s);
-	if (entry.getHash2()==s->getHash2()){ 
+	if(Lookup(s))
+	{
 		return;
-	}	
+	}
 
-	TT->TTsave(s, -1);
+	bfsTT->save(s);
 
 	vector<State*> children=s->genSuccesors(false);//todo: avoid copy
 
 	for (auto it=children.begin(); it!=children.end();it++) {
 		innerBFS(*it);
+		//delete *it;
 	}
+
+
 }
 
 
-Entry Puzzle::Lookup(const State * s)
+bool Puzzle::Lookup(const State * s)
 {
-	if(connectedComponents)
+
+	if(bfsTT!=nullptr && bfsTT->lookup(s)){ 
+		return true;
+	}
+
+	if(!foundInPreviousTT)
 	{
-		if(foundTT)
+		for(auto otherTT : TTs)
 		{
-			
-			for(auto it = TTs.begin(); it != TTs.end(); it++)
+			//cout << "Checking TT list..." << endl
+			if(otherTT->lookup(s))
 			{
-				if(*it == TT) continue;
-				//cout << "Checking TT list..." << endl;
-				auto entry = (*it)->TTLookup(s);
-				if(entry.getHash2() == s->getHash2())
-				{
-					TT->TTmerge(*it);
-					TTs.erase(it);
-					return entry;
+				if(bfsTT != nullptr){
+					otherTT->merge(bfsTT);
+					delete bfsTT;
 				}
+				bfsTT = otherTT;
+				foundInPreviousTT = true;
+				return true;
 			}
-
-			return TT->TTLookup(s);
-		}
-		else
-		{
-			for(auto otherTT : TTs)
-			{
-				//cout << "Checking TT list..." << endl;
-				auto entry = otherTT->TTLookup(s);
-				if(entry.getHash2() == s->getHash2())
-				{
-					otherTT->TTmerge(TT);
-					delete TT;
-					TT = otherTT;
-					foundTT = true;
-					return entry;
-				}
-			}
-			//cout << "TT list done." << endl;
-			return TT->TTLookup(s);
-
-		}
-			
+		}		
 	}
 	else
 	{
-		return TT->TTLookup(s);
+		for(auto it = TTs.begin(); it != TTs.end(); it++)
+		{
+			if(*it == bfsTT) continue;
+			//cout << "Checking TT list..." << endl;
+			if((*it)->lookup(s))
+			{
+				bfsTT->merge(*it);
+				TTs.erase(it);
+				return true;
+			}
+		}
+			//cout << "TT list done." << endl;
+			
 	}
 
-
-
+	return false;
 }
 
 

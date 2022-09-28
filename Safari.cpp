@@ -114,7 +114,12 @@ int main(int argc, char* argv[]){
 			moves=puzzle.idaStar(ttSizeArg,maxSolLength);
 			cout<<"statistics "<<name<<" "<<puzzle.statistics()<<endl;
 		}else if(algorithmArg=="BFS"){
-			puzzle.BFS();
+			puzzle.BFS(ttSizeArg);
+			for(auto tt : TTs)
+			{
+				cout << tt->statistics() << endl;
+			}
+
 		}
 
 		stringstream timeString;
@@ -128,7 +133,8 @@ int main(int argc, char* argv[]){
 		}else{
 			if(algorithmArg=="IDAstar"){
 				cout<<"solution "<<name<<" "<<"No solution exists with length < "<<maxSolLength<<endl;
-			}else{
+			}
+			else if(algorithmArg=="Astar"){
 				cout<<"solution "<<name<<" "<<"No solution exists"<<endl;
 			}
 		}

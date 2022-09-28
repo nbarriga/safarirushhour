@@ -3,6 +3,8 @@
 #include "Common.h"
 #include "State.h"
 #include<unordered_map>
+#include<unordered_set>
+#include<boost/container_hash/hash.hpp>
 
 
 class Entry{
@@ -42,7 +44,6 @@ class TTInterface
 		virtual void TTsave(const State *const s, uint16_t bound) = 0;
 		virtual Entry TTLookup(const State *const s) const = 0;
 		virtual void TTmerge( TTInterface * other) = 0;
-		virtual void TTRegisterBoard(const State *const s, int solutionLength);
 		virtual string statistics() const = 0;
 };
 
@@ -69,6 +70,21 @@ class TranspositionTableMap : public TTInterface{
 	virtual void TTmerge(TTInterface * other);
 	virtual string statistics() const;
 	
+};
+
+class BFSCache{
+	std::unordered_set<std::pair<uint64_t,uint64_t>, boost::hash<std::pair<uint64_t,uint64_t> > > setTT;
+	bool hasSolution=false;
+	public:
+	void setSolvable();
+	bool isSolvable() const;
+	BFSCache(unsigned int startingSize);
+	~BFSCache();
+	void save(const State *const s);
+	bool lookup(const State *const s) const;
+	void merge(BFSCache * other);
+	string statistics() const;
+
 };
 
 #endif /* TRANSPOSITIONTABLE_H_ */
