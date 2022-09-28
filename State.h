@@ -26,6 +26,7 @@ public:
 	void setH(uint16_t h);
 	vector<State*> genSuccesors(bool sorted) const;
 	bool isGoal() const;
+	bool isOneMoveFromGoal() const;
 	State(const string s);
 	State(const State &s);
 	State(const RowCol *pieces, const State* prev);

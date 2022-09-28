@@ -446,6 +446,22 @@ bool State::isGoal() const{
 	auto p=letter_index[(uint8_t)'x'];
 	return (piece_board[pieces[p].packed][index_orientation[p]][index_type[p]]&goal)==goal;
 }
+
+bool State::isOneMoveFromGoal() const{
+	auto r=letter_index[(uint8_t)'x'];
+	auto rover_mask=piece_board[pieces[r].packed][index_orientation[r]][index_type[r]];
+	if(pieces[r].split.row==2&&!isGoal()){
+		for(int p=0;p<numPieces;p++){
+			auto piece_mask=piece_board[pieces[p].packed][index_orientation[p]][index_type[p]];
+			if((piece_mask&goal_row_positions[pieces[r].split.col+2])==piece_mask){
+				return false;
+			}
+		}
+		return true;
+	}
+	return false;
+}
+
 const RowCol* State::getPieces(const string s) const{
 	RowCol _pieces[19];
 	bool seen[256];

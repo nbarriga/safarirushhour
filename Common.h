@@ -52,6 +52,16 @@ const uint64_t outside_exit=3ull|(3ull<<9)|(3ull<<18)/*|(3ull<<27)|(3ull<<36)*/|
 const uint64_t inside=~outside;
 const uint64_t inside_exit=~outside_exit;
 const uint64_t goal=(3ull<<27)|(3ull<<36);
+const uint64_t goal_row=(goal<<2)|(goal<<3)|(goal<<4)|(goal<<5)|(goal<<6)|(goal<<7);
+const uint64_t goal_row_positions[8]={//places to the right of this column on the goal row.
+	(goal)|(goal<<1)|(goal<<2)|(goal<<3)|(goal<<4)|(goal<<5)|(goal<<6)|(goal<<7),
+	(goal)|(goal<<1)|(goal<<2)|(goal<<3)|(goal<<4)|(goal<<5)|(goal<<6),
+	(goal)|(goal<<1)|(goal<<2)|(goal<<3)|(goal<<4)|(goal<<5),
+	(goal)|(goal<<1)|(goal<<2)|(goal<<3)|(goal<<4),
+	(goal)|(goal<<1)|(goal<<2)|(goal<<3),
+	(goal)|(goal<<1)|(goal<<2),
+	(goal)|(goal<<1),
+	(goal)};
 const uint64_t pre_exit=goal<<2;
 const uint64_t pre_pre_exit[3]={pre_exit|(pre_exit<<9),pre_exit|(pre_exit<<1),pre_exit|(pre_exit>>9)};
 const uint64_t pre_pre_pre_exit[7]={
