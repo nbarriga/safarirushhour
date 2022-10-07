@@ -677,6 +677,10 @@ State* State::applyMove(const string move) const {
 	return new State(newPieces,this);
 }
 
+const RowCol* State::getPiecesCopy() const{
+	return copyPieces(pieces);
+}
+
 State::~State() {
 	delete[] pieces;
 }

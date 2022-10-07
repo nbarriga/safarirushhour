@@ -37,6 +37,7 @@ public:
 	virtual ~State();
 	friend class equal_to<State*>;
 	friend class equal_to<State>;
+	const RowCol* getPiecesCopy() const;
 	const State* getPrev() const {
 		return prev;
 	}

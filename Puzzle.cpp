@@ -368,7 +368,6 @@ void Puzzle::BFS(unsigned int ttSize)
 		TTs.push_back(bfsTT);
 	}
 
-	cout << "Connected components: " << TTs.size() << endl;
 	
 }
 
@@ -409,7 +408,6 @@ bool Puzzle::Lookup(const State * s)
 	{
 		for(auto otherTT : TTs)
 		{
-			//cout << "Checking TT list..." << endl
 			if(otherTT->lookup(s))
 			{
 				if(bfsTT != nullptr){
@@ -427,7 +425,6 @@ bool Puzzle::Lookup(const State * s)
 		for(auto it = TTs.begin(); it != TTs.end(); it++)
 		{
 			if(*it == bfsTT) continue;
-			//cout << "Checking TT list..." << endl;
 			if((*it)->lookup(s))
 			{
 				bfsTT->merge(*it);
@@ -435,7 +432,6 @@ bool Puzzle::Lookup(const State * s)
 				return true;
 			}
 		}
-			//cout << "TT list done." << endl;
 			
 	}
 

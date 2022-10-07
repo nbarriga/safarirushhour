@@ -1,5 +1,5 @@
-#CXXFLAGS = -O3 -msse -msse2 -Wall -Wextra -std=c++14 
-CXXFLAGS = -g -Wall -Wextra -std=c++14
+CXXFLAGS = -O3 -msse -msse2 -Wall -Wextra -std=c++14 
+#CXXFLAGS = -g -Wall -Wextra -std=c++14
 CXX=g++
 OBJS = Common.o State.o TranspositionTable.o Puzzle.o 
 
