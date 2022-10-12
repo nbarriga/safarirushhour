@@ -60,7 +60,7 @@ void TranspositionTableMap::TTmerge(TTInterface* other)
 }
 string TranspositionTableMap::statistics() const
 {
-	return "Size:"+to_string(mapTT.size())+", Has solution:"+to_string(hasSolution);
+	return to_string(mapTT.size())+";"+to_string(hasSolution);
 }
 
 
@@ -85,7 +85,7 @@ void BFSCache::merge(BFSCache * other){
 	setTT.insert(other->setTT.cbegin(), other->setTT.cend());
 }
 string BFSCache::statistics() const{
-	return "Size:"+to_string(setTT.size())+", Has solution:"+to_string(hasSolution);;
+	return to_string(setTT.size())+";"+to_string(hasSolution);
 }
 
 int TTInterface::getBestLength() const
