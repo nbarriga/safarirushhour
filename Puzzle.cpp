@@ -4,9 +4,14 @@
 
 string Problems, times, memories, nodesSearched, initialH, actualSolution;
 vector<BFSCache*> TTs;
-
+int Puzzle::genCalls = 0;
 
 Puzzle::Puzzle(string name, string state):_name(name), _initial(State(state)) {
+
+
+}
+
+Puzzle::Puzzle(string name, string state, bool order):_name(name), _initial(State(state, order)) {
 
 
 }
@@ -167,12 +172,14 @@ int Puzzle::innerIdaStar(State* s, int depth, uint16_t bound) {
 		return 0;
 	}
 
+	
 
 	vector<State*> children=s->genSuccesors(false);//todo: avoid copy
 
 
 	for (auto it=children.begin(); it!=children.end();it++) {
 		auto entry=TT->TTLookup(*it);
+		genCalls++;
 		if (entry.getHash2()==(*it)->getHash2()){
 				auto newH=entry.getBound();
 				if(newH>(*it)->getH()){
@@ -268,6 +275,7 @@ int Puzzle::idaStar(unsigned int ttSize, unsigned int maxSolLength) {
 	//Let's see if we can improve threshold it from previous searches
 	if(clusterCache){
 		auto entry=TT->TTLookup(&_initial);
+		genCalls++;
 		if (entry.getHash2()==_initial.getHash2()){ 
 			auto newH=entry.getBound();
 			if(newH>_initial.getH()){
@@ -323,12 +331,11 @@ void Puzzle::BFS(unsigned int ttSize)
 	
 
 	//innerBFS(&_initial);
-	std::unordered_set<State*> set;
+	std::unordered_set<State*, hash<State*>, equal_to<State*>> set;
 
 	std::deque<State*> queue;
 	State* copy = new State(_initial);
 	set.insert(copy); queue.push_back(copy);
-
 	while(!queue.empty())
 	{
 		auto s = queue.front();
@@ -347,11 +354,11 @@ void Puzzle::BFS(unsigned int ttSize)
 			delete s;
 			continue;
 		}
-
+		
 		bfsTT->save(s);
 		vector<State*> children=(s)->genSuccesors(false);//todo: avoid copy
-
 		for (auto it=children.begin(); it!=children.end();it++) {
+			genCalls++;
 			if(!Lookup(*it) && (set.count(*it) <= 0))
 			{
 				queue.push_back(*it); set.insert(*it);
@@ -361,14 +368,12 @@ void Puzzle::BFS(unsigned int ttSize)
 				delete *it;
 			}
 		}
-		delete s;
+		//delete s;
 	}
 	if(find(TTs.begin(), TTs.end(), bfsTT) == TTs.end())
 	{
 		TTs.push_back(bfsTT);
 	}
-
-	
 }
 
 void Puzzle::innerBFS(const State *s)
@@ -399,7 +404,6 @@ void Puzzle::innerBFS(const State *s)
 
 bool Puzzle::Lookup(const State * s)
 {
-
 	if(bfsTT!=nullptr && bfsTT->lookup(s)){ 
 		return true;
 	}
@@ -424,7 +428,7 @@ bool Puzzle::Lookup(const State * s)
 	{
 		for(auto it = TTs.begin(); it != TTs.end(); it++)
 		{
-			if(*it == bfsTT) continue;
+			if(*it == bfsTT) continue; // self
 			if((*it)->lookup(s))
 			{
 				bfsTT->merge(*it);

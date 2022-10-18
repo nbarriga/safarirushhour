@@ -73,9 +73,12 @@ class TranspositionTableMap : public TTInterface{
 };
 
 class BFSCache{
-	std::unordered_set<std::pair<uint64_t,uint64_t>, boost::hash<std::pair<uint64_t,uint64_t> > > setTT;
+	
 	bool hasSolution=false;
 	public:
+	std::unordered_set<const State*, hash<State*>, equal_to<State*>> setTT;
+	int size() const { return setTT.size(); };
+	const State* getFirst() const { return *setTT.begin();};
 	void setSolvable();
 	bool isSolvable() const;
 	BFSCache(unsigned int startingSize);

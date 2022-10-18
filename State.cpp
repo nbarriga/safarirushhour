@@ -496,14 +496,63 @@ const RowCol* State::getPieces(const string s) const{
 	memcpy(__pieces,_pieces,size*sizeof(RowCol));
 	return __pieces;
 }
+
+const RowCol* State::getPieces2(const string s) const{
+	RowCol _pieces[19];
+	bool seen[256];
+	for(int i=0;i<256;i++){
+		seen[i]=false;
+	}
+	ORIENTATION dir;
+	PIECE_TYPE type;
+	RowCol rowCol;
+	
+	//uint8_t piece_letter[20]={'_','u','v','x','o', 'q', 's','p', 'r','a', 'f','d',
+	//'g', 'j','b', 'h', 'i', 'k','c', 'e'}; //For reference, this is in Common.cpp
+	int size=0;
+
+	for(int index = 1; index < 20; index++){
+	for(int i=0;i<49;i++){
+			if(s[i]==piece_letter[index]&&!seen[(uint8_t)s[i]]){
+				seen[(uint8_t)s[i]]=true;
+				type=piece_type[(uint8_t)s[i]];
+				rowCol.split.col=i%7;
+				rowCol.split.row=i/7;
+				if(s[i]==s[i+1]){//square pieces are horizontal, who cares
+					dir=HOR;//horizontal
+				}else{
+					dir=VERT;//vertical
+				}
+				_pieces[size]=rowCol;
+				index_letter[size]=s[i];
+				letter_index[(uint8_t)s[i]]=size;
+				index_type[size]=type;
+				index_orientation[size]=dir;
+				size++;
+			}
+		}
+	}
+	numPieces=size;
+	RowCol* __pieces=new RowCol[size];
+	memcpy(__pieces,_pieces,size*sizeof(RowCol));
+	return __pieces;
+}
+
+
 //2x2 pieces: termite mounds (u,v) and safari rover (x); 3x1 pieces: elephant (o, q, s) and
 //rhino (p, r); 2x1 pieces: lion (a, f),
 //lioness (d, g, j), impala (b, h, i, k) and zebra (c, e).
 State::State(const string s):prev(NULL), pieces(getPieces(s)),
 		hash(calculateZobristHash(0)),hash2(calculateZobristHash(1)),
 		g(0),h(calculateH()) {
-
 }
+
+State::State(const string s, bool order):prev(NULL), pieces(getPieces2(s)),
+		hash(calculateZobristHash(0)),hash2(calculateZobristHash(1)),
+		g(0),h(calculateH()) {
+}
+
+
 
 string State::toString() const {
 	string s(49,'.');

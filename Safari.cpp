@@ -115,11 +115,10 @@ int main(int argc, char* argv[]){
 			cout<<"statistics "<<name<<" "<<puzzle.statistics()<<endl;
 		}else if(algorithmArg=="BFS"){
 			puzzle.BFS(ttSizeArg);
-			for(auto tt : TTs)
+			/*for(auto tt : TTs)
 			{
 				cout << tt->statistics() << endl;
-			}
-
+			}*/
 		}
 
 		stringstream timeString;

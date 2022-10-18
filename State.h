@@ -1,7 +1,7 @@
 #ifndef STATE_H_
 #define STATE_H_
 #include "Common.h"
-
+#include <memory>
 class State {
 	const State *prev;
 	const RowCol *const pieces;
@@ -12,10 +12,11 @@ class State {
 
 	uint16_t calculateH() const;
 	const RowCol* getPieces(const string s) const;
+	const RowCol* getPieces2(const string s) const;
 	const RowCol* copyPieces(const RowCol* prevPieces) const;
 	uint16_t getTwoOne(const RowCol& rover) const;
 public:
-
+	
 	uint64_t getHash() const;
 	uint64_t getHash2() const;
 	uint16_t getH() const;
@@ -28,6 +29,7 @@ public:
 	bool isGoal() const;
 	bool isOneMoveFromGoal() const;
 	State(const string s);
+	State(const string s, bool ordered);
 	State(const State &s);
 	State(const RowCol *pieces, const State* prev);
 	State(const RowCol *pieces, const State* prev, uint64_t hash, uint64_t hash2);
@@ -81,6 +83,19 @@ template <>struct hash<State>{
 template <>struct equal_to<State>{
 	bool operator() (const State& x, const State& y) const;
 };
+
+template <>struct hash<std::shared_ptr<State>>{
+bool operator()(const std::shared_ptr<State> x) const {
+        return hash<State*>()(x.get());
+	};
+};
+
+template <>struct equal_to<std::shared_ptr<State>>{
+bool operator()(const std::shared_ptr<State> x, const std::shared_ptr<State> y) const {
+        return equal_to<State*> ()((State*)x.get(), (State*)y.get());
+	};
+};
+
 }
 
 #endif /* STATE_H_ */

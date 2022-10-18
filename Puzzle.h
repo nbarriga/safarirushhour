@@ -16,6 +16,7 @@ class Puzzle {
 	void innerBFS(const State *s);
 	uint16_t threshold;
 	uint64_t nodes;
+	static int genCalls;
 	bool done,timeOut;
 	State** path;
 	TTInterface *TT=nullptr;
@@ -28,6 +29,7 @@ class Puzzle {
 public:
 	void init();
 	Puzzle(string name, string state);
+	Puzzle(string name, string state, bool order);
 	Puzzle(string name, const State& state);
 	virtual ~Puzzle();
 	string toString()const;

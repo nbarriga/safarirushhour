@@ -68,14 +68,21 @@ BFSCache::BFSCache(unsigned int startingSize){
 
 }
 BFSCache::~BFSCache(){
+
+	for(auto state=setTT.begin(); state!= setTT.end();)
+	{
+		delete *state;
+		state=setTT.erase(state);
+	}
+
 	setTT.clear();
 }
 void BFSCache::save(const State *const s){
-	setTT.insert(std::make_pair(s->getHash(), s->getHash2()));
+	setTT.insert(s);
 }
 
 bool BFSCache::lookup(const State *const s) const{
-	return setTT.find(std::make_pair(s->getHash(), s->getHash2())) != setTT.end();
+	return setTT.find(s) != setTT.end();
 
 }
 void BFSCache::merge(BFSCache * other){
