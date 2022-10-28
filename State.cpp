@@ -611,7 +611,7 @@ State::State(const RowCol* pieces, const State* prev):prev(prev),pieces(pieces),
 		g(prev==NULL?0:prev->getG()+1),h(calculateH()) {
 
 }
-const RowCol* State::copyPieces(const RowCol* prevPieces) const{
+RowCol* State::copyPieces(const RowCol* prevPieces) {
 	RowCol *_pieces=new RowCol[numPieces];
 	memcpy(_pieces,prevPieces,sizeof(RowCol)*numPieces);
 	return _pieces;
@@ -764,6 +764,22 @@ bool equal_to<State*>::operator() (const State* x, const State* y) const{
 	//return x->getHash()==y->getHash() && x->getHash2()==y->getHash2() ;
 	if(memcmp(x->pieces,y->pieces,sizeof(RowCol)*numPieces)==0){
 		return true;
+	}
+	else
+	{
+		// We have to check if swapping u and v makes it equal.
+		
+
+		auto copyY = State::copyPieces(y->pieces);
+
+		auto u = copyY[letter_index['u']];
+		auto v = copyY[letter_index['v']];
+		copyY[letter_index['v']] = u;
+		copyY[letter_index['u']] = v;
+
+		if(memcmp(x->pieces, copyY, sizeof(RowCol)*numPieces)==0){
+			return true;
+		}
 	}
 	return false;
 }

@@ -69,13 +69,13 @@ BFSCache::BFSCache(unsigned int startingSize){
 }
 BFSCache::~BFSCache(){
 
-	for(auto state=setTT.begin(); state!= setTT.end();)
+	/*for(auto state=setTT.begin(); state!= setTT.end();)
 	{
 		delete *state;
 		state=setTT.erase(state);
 	}
 
-	setTT.clear();
+	setTT.clear();*/
 }
 void BFSCache::save(const State *const s){
 	setTT.insert(s);
@@ -89,7 +89,7 @@ void BFSCache::merge(BFSCache * other){
 	if(other->isSolvable()){
 		setSolvable();
 	}
-	setTT.insert(other->setTT.cbegin(), other->setTT.cend());
+	setTT.merge(other->setTT);
 }
 string BFSCache::statistics() const{
 	return to_string(setTT.size())+";"+to_string(hasSolution);

@@ -4,7 +4,10 @@
 
 string Problems, times, memories, nodesSearched, initialH, actualSolution;
 vector<BFSCache*> TTs;
+BFSCache* bfsTT = nullptr;
 int Puzzle::genCalls = 0;
+//BFSCache * bfsTT=nullptr;	
+//bool foundInPreviousTT=false;
 
 Puzzle::Puzzle(string name, string state):_name(name), _initial(State(state)) {
 
@@ -317,22 +320,17 @@ int Puzzle::idaStar(unsigned int ttSize, unsigned int maxSolLength) {
 void Puzzle::BFS(unsigned int ttSize)
 {
 	assert(clusterCache && connectedComponents);
-	
 	foundInPreviousTT = false;
 
 	if(Lookup(&_initial)){
 		return;
-	}
-	else
+	}else
 	{
 		bfsTT = new BFSCache(ttSize);
 	}
 
-	
-
 	//innerBFS(&_initial);
 	std::unordered_set<State*, hash<State*>, equal_to<State*>> set;
-
 	std::deque<State*> queue;
 	State* copy = new State(_initial);
 	set.insert(copy); queue.push_back(copy);
@@ -359,6 +357,7 @@ void Puzzle::BFS(unsigned int ttSize)
 		vector<State*> children=(s)->genSuccesors(false);//todo: avoid copy
 		for (auto it=children.begin(); it!=children.end();it++) {
 			genCalls++;
+
 			if(!Lookup(*it) && (set.count(*it) <= 0))
 			{
 				queue.push_back(*it); set.insert(*it);
@@ -372,7 +371,7 @@ void Puzzle::BFS(unsigned int ttSize)
 	}
 	if(find(TTs.begin(), TTs.end(), bfsTT) == TTs.end())
 	{
-		TTs.push_back(bfsTT);
+		TTs.push_back(bfsTT);	
 	}
 }
 
@@ -410,15 +409,14 @@ bool Puzzle::Lookup(const State * s)
 
 	if(!foundInPreviousTT)
 	{
-		for(auto otherTT : TTs)
+		for(auto it = TTs.begin(); it != TTs.end(); it++)
 		{
-			if(otherTT->lookup(s))
+			if(*it == bfsTT) continue;
+			if((*it)->lookup(s))
 			{
-				if(bfsTT != nullptr){
-					otherTT->merge(bfsTT);
-					delete bfsTT;
-				}
-				bfsTT = otherTT;
+				(*it)->merge(bfsTT);
+				//delete bfsTT;
+				bfsTT = *it;
 				foundInPreviousTT = true;
 				return true;
 			}

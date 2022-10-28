@@ -5,6 +5,7 @@
 #include "TranspositionTable.h"
 
 extern vector<BFSCache*> TTs;
+extern BFSCache * bfsTT;	
 
 class Puzzle {
 
@@ -20,7 +21,7 @@ class Puzzle {
 	bool done,timeOut;
 	State** path;
 	TTInterface *TT=nullptr;
-	BFSCache * bfsTT=nullptr;	
+	
 	bool foundInPreviousTT=false;
 	string solution;
 	chrono::time_point<chrono::high_resolution_clock> start;

@@ -13,7 +13,7 @@ class State {
 	uint16_t calculateH() const;
 	const RowCol* getPieces(const string s) const;
 	const RowCol* getPieces2(const string s) const;
-	const RowCol* copyPieces(const RowCol* prevPieces) const;
+	static RowCol* copyPieces(const RowCol* prevPieces);
 	uint16_t getTwoOne(const RowCol& rover) const;
 public:
 	
