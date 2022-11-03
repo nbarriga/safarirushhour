@@ -778,8 +778,11 @@ bool equal_to<State*>::operator() (const State* x, const State* y) const{
 		copyY[letter_index['u']] = v;
 
 		if(memcmp(x->pieces, copyY, sizeof(RowCol)*numPieces)==0){
+			delete [] copyY;
 			return true;
 		}
+
+		delete [] copyY;
 	}
 	return false;
 }
