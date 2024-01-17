@@ -1,6 +1,8 @@
 #include "Puzzle.h"
 #include <algorithm>
 #include <cassert>
+#include <cmath>
+#include <stack>
 
 string Problems, times, memories, nodesSearched, initialH, actualSolution;
 vector<BFSCache*> TTs;
@@ -38,6 +40,31 @@ string Puzzle::reconstruct(const State *const state){
 		return reconstruct(state->getPrev())+" "+state->getPrev()->getMove(state);
 	}
 }
+
+vector<const State*> Puzzle::reconstructPath(const State* const state) {
+	vector<const State*> v;
+
+	auto st = state;
+	while (st) {
+		v.push_back(st);
+		st = st->getPrev();
+	}
+
+	return v;
+}
+
+void Puzzle::reconstructPathMap(State* const state, unordered_map<State*, unordered_set<State*>>& map) {
+	auto st = state;
+	while (st->getNPrev()) {
+		// if (map.find(st) == map.end()) {
+		// 	st->calculateLocalEntropy();
+		// }
+		// map[st].insert(st->getPrev());
+		map[st->getNPrev()].insert(st);
+		st = st->getNPrev();
+	}
+}
+
 int Puzzle::aStar(){
 
 	equal_to<State*> stateEqual;
@@ -108,6 +135,8 @@ int Puzzle::aStar(){
 					return -1;
 				}
 			}
+			// std::cout << "ASTAR " << nodes << std::endl;
+
 			bool updatedInOpen=false;
 
 			auto stored = closed.find(*it);
@@ -156,6 +185,248 @@ int Puzzle::aStar(){
 	}
 	closed.clear();
 	solution="Can't find answer";
+	return -1;
+}
+
+int Puzzle::Muse() {
+	equal_to<State*> stateEqual;
+	vector<State*> open_queue;
+	StatePointerComparator comp;
+	ReverseStatePointerComparator revComp;
+
+	unordered_set<State*> open;
+	unordered_set<State*> closed;
+	State* initial = new State(_initial);
+	open_queue.push_back(initial);
+	std::make_heap(open_queue.begin(), open_queue.end(), comp);
+
+	open.insert(initial);
+
+	nodes = 0;
+
+	initial->localEntropy = 100000;
+
+	vector<pair<string, int>> solutions;
+	vector<vector<const State*>> solutionsPaths;
+	unordered_map<State*, unordered_set<State*>> solutionMap;
+
+	while (!open_queue.empty()) {
+		State* current = open_queue.front();
+		std::pop_heap(open_queue.begin(), open_queue.end(), comp);
+		open_queue.pop_back();
+		open.erase(current);
+
+		// std::cout << "Iteration\n";
+		if (current->isGoal()) {
+			// std::cout << "Goal\n";
+			// solutions.push_back(make_pair(reconstruct(current), current->getG()));
+			// solutionsPaths.push_back(reconstructPath(current));
+			reconstructPathMap(current, solutionMap);
+			// int solutionLength = current->getG();
+			// Problems.append("'").append(_name).append("',");
+
+			// for (auto& st : open) {
+			// 	delete st;
+			// }
+			// open.clear();
+			// for (auto& st : closed) {
+			// 	delete st;
+			// }
+			// closed.clear();
+			// delete current;
+
+			// return solutionLength;
+			closed.insert(current);
+			continue;
+		}
+
+		const vector<State*>& children = current->genSuccesors(current, false);
+
+		for (auto it = children.begin(); it != children.end(); it++) {
+			nodes++;
+			if (nodes % 5000 == 0) {
+				timeOut=chrono::duration_cast<std::chrono::milliseconds>(chrono::high_resolution_clock::now() -start).count()>timeArg*1000;
+			
+				if(timeOut){
+					std::cout << "Timeout." << std::endl;
+					threshold=current->getF();
+					for(auto toDel=it;toDel!=children.end();toDel++){
+						delete (*toDel);
+					}
+					for(auto it=open.begin();it!=open.end();it++){
+						delete *it;
+					}
+					for(auto it=closed.begin();it!=closed.end();it++){
+						delete *it;
+					}
+					delete current;
+					open.clear();
+					closed.clear();
+
+
+					return -1;
+				}
+			}
+			// std::cout << "MUSE " << nodes << std::endl;
+
+			bool updatedInOpen = false;
+
+			auto stored = closed.find(*it);
+			if (stored != closed.end()) {
+				if ((*stored)->getG() <= (*it)->getG()) {
+					delete *it;
+					continue;
+				}
+				auto toDel = *stored;
+				closed.erase(*it);
+				delete toDel;
+			}
+
+			stored = open.find(*it);
+			if (stored != open.end()) {
+				if ((*stored)->getG() <= (*it)->getG()) {
+					delete *it;
+					continue;
+				}
+
+				for (auto toUpdate = open_queue.begin(); toUpdate != open_queue.end(); toUpdate++) {
+					if (stateEqual(*toUpdate, *it)) {
+						updatedInOpen = true;
+						assert((*stored) == (*toUpdate));
+						(*toUpdate)->setG((*it)->getG());
+						(*toUpdate)->setNParent((*it)->getNPrev());
+						std::push_heap(open_queue.begin(), toUpdate + 1, comp);
+						delete *it;
+						break;
+					}
+				}
+			}
+			if (!updatedInOpen) {
+				open.insert(*it);
+				open_queue.push_back(*it);
+				std::push_heap(open_queue.begin(), open_queue.end(), comp);
+			}
+		}
+		closed.insert(current);
+	}
+
+	// Compute the entropy of the puzzle
+	float localEntropy;
+	float MUSE;
+
+	// for (auto& m : solutionMap) {
+	// 	std::cout << "Parent State:\n" << m.first->toString() << "\n";
+	// 	for (auto& s : m.second) {
+	// 		std::cout << "\tChild:\n" << s->toString() << "\n";
+	// 	}
+	// }
+	
+	std::stack<pair<State*, std::unordered_set<State*>::iterator>> stk;
+	std::stack<vector<double>> entropyStk;
+	auto current = initial;
+	// Save pair: the parent and the first iterator of their children
+	stk.push(make_pair(current, solutionMap[current].begin()));
+	entropyStk.push(vector<double>());
+	while (!stk.empty()) {
+		if (stk.top().second == solutionMap[stk.top().first].end()) {
+
+			double smallestChildEntropy = *(std::min_element(entropyStk.top().begin(), entropyStk.top().end()));
+
+			localEntropy = stk.top().first->calculateLocalEntropy();
+			// std::cout << "Local entropy: " << localEntropy << std::endl;
+
+			// std::cout << "Parent:\n" << stk.top().first->toString() << std::endl;
+			// std::cout << "Local Entropy: " << stk.top().first->getLocalEntropy() << std::endl;
+			// std::cout << "\tChildren Entropy: ";
+			// for (auto& e : entropyStk.top()) {
+			// 	std::cout << e << " ";
+			// }
+			// std::cout << std::endl;
+
+			stk.pop();
+
+			if (stk.empty()) {
+				MUSE = localEntropy + smallestChildEntropy;
+				entropyStk.pop();
+				break;
+			}
+
+			entropyStk.pop();
+
+			entropyStk.top().push_back(localEntropy + smallestChildEntropy);
+
+			stk.top().second++;
+		}
+		else {
+			current = *(stk.top().second);
+			if (solutionMap.find(current) == solutionMap.end()) {
+				localEntropy = current->calculateLocalEntropy();
+				// std::cout << "Local entropy: " << localEntropy << std::endl;
+				entropyStk.top().push_back(localEntropy);
+				stk.top().second++;
+			}
+			else {
+				stk.push(make_pair(current, solutionMap[current].begin()));
+				entropyStk.push(vector<double>());
+			}
+		}
+	}
+
+	std::cout << "MUSE: " << MUSE << std::endl;
+
+	// for (auto& m : solutionMap) {
+	// 	std::cout << "Parent Local Entropy: " << m.first->getLocalEntropy() << "\n";
+	// 	for (auto& s : m.second) {
+	// 		std::cout << "\tChild Local Entropy: " << s->getLocalEntropy() << "\n";
+	// 	}
+	// }
+	// Print Boards
+	// current = initial;
+	// stk.push(make_pair(current, solutionMap[current].begin()));
+	// while (!stk.empty()) {
+	// 	if (stk.top().second == solutionMap[stk.top().first].end()) {
+	// 		std::cout << "Parent:\n" << stk.top().first->toString() << std::endl;
+
+	// 		stk.pop();
+
+	// 		if (stk.empty()) break;
+
+	// 		stk.top().second++;
+	// 	}
+	// 	else {
+	// 		current = *(stk.top().second);
+	// 		if (solutionMap.find(current) == solutionMap.end()) {
+	// 			std::cout << "\tChild:\n" << current->toString() << std::endl;
+	// 			stk.top().second++;
+	// 		}
+	// 		else {
+	// 			stk.push(make_pair(current, solutionMap[current].begin()));
+	// 		}
+	// 	}
+	// }
+
+	// ofstream solutionsFile("Solutions/" + _name + ".txt");
+	// if (solutionsFile.is_open()) {
+	// 	for (auto& p : solutions) {
+	// 		solutionsFile << p.second << ": " << p.first << "\n";
+	// 	}
+	// 	solutionsFile.close();
+	// }
+
+	for (auto& st : closed) {
+		delete st;
+	}
+	closed.clear();
+
+	// for (auto& p : solutionMap) {
+	// 	if (p.first) delete p.first;
+	// 	for (auto& s : p.second) {
+	// 		if (s) delete s;
+	// 	}
+	// 	p.second.clear();
+	// }
+	// solutionMap.clear();
+	// solution = "Can't find solution.";
 	return -1;
 }
 

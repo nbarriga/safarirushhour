@@ -3,6 +3,7 @@
 #include "Common.h"
 #include <memory>
 class State {
+	State* nprev;
 	const State *prev;
 	const RowCol *const pieces;
 	const uint64_t hash, hash2;
@@ -16,7 +17,8 @@ class State {
 	static RowCol* copyPieces(const RowCol* prevPieces);
 	uint16_t getTwoOne(const RowCol& rover) const;
 public:
-	
+	double localEntropy;
+	double calculateLocalEntropy(bool remuse = false);
 	uint64_t getHash() const;
 	uint64_t getHash2() const;
 	uint16_t getH() const;
@@ -24,8 +26,10 @@ public:
 	uint16_t getG() const;
 	void setG(uint16_t g);
 	void setParent(const State *const parent);
+	void setNParent(State *const parent);
 	void setH(uint16_t h);
 	vector<State*> genSuccesors(bool sorted) const;
+	vector<State*> genSuccesors(State* parent, bool sorted) const;
 	bool isGoal() const;
 	bool isOneMoveFromGoal() const;
 	State(const string s);
@@ -33,7 +37,11 @@ public:
 	State(const State &s);
 	State(const RowCol *pieces, const State* prev);
 	State(const RowCol *pieces, const State* prev, uint64_t hash, uint64_t hash2);
+	State(const RowCol *pieces, State* prev, uint64_t hash, uint64_t hash2);
 	string toString()const;
+	float getLocalEntropy() {
+		return localEntropy;
+	}
 	const string getMove(const State *const next)const;
 	State* applyMove(const string move)const;
 	virtual ~State();
@@ -42,6 +50,9 @@ public:
 	const RowCol* getPiecesCopy() const;
 	const State* getPrev() const {
 		return prev;
+	}
+	State* getNPrev() {
+		return nprev;
 	}
 };
 class StatePointerComparator

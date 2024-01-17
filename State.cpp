@@ -1,6 +1,62 @@
 #include "State.h"
 #include <algorithm>
 
+double State::calculateLocalEntropy(bool remuse) {
+	if (isGoal()) return 0;
+
+	const vector<State*>& children = genSuccesors(false);
+
+	// std::cout << "Children size: " << children.size() << std::endl;
+
+	if (children.size() == 1) {
+		for (auto& child : children) {
+			delete child;
+		}
+		return 0;
+	}
+
+	if (remuse) {
+		std::vector<double> Q;
+		double P = 1.0 / children.size();
+
+		float denominator = 0.0f;
+		for (auto& child : children) {
+			if (child->localEntropy < 10000) {
+				denominator += std::exp(child->localEntropy);
+			}
+		}
+
+		for (auto& child : children) {
+			auto e = std::exp(-child->localEntropy);
+			Q.push_back(e / denominator);
+		}
+
+		double divergence = 0.0;
+		for (int i = 0; i < children.size(); ++i) {
+			divergence += P * std::log2(P / Q[i]);
+		}
+
+		localEntropy = divergence;
+	}
+	else {
+		double prob = 1.0 / children.size();
+		// std::cout << "Prob: " << prob << std::endl;
+		// float entropy = children.size() * (prob * (std::log(1 / prob) / std::log(2)));
+		double entropy = std::log2(children.size());
+		// double entropy = std::log2(1.0 / prob);
+		// float entropy = (std::log(children.size()) / std::log(2));
+
+		// std::cout << "Entropy calculated: " << entropy << std::endl;
+
+		localEntropy = entropy;
+	}
+
+	for (auto& child : children) {
+		delete child;
+	}
+
+	return localEntropy;
+}
 uint16_t State::getTwoOne(const RowCol& rover) const{
 	if(rover.split.row==2){
 		return 1;
@@ -442,6 +498,46 @@ vector<State*> State::genSuccesors(bool sorted) const{
 	return succesors;
 }
 
+vector<State*> State::genSuccesors(State* parent, bool sorted) const{
+	//for each piece, generate all moves in all directions at all distances
+	vector<State*> succesors;
+	uint64_t occupied=0;
+	occupied=0ull;
+	for(int p=0;p<numPieces;p++){
+		occupied|=piece_board[pieces[p].packed][index_orientation[p]][index_type[p]];
+	}
+	for(int p=0;p<numPieces;p++){
+		uint64_t occupiedNoCurrent=occupied&(~piece_board[pieces[p].packed][index_orientation[p]][index_type[p]]);
+		for(int dir=0;dir<4;dir++){
+			for(int distance=1;distance<=7;distance++){
+				RowCol newPos=piece_neighbours[dir][distance-1][pieces[p].packed][index_type[p]][index_orientation[p]];
+
+				if(newPos.packed==illegal_pos){
+					continue;
+				}
+				if((occupiedNoCurrent&
+						piece_board_paths[index_type[p]][pieces[p].packed][newPos.packed])!=0){
+					continue;
+				}
+				RowCol *new_pieces=new RowCol[numPieces];
+				memcpy(new_pieces,pieces,numPieces*sizeof(RowCol));
+				new_pieces[p].packed=newPos.packed;
+
+				//calculate zobrist hash incrementally here
+				uint64_t _hash=hash^zobrist[pieces[p].packed][index_orientation[p]][index_type[p]][0];
+				_hash^=zobrist[new_pieces[p].packed][index_orientation[p]][index_type[p]][0];
+				uint64_t _hash2=hash2^zobrist[pieces[p].packed][index_orientation[p]][index_type[p]][1];
+				_hash2^=zobrist[new_pieces[p].packed][index_orientation[p]][index_type[p]][1];
+				succesors.push_back(new State(new_pieces,parent,_hash,_hash2));
+			}
+		}
+	}
+	if(sorted){
+		sort(succesors.begin(),succesors.end(),ReverseStatePointerComparator());
+	}
+	return succesors;
+}
+
 bool State::isGoal() const{
 	auto p=letter_index[(uint8_t)'x'];
 	return (piece_board[pieces[p].packed][index_orientation[p]][index_type[p]]&goal)==goal;
@@ -542,14 +638,14 @@ const RowCol* State::getPieces2(const string s) const{
 //2x2 pieces: termite mounds (u,v) and safari rover (x); 3x1 pieces: elephant (o, q, s) and
 //rhino (p, r); 2x1 pieces: lion (a, f),
 //lioness (d, g, j), impala (b, h, i, k) and zebra (c, e).
-State::State(const string s):prev(NULL), pieces(getPieces(s)),
+State::State(const string s): nprev(NULL), prev(NULL), pieces(getPieces(s)),
 		hash(calculateZobristHash(0)),hash2(calculateZobristHash(1)),
-		g(0),h(calculateH()) {
+		g(0),h(calculateH()), localEntropy(INFINITY) {
 }
 
-State::State(const string s, bool order):prev(NULL), pieces(getPieces2(s)),
+State::State(const string s, bool order): nprev(NULL), prev(NULL), pieces(getPieces2(s)),
 		hash(calculateZobristHash(0)),hash2(calculateZobristHash(1)),
-		g(0),h(calculateH()) {
+		g(0),h(calculateH()), localEntropy(INFINITY) {
 }
 
 
@@ -606,9 +702,9 @@ string State::toString() const {
 	return formatted;
 }
 
-State::State(const RowCol* pieces, const State* prev):prev(prev),pieces(pieces),
+State::State(const RowCol* pieces, const State* prev):nprev(NULL), prev(prev),pieces(pieces),
 		hash(calculateZobristHash(0)),hash2(calculateZobristHash(1)),
-		g(prev==NULL?0:prev->getG()+1),h(calculateH()) {
+		g(prev==NULL?0:prev->getG()+1),h(calculateH()), localEntropy(INFINITY) {
 
 }
 RowCol* State::copyPieces(const RowCol* prevPieces) {
@@ -616,9 +712,9 @@ RowCol* State::copyPieces(const RowCol* prevPieces) {
 	memcpy(_pieces,prevPieces,sizeof(RowCol)*numPieces);
 	return _pieces;
 }
-State::State(const State &s):prev(s.prev),pieces(copyPieces(s.pieces)),
+State::State(const State &s): nprev(s.nprev), prev(s.prev),pieces(copyPieces(s.pieces)),
 		hash(s.hash),hash2(s.hash2),
-		g(s.g),h(s.h){
+		g(s.g),h(s.h), localEntropy(INFINITY){
 }
 
 uint16_t State::getF() const {
@@ -680,9 +776,15 @@ uint64_t State::getHash2() const {
 
 
 State::State(const RowCol* pieces, const State* prev, uint64_t hash,
-		uint64_t hash2):prev(prev),pieces(pieces),
+		uint64_t hash2):nprev(NULL),prev(prev),pieces(pieces),
 				hash(hash),hash2(hash2),
-				g(prev==NULL?0:prev->getG()+1),h(calculateH()) {
+				g(prev==NULL?0:prev->getG()+1),h(calculateH()), localEntropy(INFINITY) {
+
+}
+State::State(const RowCol* pieces, State* nprev, uint64_t hash,
+		uint64_t hash2):nprev(nprev),prev(NULL),pieces(pieces),
+				hash(hash),hash2(hash2),
+				g(nprev==NULL?0:nprev->getG()+1),h(calculateH()), localEntropy(INFINITY) {
 
 }
 
@@ -692,6 +794,10 @@ void State::setH(uint16_t h) {
 
 void State::setParent(const State* const parent) {
 	prev=parent;
+}
+
+void State::setNParent(State* const parent) {
+	nprev=parent;
 }
 
 State* State::applyMove(const string move) const {

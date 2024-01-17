@@ -13,6 +13,8 @@ class Puzzle {
 	State _initial;
 	string reconstruct(const State *const end);
 	string reconstruct(int endPos);
+	vector<const State*> reconstructPath(const State* const state);
+	void reconstructPathMap(State* const state, unordered_map<State*, unordered_set<State*>>& map);
 	int innerIdaStar(State* s, int depth, uint16_t bound);
 	void innerBFS(const State *s);
 	uint16_t threshold;
@@ -41,6 +43,8 @@ public:
 	int idaStar(unsigned int ttSize, unsigned int maxSolLength);
 
 	bool Lookup(const State *s);
+
+	int Muse();
 
 	const string& getSolution() const {
 		return solution;
