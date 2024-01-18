@@ -33,6 +33,8 @@ bool exit_obstacles4[16][4][2][128];
 bool rover_on_exit[4][128];
 bool init_done=false;
 
+bool REMUSE;
+MUSE_MODE museMode;
 
 uint8_t relaxationTwo[6][6][7][7][4][2][7][7][4][2];
 uint8_t relaxationOne[6][6][7][7][4][2];

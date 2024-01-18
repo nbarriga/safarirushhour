@@ -148,6 +148,11 @@ extern ORIENTATION index_orientation[19];
 //rowcol orientation type 1-2
 extern uint64_t zobrist[256][2][4][2];
 
+// Metrics
+enum MUSE_MODE { ALL_CHILDREN, ONLY_SOLUTION_CHILDREN };
+extern bool REMUSE;
+extern MUSE_MODE museMode;
+
 //board is 7 rows and 9 columns, 2 rightmost columns are outside
 uint64_t get_board(RowCol rowCol,ORIENTATION orientation,PIECE_TYPE type);
 

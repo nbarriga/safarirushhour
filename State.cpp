@@ -1,8 +1,11 @@
 #include "State.h"
 #include <algorithm>
 
-double State::calculateLocalEntropy(bool remuse) {
-	if (isGoal()) return 0;
+double State::calculateLocalEntropy(std::vector<double> childrenEntropy) {
+	if (isGoal()) {
+		localEntropy = 0;
+		return localEntropy;
+	}
 
 	const vector<State*>& children = genSuccesors(false);
 
@@ -15,38 +18,59 @@ double State::calculateLocalEntropy(bool remuse) {
 		return 0;
 	}
 
-	if (remuse) {
-		std::vector<double> Q;
-		double P = 1.0 / children.size();
+	if (REMUSE) {
+		std::vector<double> P;
+		double Q = 1.0 / children.size();
+		std::cout << "Q: " << Q << std::endl;
 
-		float denominator = 0.0f;
-		for (auto& child : children) {
-			if (child->localEntropy < 10000) {
-				denominator += std::exp(child->localEntropy);
+		double denominator = 0.0f;
+		for (auto& childEntropy : childrenEntropy) {
+			if (childEntropy < 10000) {
+				denominator += std::exp(-childEntropy);
 			}
 		}
 
-		for (auto& child : children) {
-			auto e = std::exp(-child->localEntropy);
-			Q.push_back(e / denominator);
+		std::cout << "Denominator: " << denominator << std::endl;
+
+		for (auto& childEntropy : childrenEntropy) {
+			if (childEntropy >= 10000) {
+				P.push_back(0);
+				continue;
+			}
+			auto e = std::exp(-childEntropy);
+			P.push_back(e / denominator);
 		}
 
+		std::cout << "P: ";
 		double divergence = 0.0;
-		for (int i = 0; i < children.size(); ++i) {
-			divergence += P * std::log2(P / Q[i]);
+		for (int i = 0; i < childrenEntropy.size(); ++i) {
+			if (P[i] != 0) {
+				std::cout << P[i] << " ";
+				// divergence += Q * std::log2(Q / P[i]);
+				divergence += P[i] * std::log2(P[i] / Q);
+			}
 		}
+		std::cout << std::endl;
 
 		localEntropy = divergence;
 	}
 	else {
-		double prob = 1.0 / children.size();
+		
+		double entropy = 0.0;
+		switch (museMode) {
+			case ALL_CHILDREN:
+				entropy = std::log2(children.size());
+				break;
+			case ONLY_SOLUTION_CHILDREN:
+				entropy = std::log2(childrenEntropy.size());
+				break;
+		}
+		// double prob = 1.0 / childrenEntropy.size();
 		// std::cout << "Prob: " << prob << std::endl;
 		// float entropy = children.size() * (prob * (std::log(1 / prob) / std::log(2)));
-		double entropy = std::log2(children.size());
+		// double entropy = std::log2(childrenEntropy.size());
 		// double entropy = std::log2(1.0 / prob);
 		// float entropy = (std::log(children.size()) / std::log(2));
-
-		// std::cout << "Entropy calculated: " << entropy << std::endl;
 
 		localEntropy = entropy;
 	}
@@ -55,8 +79,11 @@ double State::calculateLocalEntropy(bool remuse) {
 		delete child;
 	}
 
+	std::cout << "Entropy calculated: " << localEntropy << std::endl;
+
 	return localEntropy;
 }
+
 uint16_t State::getTwoOne(const RowCol& rover) const{
 	if(rover.split.row==2){
 		return 1;
@@ -640,12 +667,12 @@ const RowCol* State::getPieces2(const string s) const{
 //lioness (d, g, j), impala (b, h, i, k) and zebra (c, e).
 State::State(const string s): nprev(NULL), prev(NULL), pieces(getPieces(s)),
 		hash(calculateZobristHash(0)),hash2(calculateZobristHash(1)),
-		g(0),h(calculateH()), localEntropy(INFINITY) {
+		g(0),h(calculateH()), localEntropy(10000) {
 }
 
 State::State(const string s, bool order): nprev(NULL), prev(NULL), pieces(getPieces2(s)),
 		hash(calculateZobristHash(0)),hash2(calculateZobristHash(1)),
-		g(0),h(calculateH()), localEntropy(INFINITY) {
+		g(0),h(calculateH()), localEntropy(10000) {
 }
 
 
@@ -704,7 +731,7 @@ string State::toString() const {
 
 State::State(const RowCol* pieces, const State* prev):nprev(NULL), prev(prev),pieces(pieces),
 		hash(calculateZobristHash(0)),hash2(calculateZobristHash(1)),
-		g(prev==NULL?0:prev->getG()+1),h(calculateH()), localEntropy(INFINITY) {
+		g(prev==NULL?0:prev->getG()+1),h(calculateH()), localEntropy(10000) {
 
 }
 RowCol* State::copyPieces(const RowCol* prevPieces) {
@@ -714,7 +741,7 @@ RowCol* State::copyPieces(const RowCol* prevPieces) {
 }
 State::State(const State &s): nprev(s.nprev), prev(s.prev),pieces(copyPieces(s.pieces)),
 		hash(s.hash),hash2(s.hash2),
-		g(s.g),h(s.h), localEntropy(INFINITY){
+		g(s.g),h(s.h), localEntropy(10000){
 }
 
 uint16_t State::getF() const {
@@ -778,13 +805,13 @@ uint64_t State::getHash2() const {
 State::State(const RowCol* pieces, const State* prev, uint64_t hash,
 		uint64_t hash2):nprev(NULL),prev(prev),pieces(pieces),
 				hash(hash),hash2(hash2),
-				g(prev==NULL?0:prev->getG()+1),h(calculateH()), localEntropy(INFINITY) {
+				g(prev==NULL?0:prev->getG()+1),h(calculateH()), localEntropy(10000) {
 
 }
 State::State(const RowCol* pieces, State* nprev, uint64_t hash,
 		uint64_t hash2):nprev(nprev),prev(NULL),pieces(pieces),
 				hash(hash),hash2(hash2),
-				g(nprev==NULL?0:nprev->getG()+1),h(calculateH()), localEntropy(INFINITY) {
+				g(nprev==NULL?0:nprev->getG()+1),h(calculateH()), localEntropy(10000) {
 
 }
 

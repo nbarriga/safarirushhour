@@ -13,6 +13,14 @@ int main(int argc, char** argv) {
         std::cout << "Not enough arguments." << std::endl;
         return 1;
     }
+    REMUSE = false;
+    museMode = ALL_CHILDREN;
+    if (argc >= 3) {
+        if (std::stoi(std::string(argv[2])) == 1) REMUSE = true;
+        if (argc >= 4) {
+            if (std::stoi(std::string(argv[3])) == 1) museMode = ONLY_SOLUTION_CHILDREN;
+        }
+    }
 	_dummy_static_initializer _dummy;
 
     std::string filename(argv[1]);

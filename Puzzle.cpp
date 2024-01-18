@@ -332,16 +332,16 @@ int Puzzle::Muse() {
 
 			double smallestChildEntropy = *(std::min_element(entropyStk.top().begin(), entropyStk.top().end()));
 
-			localEntropy = stk.top().first->calculateLocalEntropy();
+			localEntropy = stk.top().first->calculateLocalEntropy(entropyStk.top());
 			// std::cout << "Local entropy: " << localEntropy << std::endl;
 
-			// std::cout << "Parent:\n" << stk.top().first->toString() << std::endl;
-			// std::cout << "Local Entropy: " << stk.top().first->getLocalEntropy() << std::endl;
-			// std::cout << "\tChildren Entropy: ";
-			// for (auto& e : entropyStk.top()) {
-			// 	std::cout << e << " ";
-			// }
-			// std::cout << std::endl;
+			std::cout << "Parent:\n" << stk.top().first->toString() << std::endl;
+			std::cout << "Local Entropy: " << stk.top().first->getLocalEntropy() << std::endl;
+			std::cout << "\tChildren Entropy: ";
+			for (auto& e : entropyStk.top()) {
+				std::cout << e << " ";
+			}
+			std::cout << std::endl;
 
 			stk.pop();
 
@@ -360,7 +360,7 @@ int Puzzle::Muse() {
 		else {
 			current = *(stk.top().second);
 			if (solutionMap.find(current) == solutionMap.end()) {
-				localEntropy = current->calculateLocalEntropy();
+				localEntropy = current->calculateLocalEntropy(std::vector<double>());
 				// std::cout << "Local entropy: " << localEntropy << std::endl;
 				entropyStk.top().push_back(localEntropy);
 				stk.top().second++;
@@ -372,7 +372,12 @@ int Puzzle::Muse() {
 		}
 	}
 
-	std::cout << "MUSE: " << MUSE << std::endl;
+	if (REMUSE) {
+		std::cout << "ReMUSE: " << MUSE << std::endl;
+	}
+	else {
+		std::cout << "MUSE: " << MUSE << std::endl;
+	}
 
 	// for (auto& m : solutionMap) {
 	// 	std::cout << "Parent Local Entropy: " << m.first->getLocalEntropy() << "\n";

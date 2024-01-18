@@ -18,7 +18,8 @@ class State {
 	uint16_t getTwoOne(const RowCol& rover) const;
 public:
 	double localEntropy;
-	double calculateLocalEntropy(bool remuse = false);
+	// double calculateLocalEntropy();
+	double calculateLocalEntropy(std::vector<double> childrenEntropy);
 	uint64_t getHash() const;
 	uint64_t getHash2() const;
 	uint16_t getH() const;
