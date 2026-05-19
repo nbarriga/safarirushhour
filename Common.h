@@ -64,13 +64,14 @@ const uint64_t goal_row_positions[8]={//places to the right of this column on th
 const uint64_t pre_exit=goal<<2;
 const uint64_t pre_pre_exit[3]={pre_exit|(pre_exit<<9),pre_exit|(pre_exit<<1),pre_exit|(pre_exit>>9)};
 const uint64_t pre_pre_pre_exit[7]={
-		pre_pre_exit[0]|(pre_pre_exit[0]<<9),
-		pre_pre_exit[0]|(pre_pre_exit[0]<<1),
-		pre_pre_exit[1]|(pre_pre_exit[1]<<9),
-		pre_pre_exit[1]|(pre_pre_exit[1]<<1),
-		pre_pre_exit[1]|(pre_pre_exit[1]>>9),
-		pre_pre_exit[2]|(pre_pre_exit[2]<<1),
-		pre_pre_exit[2]|(pre_pre_exit[2]>>9)};
+		pre_exit | (pre_exit<<9) | (pre_exit<<18), // UP-UP
+		pre_exit | (pre_exit<<9) | (pre_exit<<10), // UP-LEFT
+		pre_exit | (pre_exit<<1) | (pre_exit<<10), // LEFT-UP
+		pre_exit | (pre_exit<<1) | (pre_exit<<2),  // LEFT-LEFT
+		pre_exit | (pre_exit<<1) | (pre_exit>>8),  // LEFT-DOWN
+		pre_exit | (pre_exit>>9) | (pre_exit>>8),  // DOWN-LEFT
+		pre_exit | (pre_exit>>9) | (pre_exit>>18)  // DOWN-DOWN
+};
 const uint64_t pre_pre_pre_pre_exit[14]={
 		pre_pre_pre_exit[0]|(pre_pre_pre_exit[0]<<1),
 		pre_pre_pre_exit[1]|(pre_pre_pre_exit[1]<<9),

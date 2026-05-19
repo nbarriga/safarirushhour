@@ -102,64 +102,94 @@ uint16_t State::calculateH() const{
 						count++;
 					}
 				}
-				switch(i){
-				case 0://up-up
-					if(_rover.split.row==0){
-						count+=3;
-					}else{
-						count+=4;
-					}
-					break;
-				case 1://up-left
-					if(_rover.split.row==1){
-						count+=3;
-					}else if(_rover.split.row==0 && _rover.split.col==4){
-						count+=4;
-					}else{
-						count+=5;
-					}
-					break;
-				case 2://left-up
-					if(_rover.split.row==0 && _rover.split.col==4){
-						count+=2;
-					}else if(_rover.split.row<=1){
-						count+=3;
-					}else{
-						count+=4;
-					}
-					break;
-				case 3://left-left
-					if(_rover.split.row==2){
+				if(_rover.split.col==5){
+					switch(i){
+					case 0://up-up
 						count+=1;
-					}else{
+						break;
+					case 1://up-left
 						count+=2;
-					}
-					break;
-				case 4://left-down
-					if(_rover.split.row>4 && _rover.split.col==4){
+						break;
+					case 2://left-up
 						count+=2;
-					}else if(_rover.split.row==4){
-						count+=3;
-					}else{
-						count+=4;
+						break;
+					case 3://left-left
+						count+=1;
+						break;
+					case 4://left-down
+						count+=2;
+						break;
+					case 5://down-left
+						count+=2;
+						break;
+					case 6://down-down
+						count+=1;
+						break;
 					}
-					break;
-				case 5://down-left
-					if(_rover.split.row==4){
-						count+=3;
-					}else if(_rover.split.row>4 && _rover.split.col==4){
-						count+=4;
-					}else{
-						count+=5;
+				}else{
+					switch(i){
+					case 0://up-up
+						if(_rover.split.row==0){
+							count+=2;
+						}else{
+							count+=3;
+						}
+						break;
+					case 1://up-left
+						if(_rover.split.row==1){
+							count+=3;
+						}else if(_rover.split.row==0 && _rover.split.col==4){
+							count+=3;
+						}else{
+							count+=4;
+						}
+						break;
+					case 2://left-up
+						if(_rover.split.row==0 && _rover.split.col==4){
+							count+=2;
+						}else if(_rover.split.row<=1){
+							count+=3;
+						}else{
+							count+=4;
+						}
+						break;
+					case 3://left-left
+						if(_rover.split.row==2){
+							count+=1;
+						}else{
+							count+=2;
+						}
+						break;
+					case 4://left-down
+						if(_rover.split.row>4 && _rover.split.col==4){
+							count+=2;
+						}else if(_rover.split.row==4){
+							count+=3;
+						}else if(_rover.split.row==3){
+							count+=3;
+						}else{
+							count+=4;
+						}
+						break;
+					case 5://down-left
+						if(_rover.split.row==4){
+							count+=3;
+						}else if(_rover.split.row>4 && _rover.split.col==4){
+							count+=3;
+						}else if(_rover.split.row==3){
+							count+=3;
+						}else{
+							count+=4;
+						}
+						break;
+					case 6://down-down
+						if(_rover.split.row>=4){
+							count+=2;
+						}else{
+							count+=3;
+						}
+						break;
 					}
-					break;
-				case 6://down-down
-					if(_rover.split.row==5){
-						count+=3;
-					}else{
-						count+=4;
-					}
-					break;
 				}
 				if(count<minVal){
 					minVal=count;
@@ -178,13 +208,21 @@ uint16_t State::calculateH() const{
 				}
 				switch(i){
 				case 0://up
-					count+=2;
+					if(_rover.split.row==0 && _rover.split.col==5){
+						count+=1;
+					}else{
+						count+=2;
+					}
 					break;
 				case 1://left
 					count+=1;
 					break;
 				case 2://down
-					count+=2;
+					if(_rover.split.row==4 && _rover.split.col==5){
+						count+=1;
+					}else{
+						count+=2;
+					}
 					break;
 				}
 				if(count<minVal){
