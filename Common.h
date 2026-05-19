@@ -25,7 +25,7 @@
 #include <fstream>
 
 extern int generateRelaxedArg;
-extern std::string heuristicArg;
+extern thread_local std::string heuristicArg;
 
 using namespace std;
 
@@ -39,12 +39,12 @@ extern ORIENTATION ORIENTATIONS[2];
 extern DIRECTION DIRECTIONS[4];
 extern PIECE_TYPE PIECE_TYPES[4];
 
-extern int timeArg;
-extern string algorithmArg;
-extern HEURISTIC heuristic;
-extern bool clusterCache;
-extern bool useMapTT;
-extern bool connectedComponents;
+extern thread_local int timeArg;
+extern thread_local string algorithmArg;
+extern thread_local HEURISTIC heuristic;
+extern thread_local bool clusterCache;
+extern thread_local bool useMapTT;
+extern thread_local bool connectedComponents;
 
 const uint64_t outside=3ull|(3ull<<9)|(3ull<<18)|(3ull<<27)|(3ull<<36)|(3ull<<45)|(3ull<<54);
 const uint64_t outside_exit=3ull|(3ull<<9)|(3ull<<18)/*|(3ull<<27)|(3ull<<36)*/|(3ull<<45)|(3ull<<54);

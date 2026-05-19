@@ -10,14 +10,14 @@
 #include <string>
 #include <vector>
 
-int timeArg = 60;
+thread_local int timeArg = 60;
 int ttSizeArg = 1000000;
 int maxSolLength = 1000;
-std::string algorithmArg;
-std::string heuristicArg;
+thread_local std::string algorithmArg;
+thread_local std::string heuristicArg;
 std::string ttTypeArg = "normal";
 int generateRelaxedArg = 0;
-HEURISTIC heuristic;
+thread_local HEURISTIC heuristic;
 
 // Helper to load puzzles from file
 std::vector<std::pair<std::string, std::string>>
@@ -279,129 +279,153 @@ int main(int argc, char *argv[]) {
 
     int expected_length = it->second.first;
 
+    struct Job {
+      std::string alg;
+      std::string heur_name;
+      HEURISTIC heur;
+    };
+    std::vector<Job> jobs;
     for (const auto &alg : algorithms) {
       for (const auto &heur : heuristics) {
-        // BFS does not use heuristics for search sorting; test only once with
-        // "0"
         if (alg == "BFS" && heur.first != "0")
           continue;
+        jobs.push_back({alg, heur.first, heur.second});
+      }
+    }
 
-        if (!quiet) {
-          std::cout << "  Algorithm: " << alg << ", Heuristic: " << heur.first
-                    << "... " << std::flush;
-        }
+    struct TestResult {
+      std::string alg;
+      std::string heur_name;
+      bool passed = false;
+      bool timeout = false;
+      bool expected_timeout = false;
+      double durationMs = 0.0;
+      std::string error_message;
+      int solved_length = -1;
+    };
+    std::vector<TestResult> results(jobs.size());
 
-        algorithmArg = alg;
-        heuristicArg = heur.first;
-        heuristic = heur.second;
+    #pragma omp parallel for schedule(dynamic)
+    for (size_t i = 0; i < jobs.size(); ++i) {
+      const auto &job = jobs[i];
+      results[i].alg = job.alg;
+      results[i].heur_name = job.heur_name;
 
-        if (alg == "BFS") {
-          clusterCache = true;
-          connectedComponents = true;
+      algorithmArg = job.alg;
+      heuristicArg = job.heur_name;
+      heuristic = job.heur;
+
+      if (job.alg == "BFS") {
+        clusterCache = true;
+        connectedComponents = true;
+      } else {
+        clusterCache = false;
+        connectedComponents = false;
+      }
+
+      Puzzle pz(name, state);
+      pz.init();
+
+      auto startTime = std::chrono::high_resolution_clock::now();
+      int solved_length = -1;
+      if (job.alg == "Astar") {
+        solved_length = pz.aStar();
+      } else if (job.alg == "IDAstar") {
+        solved_length = pz.idaStar(ttSizeArg, maxSolLength);
+      } else if (job.alg == "BFS") {
+        pz.BFS(ttSizeArg);
+        solved_length = expected_length;
+      }
+      auto endTime = std::chrono::high_resolution_clock::now();
+      double durationMs =
+          std::chrono::duration<double, std::milli>(endTime - startTime)
+              .count();
+
+      results[i].durationMs = durationMs;
+      results[i].solved_length = solved_length;
+
+      if (job.alg == "BFS") {
+        results[i].passed = true;
+        continue;
+      }
+
+      if (solved_length == -1) {
+        results[i].passed = true;
+        results[i].timeout = true;
+        if (expected_length < 0) {
+          results[i].expected_timeout = true;
         } else {
-          clusterCache = false;
-          connectedComponents = false;
+          results[i].expected_timeout = false;
         }
+        continue;
+      }
 
-        Puzzle pz(name, state);
-        pz.init();
+      if (solved_length != expected_length) {
+        results[i].passed = false;
+        std::stringstream ss;
+        ss << "Expected length " << expected_length << ", got " << solved_length;
+        results[i].error_message = ss.str();
+        continue;
+      }
 
-        auto startTime = std::chrono::high_resolution_clock::now();
-        int solved_length = -1;
-        if (alg == "Astar") {
-          solved_length = pz.aStar();
-        } else if (alg == "IDAstar") {
-          solved_length = pz.idaStar(ttSizeArg, maxSolLength);
-        } else if (alg == "BFS") {
-          pz.BFS(ttSizeArg);
-          solved_length = expected_length; // BFS doesn't return path length
-        }
-        auto endTime = std::chrono::high_resolution_clock::now();
-        double durationMs =
-            std::chrono::duration<double, std::milli>(endTime - startTime)
-                .count();
+      std::vector<std::string> solver_moves;
+      std::stringstream ss_moves(pz.getSolution());
+      std::string mv;
+      while (ss_moves >> mv) {
+        solver_moves.push_back(mv);
+      }
 
-        if (alg == "BFS") {
-          if (!quiet) {
-            std::cout << "PASSED (BFS completed without crash in " << durationMs
+      if ((int)solver_moves.size() != solved_length) {
+        results[i].passed = false;
+        std::stringstream ss;
+        ss << "Solver moves length " << solver_moves.size()
+           << " does not match solved length " << solved_length;
+        results[i].error_message = ss.str();
+        continue;
+      }
+
+      bool moves_ok = verifyMoves(state, solver_moves);
+      if (moves_ok) {
+        results[i].passed = true;
+      } else {
+        results[i].passed = false;
+        results[i].error_message = "Solver moves did not solve the puzzle or caused collision!";
+      }
+    }
+
+    for (const auto &res : results) {
+      if (!res.passed) {
+        all_passed = false;
+        puzzle_failed = true;
+      }
+
+      if (!quiet) {
+        std::cout << "  Algorithm: " << res.alg << ", Heuristic: " << res.heur_name
+                  << "... " << std::flush;
+        if (res.passed) {
+          if (res.alg == "BFS") {
+            std::cout << "PASSED (BFS completed without crash in " << res.durationMs
                       << "ms)" << std::endl;
-          }
-          continue;
-        }
-
-        if (solved_length == -1) {
-          if (expected_length < 0) {
-            if (!quiet) {
-              std::cout << "PASSED (Expected TIMEOUT in " << durationMs << "ms)"
+          } else if (res.timeout) {
+            if (res.expected_timeout) {
+              std::cout << "PASSED (Expected TIMEOUT in " << res.durationMs << "ms)"
+                        << std::endl;
+            } else {
+              std::cout << "TIMEOUT (after " << res.durationMs << "ms)"
                         << std::endl;
             }
           } else {
-            if (!quiet) {
-              std::cout << "TIMEOUT (after " << durationMs << "ms)"
-                        << std::endl;
-            }
-          }
-          continue;
-        }
-
-        if (solved_length != expected_length) {
-          if (quiet) {
-            std::cout << "\n  [FAILED] " << alg << ", Heuristic: " << heur.first
-                      << " - Expected length " << expected_length << ", got "
-                      << solved_length << " (took " << durationMs << "ms)"
-                      << std::endl;
-          } else {
-            std::cout << "FAILED! Expected length " << expected_length
-                      << ", got " << solved_length << " (took " << durationMs
-                      << "ms)" << std::endl;
-          }
-          all_passed = false;
-          puzzle_failed = true;
-          continue;
-        }
-
-        // Verify the moves the solver actually returned solve the puzzle
-        std::vector<std::string> solver_moves;
-        std::stringstream ss(pz.getSolution());
-        std::string mv;
-        while (ss >> mv) {
-          solver_moves.push_back(mv);
-        }
-
-        if ((int)solver_moves.size() != solved_length) {
-          if (quiet) {
-            std::cout << "\n  [FAILED] " << alg << ", Heuristic: " << heur.first
-                      << " - Solver moves length " << solver_moves.size()
-                      << " does not match solved length " << solved_length
-                      << " (took " << durationMs << "ms)" << std::endl;
-          } else {
-            std::cout << "FAILED! Solver moves length " << solver_moves.size()
-                      << " does not match solved length " << solved_length
-                      << " (took " << durationMs << "ms)" << std::endl;
-          }
-          all_passed = false;
-          puzzle_failed = true;
-          continue;
-        }
-
-        bool moves_ok = verifyMoves(state, solver_moves);
-        if (moves_ok) {
-          if (!quiet) {
-            std::cout << "PASSED! (took " << durationMs << "ms)" << std::endl;
+            std::cout << "PASSED! (took " << res.durationMs << "ms)" << std::endl;
           }
         } else {
-          if (quiet) {
-            std::cout << "\n  [FAILED] " << alg << ", Heuristic: " << heur.first
-                      << " - Solver moves did not solve the puzzle or caused "
-                         "collision!"
-                      << std::endl;
-          } else {
-            std::cout << "FAILED! Solver moves did not solve the puzzle or "
-                         "caused collision (took "
-                      << durationMs << "ms)." << std::endl;
-          }
-          all_passed = false;
-          puzzle_failed = true;
+          std::cout << "FAILED! " << res.error_message << " (took " << res.durationMs
+                    << "ms)" << std::endl;
+        }
+      } else {
+        if (!res.passed) {
+          std::cout << "\n  [FAILED] " << res.alg << ", Heuristic: " << res.heur_name
+                    << " - " << res.error_message << " (took " << res.durationMs
+                    << "ms)" << std::endl;
         }
       }
     }

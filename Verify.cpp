@@ -9,10 +9,12 @@
 #include "Common.h"
 #include "State.h"
 
-int timeArg,memoryArg,ttSizeArg;
-string algorithmArg,heuristicArg;
+thread_local int timeArg;
+int memoryArg,ttSizeArg;
+thread_local string algorithmArg;
+thread_local string heuristicArg;
 int generateRelaxedArg = 0;
-HEURISTIC heuristic;
+thread_local HEURISTIC heuristic;
 
 int main(int argc, char* argv[]){
 	_dummy_static_initializer _dummy;

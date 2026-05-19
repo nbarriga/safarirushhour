@@ -4,8 +4,8 @@
 #include "State.h"
 #include "TranspositionTable.h"
 
-extern vector<BFSCache*> TTs;
-extern BFSCache * bfsTT;	
+extern thread_local vector<BFSCache*> TTs;
+extern thread_local BFSCache * bfsTT;	
 
 class Puzzle {
 

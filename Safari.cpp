@@ -3,11 +3,14 @@
 #include <boost/program_options.hpp>
 
 namespace po = boost::program_options;
-int timeArg, ttSizeArg, maxSolLength;
+thread_local int timeArg;
+int ttSizeArg, maxSolLength;
 int generateRelaxedArg = 0;
 
-string algorithmArg, heuristicArg, ttTypeArg;
-HEURISTIC heuristic;
+thread_local string algorithmArg;
+thread_local string heuristicArg;
+string ttTypeArg;
+thread_local HEURISTIC heuristic;
 
 int main(int argc, char *argv[]) {
 

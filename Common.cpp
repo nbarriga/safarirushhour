@@ -583,6 +583,6 @@ _dummy_static_initializer::_dummy_static_initializer(){
 	init_done=true;
 }
 
-bool clusterCache=false;
-bool useMapTT=false;
-bool connectedComponents = false;
+thread_local bool clusterCache=false;
+thread_local bool useMapTT=false;
+thread_local bool connectedComponents = false;

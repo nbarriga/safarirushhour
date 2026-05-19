@@ -3,8 +3,8 @@
 #include <cassert>
 
 thread_local string Problems, times, memories, nodesSearched, initialH, actualSolution;
-vector<BFSCache*> TTs;
-BFSCache* bfsTT = nullptr;
+thread_local vector<BFSCache*> TTs;
+thread_local BFSCache* bfsTT = nullptr;
 int Puzzle::genCalls = 0;
 //BFSCache * bfsTT=nullptr;	
 //bool foundInPreviousTT=false;
