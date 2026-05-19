@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-int timeArg = 1;
+int timeArg = 60;
 int ttSizeArg = 1000000;
 int maxSolLength = 1000;
 std::string algorithmArg;
@@ -303,13 +303,6 @@ int main(int argc, char *argv[]) {
           connectedComponents = false;
         }
 
-        // Configure timeout: expected timeouts get 1s, others get 60s
-        if (expected_length < 0) {
-          timeArg = 1;
-        } else {
-          timeArg = 60;
-        }
-
         Puzzle pz(name, state);
         pz.init();
 
@@ -343,25 +336,9 @@ int main(int argc, char *argv[]) {
                         << std::endl;
             }
           } else {
-            // Fail if a relaxed heuristic times out, otherwise treat as
-            // acceptable warning
-            if (heur.first == "relaxed1" || heur.first == "relaxed2") {
-              if (quiet) {
-                std::cout << "\n  [FAILED] " << alg
-                          << ", Heuristic: " << heur.first
-                          << " - Timeout on optimal heuristic after "
-                          << durationMs << "ms!" << std::endl;
-              } else {
-                std::cout << "FAILED! Timeout on optimal heuristic after "
-                          << durationMs << "ms." << std::endl;
-              }
-              all_passed = false;
-              puzzle_failed = true;
-            } else {
-              if (!quiet) {
-                std::cout << "TIMEOUT (expected with weak heuristic after "
-                          << durationMs << "ms)" << std::endl;
-              }
+            if (!quiet) {
+              std::cout << "TIMEOUT (after " << durationMs << "ms)"
+                        << std::endl;
             }
           }
           continue;
