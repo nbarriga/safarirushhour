@@ -3,99 +3,96 @@
 #include "Common.h"
 #include <memory>
 class State {
-	const State *prev;
-	const RowCol *const pieces;
-	const uint64_t hash, hash2;
-	uint64_t calculateZobristHash(int n) const;
-	uint16_t g;
-	uint16_t h;
+  const State *prev;
+  const RowCol *const pieces;
+  const uint64_t hash, hash2;
+  uint64_t calculateZobristHash(int n) const;
+  uint16_t g;
+  uint16_t h;
 
-	uint16_t calculateH() const;
-	const RowCol* getPieces(const string s) const;
-	const RowCol* getPieces2(const string s) const;
-	static RowCol* copyPieces(const RowCol* prevPieces);
-	uint16_t getTwoOne(const RowCol& rover) const;
+  uint16_t calculateH() const;
+  const RowCol *getPieces(const string s) const;
+  const RowCol *getPieces2(const string s) const;
+  static RowCol *copyPieces(const RowCol *prevPieces);
+  uint16_t getTwoOne(const RowCol rover) const;
+
 public:
-	
-	uint64_t getHash() const;
-	uint64_t getHash2() const;
-	uint16_t getH() const;
-	uint16_t getF()const;
-	uint16_t getG() const;
-	void setG(uint16_t g);
-	void setParent(const State *const parent);
-	void setH(uint16_t h);
-	vector<State*> genSuccesors(bool sorted) const;
-	bool isGoal() const;
-	bool isOneMoveFromGoal() const;
-	State(const string s);
-	State(const string s, bool ordered);
-	State(const State &s);
-	State(const RowCol *pieces, const State* prev);
-	State(const RowCol *pieces, const State* prev, uint64_t hash, uint64_t hash2);
-	string toString()const;
-	const string getMove(const State *const next)const;
-	State* applyMove(const string move)const;
-	virtual ~State();
-	friend class equal_to<State*>;
-	friend class equal_to<State>;
-	const RowCol* getPiecesCopy() const;
-	const State* getPrev() const {
-		return prev;
-	}
+  uint64_t getHash() const;
+  uint64_t getHash2() const;
+  uint16_t getH() const;
+  uint16_t getF() const;
+  uint16_t getG() const;
+  void setG(uint16_t g);
+  void setParent(const State *const parent);
+  void setH(uint16_t h);
+  vector<State *> genSuccesors(bool sorted) const;
+  bool isGoal() const;
+  bool isOneMoveFromGoal() const;
+  State(const string s);
+  State(const string s, bool ordered);
+  State(const State &s);
+  State(const RowCol *pieces, const State *prev);
+  State(const RowCol *pieces, const State *prev, uint64_t hash, uint64_t hash2);
+  string toString() const;
+  const string getMove(const State *const next) const;
+  State *applyMove(const string move) const;
+  virtual ~State();
+  friend class equal_to<State *>;
+  friend class equal_to<State>;
+  const RowCol *getPiecesCopy() const;
+  const State *getPrev() const { return prev; }
 };
-class StatePointerComparator
-{
+class StatePointerComparator {
 public:
-	StatePointerComparator(){}
-	bool operator ()(const State* lhs, const State* rhs) const;
+  StatePointerComparator() {}
+  bool operator()(const State *lhs, const State *rhs) const;
 };
-class HighFLowGComparator
-{
+class HighFLowGComparator {
 public:
-	HighFLowGComparator(){}
-	bool operator ()(const State* lhs, const State* rhs) const;
+  HighFLowGComparator() {}
+  bool operator()(const State *lhs, const State *rhs) const;
 };
-class FGComparator{
-	uint16_t f,g;
+class FGComparator {
+  uint16_t f, g;
+
 public:
-	FGComparator(uint16_t f,uint16_t g):f(f),g(g){}
-	bool operator ()(const State* lhs) const;
+  FGComparator(uint16_t f, uint16_t g) : f(f), g(g) {}
+  bool operator()(const State *lhs) const;
 };
-class ReverseStatePointerComparator
-{
+class ReverseStatePointerComparator {
 public:
-	ReverseStatePointerComparator(){}
-	bool operator ()(const State* lhs, const State* rhs) const;
+  ReverseStatePointerComparator() {}
+  bool operator()(const State *lhs, const State *rhs) const;
 };
 namespace std {
-template <>struct hash<State*>{
-	size_t operator()(const State* s) const{return s->getHash();}
+template <> struct hash<State *> {
+  size_t operator()(const State *s) const { return s->getHash(); }
 };
 
-template <>struct equal_to<State*>{
-	bool operator() (const State* x, const State* y) const;
+template <> struct equal_to<State *> {
+  bool operator()(const State *x, const State *y) const;
 };
 
-template <>struct hash<State>{
-	size_t operator()(const State& s) const{return s.getHash();}
+template <> struct hash<State> {
+  size_t operator()(const State &s) const { return s.getHash(); }
 };
-template <>struct equal_to<State>{
-	bool operator() (const State& x, const State& y) const;
-};
-
-template <>struct hash<std::shared_ptr<State>>{
-bool operator()(const std::shared_ptr<State> x) const {
-        return hash<State*>()(x.get());
-	};
+template <> struct equal_to<State> {
+  bool operator()(const State &x, const State &y) const;
 };
 
-template <>struct equal_to<std::shared_ptr<State>>{
-bool operator()(const std::shared_ptr<State> x, const std::shared_ptr<State> y) const {
-        return equal_to<State*> ()((State*)x.get(), (State*)y.get());
-	};
+template <> struct hash<std::shared_ptr<State>> {
+  bool operator()(const std::shared_ptr<State> x) const {
+    return hash<State *>()(x.get());
+  };
 };
 
-}
+template <> struct equal_to<std::shared_ptr<State>> {
+  bool operator()(const std::shared_ptr<State> x,
+                  const std::shared_ptr<State> y) const {
+    return equal_to<State *>()((State *)x.get(), (State *)y.get());
+  };
+};
+
+} // namespace std
 
 #endif /* STATE_H_ */

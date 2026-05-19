@@ -73,22 +73,21 @@ const uint64_t pre_pre_pre_exit[7]={
 		pre_exit | (pre_exit>>9) | (pre_exit>>18)  // DOWN-DOWN
 };
 const uint64_t pre_pre_pre_pre_exit[14]={
-		pre_pre_pre_exit[0]|(pre_pre_pre_exit[0]<<1),
-		pre_pre_pre_exit[1]|(pre_pre_pre_exit[1]<<9),
-		pre_pre_pre_exit[1]|(pre_pre_pre_exit[1]<<1),
-		pre_pre_pre_exit[2]|(pre_pre_pre_exit[2]<<9),
-		pre_pre_pre_exit[2]|(pre_pre_pre_exit[2]<<1),
-		//pre_pre_pre_exit[2]|(pre_pre_pre_exit[2]>>1),
-		pre_pre_pre_exit[3]|(pre_pre_pre_exit[3]<<9),
-		pre_pre_pre_exit[3]|(pre_pre_pre_exit[3]<<1),
-		pre_pre_pre_exit[3]|(pre_pre_pre_exit[3]>>9),
-		pre_pre_pre_exit[4]|(pre_pre_pre_exit[4]<<1),
-		pre_pre_pre_exit[4]|(pre_pre_pre_exit[4]>>9),
-		//pre_pre_pre_exit[4]|(pre_pre_pre_exit[4]>>1),
-		pre_pre_pre_exit[5]|(pre_pre_pre_exit[5]<<1),
-		pre_pre_pre_exit[5]|(pre_pre_pre_exit[5]>>9),
-		pre_pre_pre_exit[6]|(pre_pre_pre_exit[6]<<1),
-		pre_pre_pre_exit[6]|(pre_pre_pre_exit[6]>>9)};
+		pre_exit | (pre_exit<<9) | (pre_exit<<18) | (pre_exit<<19), // UP-UP-LEFT
+		pre_exit | (pre_exit<<9) | (pre_exit<<10) | (pre_exit<<19), // UP-LEFT-UP
+		pre_exit | (pre_exit<<9) | (pre_exit<<10) | (pre_exit<<11), // UP-LEFT-LEFT
+		pre_exit | (pre_exit<<1) | (pre_exit<<10) | (pre_exit<<19), // LEFT-UP-UP
+		pre_exit | (pre_exit<<1) | (pre_exit<<10) | (pre_exit<<11), // LEFT-UP-LEFT
+		pre_exit | (pre_exit<<1) | (pre_exit<<2)  | (pre_exit<<11), // LEFT-LEFT-UP
+		pre_exit | (pre_exit<<1) | (pre_exit<<2)  | (pre_exit<<3),  // LEFT-LEFT-LEFT
+		pre_exit | (pre_exit<<1) | (pre_exit<<2)  | (pre_exit>>7),  // LEFT-LEFT-DOWN
+		pre_exit | (pre_exit<<1) | (pre_exit>>8)  | (pre_exit>>7),  // LEFT-DOWN-LEFT
+		pre_exit | (pre_exit<<1) | (pre_exit>>8)  | (pre_exit>>17), // LEFT-DOWN-DOWN
+		pre_exit | (pre_exit>>9) | (pre_exit>>8)  | (pre_exit>>7),  // DOWN-LEFT-LEFT
+		pre_exit | (pre_exit>>9) | (pre_exit>>8)  | (pre_exit>>17), // DOWN-LEFT-DOWN
+		pre_exit | (pre_exit>>9) | (pre_exit>>18) | (pre_exit>>17), // DOWN-DOWN-LEFT
+		pre_exit | (pre_exit>>9) | (pre_exit>>18) | (pre_exit>>27)  // DOWN-DOWN-DOWN
+};
 const uint64_t illegal=~0ull;
 const uint8_t illegal_pos=~0;
 

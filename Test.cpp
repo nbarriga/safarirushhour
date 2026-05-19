@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-int timeArg = 60;
+int timeArg = 1;
 int ttSizeArg = 1000000;
 int maxSolLength = 1000;
 std::string algorithmArg;
@@ -169,6 +169,7 @@ int main(int argc, char *argv[]) {
   }
 
   std::string puzzle_file;
+  bool is_individual = false;
   if (test_set == "J1") {
     puzzle_file = "J1";
   } else if (test_set == "J") {
@@ -184,9 +185,24 @@ int main(int argc, char *argv[]) {
   } else if (test_set == "all") {
     puzzle_file = "allPuzzles";
   } else {
-    std::cerr << "Unknown test set: " << test_set << std::endl;
-    std::cerr << "Available test sets: J1, J, B, I, A, E, all" << std::endl;
-    return 1;
+    is_individual = true;
+    if (!test_set.empty()) {
+      char c = test_set[0];
+      if (c == 'J')
+        puzzle_file = "Jpuzzles";
+      else if (c == 'B')
+        puzzle_file = "Bpuzzles";
+      else if (c == 'I')
+        puzzle_file = "Ipuzzles";
+      else if (c == 'A')
+        puzzle_file = "Apuzzles";
+      else if (c == 'E')
+        puzzle_file = "Epuzzles";
+      else
+        puzzle_file = "allPuzzles";
+    } else {
+      puzzle_file = "allPuzzles";
+    }
   }
 
   // Load standard data structures
@@ -195,6 +211,20 @@ int main(int argc, char *argv[]) {
 
   // Load puzzles
   auto puzzles = loadPuzzles(puzzle_file);
+  if (is_individual) {
+    std::vector<std::pair<std::string, std::string>> filtered;
+    for (const auto &p : puzzles) {
+      if (p.first == test_set) {
+        filtered.push_back(p);
+      }
+    }
+    puzzles = filtered;
+    if (puzzles.empty()) {
+      std::cerr << "Error: Puzzle " << test_set << " not found in "
+                << puzzle_file << std::endl;
+      return 1;
+    }
+  }
   if (!quiet) {
     std::cout << "Loaded " << puzzles.size() << " puzzles." << std::endl;
   }
