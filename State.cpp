@@ -406,21 +406,21 @@ uint16_t State::calculateH() const {
     }
     break;
   case relaxed1: {
-    uint16_t minH = SHRT_MAX;
+    uint16_t maxH = 0;
     for (int p = 0; p < numPieces; p++) {
       if (p != rover_idx) {
         int value = relaxationOne[_rover.split.row][_rover.split.col]
                                  [pieces[p].split.row][pieces[p].split.col]
                                  [index_type[p]][index_orientation[p]];
-        if (value < minH) {
-          minH = value;
+        if (value > maxH) {
+          maxH = value;
         }
       }
     }
-    _h = minH;
+    _h = maxH;
   } break;
   case relaxed2: {
-    uint16_t minH = SHRT_MAX;
+    uint16_t maxH = 0;
     for (int p = 0; p < numPieces; p++) {
       if (p != rover_idx) {
         for (int p2 = 0; p2 < numPieces; p2++) {
@@ -431,14 +431,14 @@ uint16_t State::calculateH() const {
                              [index_type[p]][index_orientation[p]]
                              [pieces[p2].split.row][pieces[p2].split.col]
                              [index_type[p2]][index_orientation[p2]];
-            if (value < minH) {
-              minH = value;
+            if (value > maxH) {
+              maxH = value;
             }
           }
         }
       }
     }
-    _h = minH;
+    _h = maxH;
   } break;
   }
 
