@@ -24,9 +24,8 @@
 #include <sys/resource.h>
 #include <fstream>
 
-//#define GENERATE_RELAXED
-#define LOAD_RELAXED
-#define BIG
+extern int generateRelaxedArg;
+extern std::string heuristicArg;
 
 using namespace std;
 
@@ -115,9 +114,7 @@ extern bool rover_on_exit[4][128];
 extern bool init_done;
 
 //[roverRow][roverCol][obsRow][obsCol][type][orientation][obsRow][obsCol][type][orientation]
-#ifdef BIG
 extern uint8_t relaxationTwo[6][6][7][7][4][2][7][7][4][2];
-#endif
 extern uint8_t relaxationOne[6][6][7][7][4][2];
 
 extern string Problems, times, memories, nodesSearched, initialH, actualSolution;

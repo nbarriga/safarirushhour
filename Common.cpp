@@ -408,134 +408,152 @@ _dummy_static_initializer::_dummy_static_initializer(){
 			rover_on_exit[3][rowCol.packed]=on_exit;
 		}
 	}
-#ifdef LOAD_RELAXED
+	if (heuristicArg == "relaxed1" || heuristicArg == "relaxed2") {
+		ifstream fileInOne("dataOne.bin", ios::in | ios::binary);
+		if (!fileInOne.is_open()) { cerr << "Could not open dataOne.bin" << endl; exit(1); }
+		RowCol roverRowCol;
+		bool done=false;
+		for(roverRowCol.split.row=0;roverRowCol.split.row<6&&!done;roverRowCol.split.row++){
+			for(roverRowCol.split.col=0;roverRowCol.split.col<6&&!done;roverRowCol.split.col++){
+				char *pointerOne=(char*)&relaxationOne[roverRowCol.split.row][roverRowCol.split.col][0][0][0][0];
 
-	ifstream fileInOne("dataOne.bin", ios::in | ios::binary);
-
-	RowCol roverRowCol;
-	bool done=false;
-	for(roverRowCol.split.row=0;roverRowCol.split.row<6&&!done;roverRowCol.split.row++){
-		for(roverRowCol.split.col=0;roverRowCol.split.col<6&&!done;roverRowCol.split.col++){
-			char *pointerOne=(char*)&relaxationOne[roverRowCol.split.row][roverRowCol.split.col][0][0][0][0];
-
-			fileInOne.read(pointerOne, sizeof(relaxationOne[roverRowCol.split.row][roverRowCol.split.col]));
-			if(fileInOne.eof()||fileInOne.fail()){
-				done=true;
+				fileInOne.read(pointerOne, sizeof(relaxationOne[roverRowCol.split.row][roverRowCol.split.col]));
+				if(fileInOne.eof()||fileInOne.fail()){
+					done=true;
+				}
 			}
 		}
-	}
-	fileInOne.close();
-#ifdef BIG
-	ifstream fileInTwo("dataTwo.bin", ios::in | ios::binary);
-	for(roverRowCol.split.row=0;roverRowCol.split.row<6&&!done;roverRowCol.split.row++){
-		for(roverRowCol.split.col=0;roverRowCol.split.col<6&&!done;roverRowCol.split.col++){
-			char *pointerTwo=(char*)&relaxationTwo[roverRowCol.split.row][roverRowCol.split.col][0][0][0][0][0][0][0][0];
+		fileInOne.close();
 
-			fileInTwo.read(pointerTwo, sizeof(relaxationTwo[roverRowCol.split.row][roverRowCol.split.col]));
-			if(fileInTwo.eof()||fileInTwo.fail()){
-				done=true;
-			}
-		}
-	}
-	fileInTwo.close();
-#endif
-#endif
+		if (heuristicArg == "relaxed2") {
+			ifstream fileInTwo("dataTwo.bin", ios::in | ios::binary);
+			if (!fileInTwo.is_open()) { cerr << "Could not open dataTwo.bin" << endl; exit(1); }
+			done=false;
+			for(roverRowCol.split.row=0;roverRowCol.split.row<6&&!done;roverRowCol.split.row++){
+				for(roverRowCol.split.col=0;roverRowCol.split.col<6&&!done;roverRowCol.split.col++){
+					char *pointerTwo=(char*)&relaxationTwo[roverRowCol.split.row][roverRowCol.split.col][0][0][0][0][0][0][0][0];
 
-#ifdef GENERATE_RELAXED
-	ofstream myFile("data.bin", ios::app | ios::binary);
-
-	RowCol roverRowCol;
-	for(roverRowCol.split.row=0;roverRowCol.split.row<6;roverRowCol.split.row++){
-		for(roverRowCol.split.col=0;roverRowCol.split.col<6;roverRowCol.split.col++){
-			RowCol obs1RowCol;
-			for(obs1RowCol.split.row=0;obs1RowCol.split.row<7;obs1RowCol.split.row++){
-				for(obs1RowCol.split.col=0;obs1RowCol.split.col<7;obs1RowCol.split.col++){
-					cout<<endl<<(int)roverRowCol.split.row<<" "<<(int)roverRowCol.split.col<<" "<<
-							(int)obs1RowCol.split.row<<" "<<(int)obs1RowCol.split.col<<endl;
-					for(int type1=0;type1<4;type1++){
-						for(int orientation1=0;orientation1<2;orientation1++){
-
-							numPieces=2;
-							RowCol *pieces=new RowCol[numPieces];
-
-							pieces[0]=roverRowCol;
-							pieces[1]=obs1RowCol;
-
-							Puzzle puzzle("Test",State(pieces,NULL));
-							int value=puzzle.aStar();
-							relaxationOne[roverRowCol.split.row]
-							           [roverRowCol.split.col]
-							            [obs1RowCol.split.row]
-							             [obs1RowCol.split.col]
-							              [type1][orientation1]= value;
-							//											cout<<value<<" ";
-
-						}
+					fileInTwo.read(pointerTwo, sizeof(relaxationTwo[roverRowCol.split.row][roverRowCol.split.col]));
+					if(fileInTwo.eof()||fileInTwo.fail()){
+						done=true;
 					}
 				}
 			}
-
-			char *pointer=(char*)&relaxationOne[roverRowCol.split.row][roverRowCol.split.col][0][0][0][0];
-			myFile.write(pointer, sizeof(relaxationOne[roverRowCol.split.row][roverRowCol.split.col]));
-			myFile.flush();
-			cout<<"wrote "<<(int)roverRowCol.split.row<<" "<<(int)roverRowCol.split.col<<endl;
+			fileInTwo.close();
 		}
 	}
-	myFile.close();
-#ifdef BIG
-	ofstream myFile("data2.bin", ios::app | ios::binary);
 
-	//RowCol roverRowCol;
-	for(roverRowCol.split.row=0;roverRowCol.split.row<6;roverRowCol.split.row++){
-		for(roverRowCol.split.col=0;roverRowCol.split.col<6;roverRowCol.split.col++){
-			RowCol obs1RowCol;
-			for(obs1RowCol.split.row=0;obs1RowCol.split.row<7;obs1RowCol.split.row++){
-				for(obs1RowCol.split.col=0;obs1RowCol.split.col<7;obs1RowCol.split.col++){
-					cout<<endl<<(int)roverRowCol.split.row<<" "<<(int)roverRowCol.split.col<<" "<<
-							(int)obs1RowCol.split.row<<" "<<(int)obs1RowCol.split.col<<endl;
-					for(int type1=0;type1<4;type1++){
-						for(int orientation1=0;orientation1<2;orientation1++){
+	if (generateRelaxedArg > 0) {
+		// Set up global letter index mapping and names for the active pieces
+		letter_index[(uint8_t)'x'] = 0;
+		index_letter[0] = 'x';
+		index_type[0] = rover;
+		index_orientation[0] = HOR;
 
-							RowCol obs2RowCol;
-							for(obs2RowCol.split.row=0;obs2RowCol.split.row<7;obs2RowCol.split.row++){
-								for(obs2RowCol.split.col=0;obs2RowCol.split.col<7;obs2RowCol.split.col++){
-									for(int type2=0;type2<4;type2++){
-										for(int orientation2=0;orientation2<2;orientation2++){
-											numPieces=3;
-											RowCol *pieces=new RowCol[numPieces];
-											pieces[2]=obs2RowCol;
-											pieces[0]=roverRowCol;
-											pieces[1]=obs1RowCol;
+		letter_index[(uint8_t)'u'] = 1;
+		index_letter[1] = 'u';
 
-											Puzzle puzzle("Test",State(pieces,NULL));
-											int value=puzzle.aStar();
-											relaxationTwo[roverRowCol.split.row]
-											           [roverRowCol.split.col]
-											            [obs1RowCol.split.row]
-											             [obs1RowCol.split.col]
-											              [type1][orientation1]
-											                      [obs2RowCol.split.row]
-											                       [obs2RowCol.split.col]
-											                        [type2][orientation2]
-											                                = value;
-											//											cout<<value<<" ";
+		letter_index[(uint8_t)'v'] = 2;
+		index_letter[2] = 'v';
+
+		ofstream myFile("dataOne.bin", ios::out | ios::binary);
+		RowCol roverRowCol;
+		for(roverRowCol.split.row=0;roverRowCol.split.row<6;roverRowCol.split.row++){
+			for(roverRowCol.split.col=0;roverRowCol.split.col<6;roverRowCol.split.col++){
+				RowCol obs1RowCol;
+				for(obs1RowCol.split.row=0;obs1RowCol.split.row<7;obs1RowCol.split.row++){
+					for(obs1RowCol.split.col=0;obs1RowCol.split.col<7;obs1RowCol.split.col++){
+						cout<<endl<<(int)roverRowCol.split.row<<" "<<(int)roverRowCol.split.col<<" "<<
+								(int)obs1RowCol.split.row<<" "<<(int)obs1RowCol.split.col<<endl;
+						for(int type1=0;type1<4;type1++){
+							for(int orientation1=0;orientation1<2;orientation1++){
+								index_type[1] = (PIECE_TYPE)type1;
+								index_orientation[1] = (ORIENTATION)orientation1;
+
+								numPieces=2;
+								RowCol *pieces=new RowCol[numPieces];
+
+								pieces[0]=roverRowCol;
+								pieces[1]=obs1RowCol;
+
+								Puzzle puzzle("Test",State(pieces,NULL));
+								int value=puzzle.aStar();
+								relaxationOne[roverRowCol.split.row]
+										   [roverRowCol.split.col]
+											[obs1RowCol.split.row]
+											 [obs1RowCol.split.col]
+											  [type1][orientation1]= value;
+							}
+						}
+					}
+				}
+
+				char *pointer=(char*)&relaxationOne[roverRowCol.split.row][roverRowCol.split.col][0][0][0][0];
+				myFile.write(pointer, sizeof(relaxationOne[roverRowCol.split.row][roverRowCol.split.col]));
+				myFile.flush();
+				cout<<"wrote "<<(int)roverRowCol.split.row<<" "<<(int)roverRowCol.split.col<<endl;
+			}
+		}
+		myFile.close();
+
+		if (generateRelaxedArg > 1) {
+			ofstream myFile2("dataTwo.bin", ios::out | ios::binary);
+			for(roverRowCol.split.row=0;roverRowCol.split.row<6;roverRowCol.split.row++){
+				for(roverRowCol.split.col=0;roverRowCol.split.col<6;roverRowCol.split.col++){
+					RowCol obs1RowCol;
+					for(obs1RowCol.split.row=0;obs1RowCol.split.row<7;obs1RowCol.split.row++){
+						for(obs1RowCol.split.col=0;obs1RowCol.split.col<7;obs1RowCol.split.col++){
+							cout<<endl<<(int)roverRowCol.split.row<<" "<<(int)roverRowCol.split.col<<" "<<
+									(int)obs1RowCol.split.row<<" "<<(int)obs1RowCol.split.col<<endl;
+							for(int type1=0;type1<4;type1++){
+								for(int orientation1=0;orientation1<2;orientation1++){
+									index_type[1] = (PIECE_TYPE)type1;
+									index_orientation[1] = (ORIENTATION)orientation1;
+
+									RowCol obs2RowCol;
+									for(obs2RowCol.split.row=0;obs2RowCol.split.row<7;obs2RowCol.split.row++){
+										for(obs2RowCol.split.col=0;obs2RowCol.split.col<7;obs2RowCol.split.col++){
+											for(int type2=0;type2<4;type2++){
+												for(int orientation2=0;orientation2<2;orientation2++){
+													index_type[2] = (PIECE_TYPE)type2;
+													index_orientation[2] = (ORIENTATION)orientation2;
+
+													numPieces=3;
+													RowCol *pieces=new RowCol[numPieces];
+													pieces[2]=obs2RowCol;
+													pieces[0]=roverRowCol;
+													pieces[1]=obs1RowCol;
+
+													Puzzle puzzle("Test",State(pieces,NULL));
+													int value=puzzle.aStar();
+													relaxationTwo[roverRowCol.split.row]
+															   [roverRowCol.split.col]
+																[obs1RowCol.split.row]
+																 [obs1RowCol.split.col]
+																  [type1][orientation1]
+																		  [obs2RowCol.split.row]
+																		   [obs2RowCol.split.col]
+																			[type2][orientation2]
+																					= value;
+												}
+											}
 										}
 									}
 								}
 							}
 						}
 					}
+					char *pointer=(char*)&relaxationTwo[roverRowCol.split.row][roverRowCol.split.col][0][0][0][0][0][0][0][0];
+					myFile2.write(pointer, sizeof(relaxationTwo[roverRowCol.split.row][roverRowCol.split.col]));
+					myFile2.flush();
+					cout<<"wrote "<<(int)roverRowCol.split.row<<" "<<(int)roverRowCol.split.col<<endl;
 				}
 			}
-			char *pointer=(char*)&relaxationTwo[roverRowCol.split.row][roverRowCol.split.col][0][0][0][0][0][0][0][0];
-			myFile.write(pointer, sizeof(relaxationTwo[roverRowCol.split.row][roverRowCol.split.col]));
-			myFile.flush();
-			cout<<"wrote "<<(int)roverRowCol.split.row<<" "<<(int)roverRowCol.split.col<<endl;
+			myFile2.close();
 		}
+		
+		exit(0);
 	}
-	myFile.close();
-#endif
-#endif
 	init_done=true;
 }
 

@@ -39,6 +39,7 @@ string Puzzle::reconstruct(const State *const state){
 	}
 }
 int Puzzle::aStar(){
+	start = chrono::high_resolution_clock::now();
 
 	equal_to<State*> stateEqual;
 	vector<State*> open_queue;

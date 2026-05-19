@@ -11,6 +11,7 @@
 
 int timeArg,memoryArg,ttSizeArg;
 string algorithmArg,heuristicArg;
+int generateRelaxedArg = 0;
 HEURISTIC heuristic;
 
 int main(int argc, char* argv[]){

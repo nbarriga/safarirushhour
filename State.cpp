@@ -1,6 +1,8 @@
 #include "State.h"
 #include <algorithm>
 
+extern int generateRelaxedArg;
+
 uint16_t State::getTwoOne(const RowCol& rover) const{
 	if(rover.split.row==2){
 		return 1;
@@ -15,9 +17,9 @@ uint16_t State::calculateH() const{
 	if(_rover.split.row==2&&_rover.split.col==7){
 		return 0;
 	}
-#ifdef GENERATE_RELAXED
-	return getTwoOne(_rover);
-#endif
+	if (generateRelaxedArg > 0) {
+		return getTwoOne(_rover);
+	}
 	switch(heuristic){
 	case zero:
 		return 0;
