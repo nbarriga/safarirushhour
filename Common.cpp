@@ -18,11 +18,11 @@ RowCol piece_neighbours[4][7][128][4][2];
 uint8_t type_sizeX[4][2];
 uint8_t type_sizeY[4][2];
 
-uint8_t index_letter[19];
-uint8_t letter_index[256];
-uint8_t numPieces;
-PIECE_TYPE index_type[19];
-ORIENTATION index_orientation[19];
+thread_local uint8_t index_letter[19];
+thread_local uint8_t letter_index[256];
+thread_local uint8_t numPieces;
+thread_local PIECE_TYPE index_type[19];
+thread_local ORIENTATION index_orientation[19];
 
 uint64_t zobrist[256][2][4][2];
 
@@ -460,29 +460,42 @@ _dummy_static_initializer::_dummy_static_initializer(){
 		RowCol roverRowCol;
 		for(roverRowCol.split.row=0;roverRowCol.split.row<6;roverRowCol.split.row++){
 			for(roverRowCol.split.col=0;roverRowCol.split.col<6;roverRowCol.split.col++){
-				RowCol obs1RowCol;
-				for(obs1RowCol.split.row=0;obs1RowCol.split.row<7;obs1RowCol.split.row++){
-					for(obs1RowCol.split.col=0;obs1RowCol.split.col<7;obs1RowCol.split.col++){
-						cout<<endl<<(int)roverRowCol.split.row<<" "<<(int)roverRowCol.split.col<<" "<<
-								(int)obs1RowCol.split.row<<" "<<(int)obs1RowCol.split.col<<endl;
-						for(int type1=0;type1<4;type1++){
-							for(int orientation1=0;orientation1<2;orientation1++){
-								index_type[1] = (PIECE_TYPE)type1;
-								index_orientation[1] = (ORIENTATION)orientation1;
+				#pragma omp parallel
+				{
+					index_type[0] = rover;
+					index_orientation[0] = HOR;
+					letter_index[(uint8_t)'x'] = 0;
+					index_letter[0] = 'x';
 
-								numPieces=2;
-								RowCol *pieces=new RowCol[numPieces];
+					letter_index[(uint8_t)'u'] = 1;
+					index_letter[1] = 'u';
 
-								pieces[0]=roverRowCol;
-								pieces[1]=obs1RowCol;
+					letter_index[(uint8_t)'v'] = 2;
+					index_letter[2] = 'v';
 
-								Puzzle puzzle("Test",State(pieces,NULL));
-								int value=puzzle.aStar();
-								relaxationOne[roverRowCol.split.row]
-										   [roverRowCol.split.col]
-											[obs1RowCol.split.row]
-											 [obs1RowCol.split.col]
-											  [type1][orientation1]= value;
+					#pragma omp for collapse(4)
+					for(int obs1r=0;obs1r<7;obs1r++){
+						for(int obs1c=0;obs1c<7;obs1c++){
+							for(int type1=0;type1<4;type1++){
+								for(int orientation1=0;orientation1<2;orientation1++){
+									index_type[1] = (PIECE_TYPE)type1;
+									index_orientation[1] = (ORIENTATION)orientation1;
+
+									numPieces=2;
+									RowCol *pieces=new RowCol[numPieces];
+
+									pieces[0]=roverRowCol;
+									pieces[1].split.row=obs1r;
+									pieces[1].split.col=obs1c;
+
+									Puzzle puzzle("Test",State(pieces,NULL));
+									int value=puzzle.aStar();
+									relaxationOne[roverRowCol.split.row]
+											   [roverRowCol.split.col]
+												[obs1r]
+												 [obs1c]
+												  [type1][orientation1]= value;
+								}
 							}
 						}
 					}
@@ -500,41 +513,54 @@ _dummy_static_initializer::_dummy_static_initializer(){
 			ofstream myFile2("dataTwo.bin", ios::out | ios::binary);
 			for(roverRowCol.split.row=0;roverRowCol.split.row<6;roverRowCol.split.row++){
 				for(roverRowCol.split.col=0;roverRowCol.split.col<6;roverRowCol.split.col++){
-					RowCol obs1RowCol;
-					for(obs1RowCol.split.row=0;obs1RowCol.split.row<7;obs1RowCol.split.row++){
-						for(obs1RowCol.split.col=0;obs1RowCol.split.col<7;obs1RowCol.split.col++){
-							cout<<endl<<(int)roverRowCol.split.row<<" "<<(int)roverRowCol.split.col<<" "<<
-									(int)obs1RowCol.split.row<<" "<<(int)obs1RowCol.split.col<<endl;
-							for(int type1=0;type1<4;type1++){
-								for(int orientation1=0;orientation1<2;orientation1++){
-									index_type[1] = (PIECE_TYPE)type1;
-									index_orientation[1] = (ORIENTATION)orientation1;
+					#pragma omp parallel
+					{
+						index_type[0] = rover;
+						index_orientation[0] = HOR;
+						letter_index[(uint8_t)'x'] = 0;
+						index_letter[0] = 'x';
 
-									RowCol obs2RowCol;
-									for(obs2RowCol.split.row=0;obs2RowCol.split.row<7;obs2RowCol.split.row++){
-										for(obs2RowCol.split.col=0;obs2RowCol.split.col<7;obs2RowCol.split.col++){
-											for(int type2=0;type2<4;type2++){
-												for(int orientation2=0;orientation2<2;orientation2++){
-													index_type[2] = (PIECE_TYPE)type2;
-													index_orientation[2] = (ORIENTATION)orientation2;
+						letter_index[(uint8_t)'u'] = 1;
+						index_letter[1] = 'u';
 
-													numPieces=3;
-													RowCol *pieces=new RowCol[numPieces];
-													pieces[2]=obs2RowCol;
-													pieces[0]=roverRowCol;
-													pieces[1]=obs1RowCol;
+						letter_index[(uint8_t)'v'] = 2;
+						index_letter[2] = 'v';
 
-													Puzzle puzzle("Test",State(pieces,NULL));
-													int value=puzzle.aStar();
-													relaxationTwo[roverRowCol.split.row]
-															   [roverRowCol.split.col]
-																[obs1RowCol.split.row]
-																 [obs1RowCol.split.col]
-																  [type1][orientation1]
-																		  [obs2RowCol.split.row]
-																		   [obs2RowCol.split.col]
-																			[type2][orientation2]
-																					= value;
+						#pragma omp for collapse(4)
+						for(int obs1r=0;obs1r<7;obs1r++){
+							for(int obs1c=0;obs1c<7;obs1c++){
+								for(int type1=0;type1<4;type1++){
+									for(int orientation1=0;orientation1<2;orientation1++){
+										index_type[1] = (PIECE_TYPE)type1;
+										index_orientation[1] = (ORIENTATION)orientation1;
+
+										for(int obs2r=0;obs2r<7;obs2r++){
+											for(int obs2c=0;obs2c<7;obs2c++){
+												for(int type2=0;type2<4;type2++){
+													for(int orientation2=0;orientation2<2;orientation2++){
+														index_type[2] = (PIECE_TYPE)type2;
+														index_orientation[2] = (ORIENTATION)orientation2;
+
+														numPieces=3;
+														RowCol *pieces=new RowCol[numPieces];
+														pieces[0]=roverRowCol;
+														pieces[1].split.row=obs1r;
+														pieces[1].split.col=obs1c;
+														pieces[2].split.row=obs2r;
+														pieces[2].split.col=obs2c;
+
+														Puzzle puzzle("Test",State(pieces,NULL));
+														int value=puzzle.aStar();
+														relaxationTwo[roverRowCol.split.row]
+																   [roverRowCol.split.col]
+																	[obs1r]
+																	 [obs1c]
+																	  [type1][orientation1]
+																			  [obs2r]
+																			   [obs2c]
+																				[type2][orientation2]
+																						= value;
+													}
 												}
 											}
 										}

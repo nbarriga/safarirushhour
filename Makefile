@@ -1,4 +1,4 @@
-CXXFLAGS = -O3 -msse -msse2 -Wall -Wextra -std=c++17 
+CXXFLAGS = -O3 -msse -msse2 -Wall -Wextra -std=c++17 -fopenmp
 #CXXFLAGS = -g -Wall -Wextra -std=c++17
 CXX=g++
 OBJS = Common.o State.o TranspositionTable.o Puzzle.o 
@@ -16,7 +16,7 @@ verify:	$(OBJS) Verify.o
 test:	$(OBJS) Test.o
 	$(CXX) $(CXXFLAGS) -o test $(OBJS) Test.o $(LIBS)
 clean:
-	rm -f $(OBJS) safari verify test safari.a $(TARGET)
+	rm -f *.o safari verify test safari.a $(TARGET)
 
 lib: $(OBJS)
 	ar rvs safari.a $(OBJS)

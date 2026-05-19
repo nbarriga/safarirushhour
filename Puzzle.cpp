@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <cassert>
 
-string Problems, times, memories, nodesSearched, initialH, actualSolution;
+thread_local string Problems, times, memories, nodesSearched, initialH, actualSolution;
 vector<BFSCache*> TTs;
 BFSCache* bfsTT = nullptr;
 int Puzzle::genCalls = 0;

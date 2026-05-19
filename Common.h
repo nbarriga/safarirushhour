@@ -117,7 +117,7 @@ extern bool init_done;
 extern uint8_t relaxationTwo[6][6][7][7][4][2][7][7][4][2];
 extern uint8_t relaxationOne[6][6][7][7][4][2];
 
-extern string Problems, times, memories, nodesSearched, initialH, actualSolution;
+extern thread_local string Problems, times, memories, nodesSearched, initialH, actualSolution;
 
 union RowCol{
 	struct _split{
@@ -136,11 +136,11 @@ extern uint8_t type_sizeX[4][2];
 extern uint8_t type_sizeY[4][2];
 
 //filled by State constructor
-extern uint8_t index_letter[19];
-extern uint8_t letter_index[256];
-extern uint8_t numPieces;
-extern PIECE_TYPE index_type[19];
-extern ORIENTATION index_orientation[19];
+extern thread_local uint8_t index_letter[19];
+extern thread_local uint8_t letter_index[256];
+extern thread_local uint8_t numPieces;
+extern thread_local PIECE_TYPE index_type[19];
+extern thread_local ORIENTATION index_orientation[19];
 
 //rowcol orientation type 1-2
 extern uint64_t zobrist[256][2][4][2];
