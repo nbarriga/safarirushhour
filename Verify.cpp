@@ -52,15 +52,17 @@ int main(int argc, char* argv[]){
 			cout<<moves[i]<<endl;
 		}
 		for(int i=0;i<n;i++){
-					s=s->applyMove(moves[i]);
-					cout<<s->toString();
-				}
+			State* old_s = s;
+			s=s->applyMove(moves[i]);
+			delete old_s;
+			cout<<s->toString();
+		}
 		if(s->isGoal()){
 			cout<<"OK!"<<endl;
 		}else{
 			cout<<"BAD!"<<endl;
 		}
-
+		delete s;
 	}
 
 	return EXIT_SUCCESS;

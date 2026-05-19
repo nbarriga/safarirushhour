@@ -768,21 +768,30 @@ bool equal_to<State*>::operator() (const State* x, const State* y) const{
 	else
 	{
 		// We have to check if swapping u and v makes it equal.
-		
-
-		auto copyY = State::copyPieces(y->pieces);
-
-		auto u = copyY[letter_index['u']];
-		auto v = copyY[letter_index['v']];
-		copyY[letter_index['v']] = u;
-		copyY[letter_index['u']] = v;
-
-		if(memcmp(x->pieces, copyY, sizeof(RowCol)*numPieces)==0){
-			delete [] copyY;
-			return true;
+		bool has_u = false;
+		bool has_v = false;
+		uint8_t u_idx = 0;
+		uint8_t v_idx = 0;
+		for(int i=0; i<numPieces; ++i) {
+			if(index_letter[i] == 'u') { has_u = true; u_idx = i; }
+			if(index_letter[i] == 'v') { has_v = true; v_idx = i; }
 		}
 
-		delete [] copyY;
+		if(has_u && has_v) {
+			auto copyY = State::copyPieces(y->pieces);
+
+			auto u = copyY[u_idx];
+			auto v = copyY[v_idx];
+			copyY[v_idx] = u;
+			copyY[u_idx] = v;
+
+			if(memcmp(x->pieces, copyY, sizeof(RowCol)*numPieces)==0){
+				delete [] copyY;
+				return true;
+			}
+
+			delete [] copyY;
+		}
 	}
 	return false;
 }

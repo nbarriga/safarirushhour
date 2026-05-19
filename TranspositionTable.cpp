@@ -68,14 +68,10 @@ BFSCache::BFSCache(unsigned int startingSize){
 
 }
 BFSCache::~BFSCache(){
-
-	/*for(auto state=setTT.begin(); state!= setTT.end();)
-	{
-		delete *state;
-		state=setTT.erase(state);
+	for(auto state : setTT) {
+		delete state;
 	}
-
-	setTT.clear();*/
+	setTT.clear();
 }
 void BFSCache::save(const State *const s){
 	setTT.insert(s);
