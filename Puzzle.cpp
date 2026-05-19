@@ -272,7 +272,7 @@ int Puzzle::idaStar(unsigned int ttSize, unsigned int maxSolLength) {
 	}
 	
 
-	path=new State*[maxSolLength];
+	path=new State*[maxSolLength + 1];
 	threshold = _initial.getH();
 
 	//Let's see if we can improve threshold it from previous searches
