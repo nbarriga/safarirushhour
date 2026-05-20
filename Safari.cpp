@@ -85,6 +85,8 @@ int main(int argc, char *argv[]) {
     heuristic = obstacles2;
   } else if (heuristicArg == "obstacles3") {
     heuristic = obstacles3;
+  } else if (heuristicArg == "obstacles4") {
+    heuristic = obstacles4;
   } else if (heuristicArg == "relaxed1") {
     heuristic = relaxed1;
   } else if (heuristicArg == "relaxed2") {

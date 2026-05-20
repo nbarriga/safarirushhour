@@ -76,6 +76,20 @@ uint16_t State::calculateH() const {
     return count;
   };
 
+  // obstacles4 family: pieces intersecting pre_pre_pre_pre_pre_exit[pathIdx] (26
+  // five-step path masks).
+  auto countExitObstacles5 = [&](int pathIdx) {
+    int count = 0;
+    for (int p = 0; p < numPieces; p++) {
+      if (p != rover_idx &&
+          exit_obstacles5[pathIdx][index_type[p]][index_orientation[p]]
+                         [pieces[p].packed]) {
+        count++;
+      }
+    }
+    return count;
+  };
+
   // Shared conservative baseline used by all obstacles* fallbacks near exit.
   auto obstacles0Estimate = [&]() {
     uint16_t value = getTwoOne(_rover);
@@ -286,6 +300,182 @@ uint16_t State::calculateH() const {
     // Uses pre_pre_pre_pre_exit masks (14 variants) while rover is outside
     // layer 3.
     if (!rover_on_exit[3][_rover.packed]) {
+      int minVal = INT_MAX;
+      for (int i = 0; i < 14; i++) {
+        // Count blockers for this four-step path variant.
+        int count = countExitObstacles4(i);
+        switch (i) {
+        case 0: // up-up-left
+        case 1: // up-left-up
+        case 3: // left-up-up
+          if (_rover.split.row == 0) {
+            count += 3;
+          } else {
+            count += 4;
+          }
+          break;
+        case 2: // up-left-left
+        case 4: // left-up-left
+        case 5: // left-left-up
+          if (_rover.split.row == 1) {
+            count += 3;
+          } else {
+            count += 4;
+          }
+          break;
+        case 6: // left-left-left
+          if (_rover.split.row == 2) {
+            count += 1;
+          } else {
+            count += 2;
+          }
+          break;
+        case 7:  // left-left-down
+        case 8:  // left-down-left
+        case 10: // down-left-left
+          if (_rover.split.row == 3) {
+            count += 3;
+          } else {
+            count += 4;
+          }
+          break;
+        case 9:  // left-down-down
+        case 11: // down-left-down
+        case 12: // down-down-left
+          if (_rover.split.row == 4) {
+            count += 3;
+          } else {
+            count += 4;
+          }
+          break;
+        case 13: // down-down-down
+          if (_rover.split.row == 5) {
+            count += 3;
+          } else {
+            count += 4;
+          }
+          break;
+        }
+        if (count < minVal) {
+          minVal = count;
+        }
+      }
+      _h += minVal;
+    } else if (!rover_on_exit[2][_rover.packed]) {
+      // Layer-2 fallback reuses obstacles2 mask family (pre_pre_pre_exit).
+      int minVal = INT_MAX;
+      for (int i = 0; i < 7; i++) {
+        // Count blockers for this three-step path variant.
+        int count = countExitObstacles3(i);
+        switch (i) {
+        case 0: // up-up
+          count += 2;
+          break;
+        case 1: // up-left
+          count += 3;
+          break;
+        case 2: // left-up
+          count += 2;
+          break;
+        case 3: // left-left
+          count += 1;
+          break;
+        case 4: // left-down
+          count += 2;
+          break;
+        case 5: // down-left
+          count += 3;
+          break;
+        case 6: // down-down
+          count += 2;
+          break;
+        }
+        if (count < minVal) {
+          minVal = count;
+        }
+      }
+      _h += minVal;
+    } else if (!rover_on_exit[1][_rover.packed]) {
+      // Layer-1 fallback reuses obstacles1 mask family (pre_pre_exit).
+      int minVal = INT_MAX;
+      for (int i = 0; i < 3; i++) {
+        // Count blockers for this two-step path variant.
+        int count = countExitObstacles2(i);
+        switch (i) {
+        case 0: // up
+          count += 2;
+          break;
+        case 1: // left
+          count += 1;
+          break;
+        case 2: // down
+          count += 2;
+          break;
+        }
+        if (count < minVal) {
+          minVal = count;
+        }
+      }
+      _h += minVal;
+    } else if (!rover_on_exit[0][_rover.packed]) {
+      // Near exit: use common baseline.
+      _h += obstacles0Estimate();
+    } else {
+      // Immediate exit region baseline.
+      _h += obstacles0Estimate();
+    }
+    break;
+  case obstacles4:
+    if (!rover_on_exit[4][_rover.packed]) {
+      int minVal = INT_MAX;
+      for (int i = 0; i < 26; i++) {
+        int count = countExitObstacles5(i);
+        int r = 2;
+        switch (i) {
+        case 0: r=0; break;
+        case 1: r=0; break;
+        case 2: r=0; break;
+        case 3: r=1; break;
+        case 4: r=6; break;
+        case 5: r=5; break;
+        case 6: r=5; break;
+        case 7: r=4; break;
+        case 8: r=5; break;
+        case 9: r=4; break;
+        case 10: r=4; break;
+        case 11: r=3; break;
+        case 12: r=0; break;
+        case 13: r=0; break;
+        case 14: r=1; break;
+        case 15: r=5; break;
+        case 16: r=4; break;
+        case 17: r=4; break;
+        case 18: r=3; break;
+        case 19: r=0; break;
+        case 20: r=1; break;
+        case 21: r=4; break;
+        case 22: r=3; break;
+        case 23: r=1; break;
+        case 24: r=3; break;
+        case 25: r=2; break;
+        }
+        
+        if (i == 25) { // LLLL
+            if (_rover.split.row == 2) count += 1;
+            else count += 2;
+        } else if (i == 4) { // DDDD
+            if (_rover.split.row == 5) count += 4;
+            else count += 5;
+        } else {
+            if (_rover.split.row == r || (r == 6 && _rover.split.row == 5)) count += 3;
+            else count += 4;
+        }
+        if (count < minVal) {
+          minVal = count;
+        }
+      }
+      _h += minVal;
+    } else if (!rover_on_exit[3][_rover.packed]) {
       int minVal = INT_MAX;
       for (int i = 0; i < 14; i++) {
         // Count blockers for this four-step path variant.

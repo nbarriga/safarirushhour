@@ -283,6 +283,7 @@ int main(int argc, char *argv[]) {
       {"obstacles1", obstacles1},
       {"obstacles2", obstacles2},
       {"obstacles3", obstacles3},
+      {"obstacles4", obstacles4},
       {"relaxed1", relaxed1},
       {"relaxed2", relaxed2}};
   if (has_dataThree) {

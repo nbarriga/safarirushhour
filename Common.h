@@ -34,7 +34,7 @@ using namespace std;
 enum ORIENTATION {HOR=0, VERT=1};
 enum DIRECTION {UP=0, DOWN=1, LEFT=2, RIGHT=3};
 enum PIECE_TYPE {rover=0, two_by_two=1, three_by_one=2, two_by_one=3};
-enum HEURISTIC {zero, twoonezero, obstacles0,obstacles1,obstacles2,obstacles3,relaxed1,relaxed2,relaxed3};
+enum HEURISTIC {zero, twoonezero, obstacles0,obstacles1,obstacles2,obstacles3,obstacles4,relaxed1,relaxed2,relaxed3};
 extern ORIENTATION ORIENTATIONS[2];
 extern DIRECTION DIRECTIONS[4];
 extern PIECE_TYPE PIECE_TYPES[4];
@@ -88,6 +88,34 @@ const uint64_t pre_pre_pre_pre_exit[14]={
 		pre_exit | (pre_exit>>9) | (pre_exit>>18) | (pre_exit>>17), // DOWN-DOWN-LEFT
 		pre_exit | (pre_exit>>9) | (pre_exit>>18) | (pre_exit>>27)  // DOWN-DOWN-DOWN
 };
+const uint64_t pre_pre_pre_pre_pre_exit[26] = {
+    pre_exit | (pre_exit << 9) | (pre_exit << 18) | (pre_exit << 19) | (pre_exit << 20), // U-U-L-L
+    pre_exit | (pre_exit << 9) | (pre_exit << 10) | (pre_exit << 19) | (pre_exit << 20), // U-L-U-L
+    pre_exit | (pre_exit << 9) | (pre_exit << 10) | (pre_exit << 11) | (pre_exit << 20), // U-L-L-U
+    pre_exit | (pre_exit << 9) | (pre_exit << 10) | (pre_exit << 11) | (pre_exit << 12), // U-L-L-L
+    pre_exit | (pre_exit >> 9) | (pre_exit >> 18) | (pre_exit >> 27) | (pre_exit >> 36), // D-D-D-D
+    pre_exit | (pre_exit >> 9) | (pre_exit >> 18) | (pre_exit >> 27) | (pre_exit >> 26), // D-D-D-L
+    pre_exit | (pre_exit >> 9) | (pre_exit >> 18) | (pre_exit >> 17) | (pre_exit >> 26), // D-D-L-D
+    pre_exit | (pre_exit >> 9) | (pre_exit >> 18) | (pre_exit >> 17) | (pre_exit >> 16), // D-D-L-L
+    pre_exit | (pre_exit >> 9) | (pre_exit >> 8) | (pre_exit >> 17) | (pre_exit >> 26), // D-L-D-D
+    pre_exit | (pre_exit >> 9) | (pre_exit >> 8) | (pre_exit >> 17) | (pre_exit >> 16), // D-L-D-L
+    pre_exit | (pre_exit >> 9) | (pre_exit >> 8) | (pre_exit >> 7) | (pre_exit >> 16), // D-L-L-D
+    pre_exit | (pre_exit >> 9) | (pre_exit >> 8) | (pre_exit >> 7) | (pre_exit >> 6), // D-L-L-L
+    pre_exit | (pre_exit << 1) | (pre_exit << 10) | (pre_exit << 19) | (pre_exit << 20), // L-U-U-L
+    pre_exit | (pre_exit << 1) | (pre_exit << 10) | (pre_exit << 11) | (pre_exit << 20), // L-U-L-U
+    pre_exit | (pre_exit << 1) | (pre_exit << 10) | (pre_exit << 11) | (pre_exit << 12), // L-U-L-L
+    pre_exit | (pre_exit << 1) | (pre_exit >> 8) | (pre_exit >> 17) | (pre_exit >> 26), // L-D-D-D
+    pre_exit | (pre_exit << 1) | (pre_exit >> 8) | (pre_exit >> 17) | (pre_exit >> 16), // L-D-D-L
+    pre_exit | (pre_exit << 1) | (pre_exit >> 8) | (pre_exit >> 7) | (pre_exit >> 16), // L-D-L-D
+    pre_exit | (pre_exit << 1) | (pre_exit >> 8) | (pre_exit >> 7) | (pre_exit >> 6), // L-D-L-L
+    pre_exit | (pre_exit << 1) | (pre_exit << 2) | (pre_exit << 11) | (pre_exit << 20), // L-L-U-U
+    pre_exit | (pre_exit << 1) | (pre_exit << 2) | (pre_exit << 11) | (pre_exit << 12), // L-L-U-L
+    pre_exit | (pre_exit << 1) | (pre_exit << 2) | (pre_exit >> 7) | (pre_exit >> 16), // L-L-D-D
+    pre_exit | (pre_exit << 1) | (pre_exit << 2) | (pre_exit >> 7) | (pre_exit >> 6), // L-L-D-L
+    pre_exit | (pre_exit << 1) | (pre_exit << 2) | (pre_exit << 3) | (pre_exit << 12), // L-L-L-U
+    pre_exit | (pre_exit << 1) | (pre_exit << 2) | (pre_exit << 3) | (pre_exit >> 6), // L-L-L-D
+    pre_exit | (pre_exit << 1) | (pre_exit << 2) | (pre_exit << 3) | (pre_exit << 4)  // L-L-L-L
+};
 const uint64_t illegal=~0ull;
 const uint8_t illegal_pos=~0;
 
@@ -110,7 +138,8 @@ extern bool exit_obstacles[4][2][128];
 extern bool exit_obstacles2[3][4][2][128];
 extern bool exit_obstacles3[7][4][2][128];
 extern bool exit_obstacles4[16][4][2][128];
-extern bool rover_on_exit[4][128];
+extern bool exit_obstacles5[26][4][2][128];
+extern bool rover_on_exit[5][128];
 extern bool init_done;
 
 //[roverRow][roverCol][obsRow][obsCol][type][orientation][obsRow][obsCol][type][orientation]

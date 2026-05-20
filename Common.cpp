@@ -30,7 +30,8 @@ bool exit_obstacles[4][2][128];
 bool exit_obstacles2[3][4][2][128];
 bool exit_obstacles3[7][4][2][128];
 bool exit_obstacles4[16][4][2][128];
-bool rover_on_exit[4][128];
+bool exit_obstacles5[26][4][2][128];
+bool rover_on_exit[5][128];
 bool init_done=false;
 
 // Converts an A* solution length to a uint8_t database value.
@@ -391,6 +392,10 @@ _dummy_static_initializer::_dummy_static_initializer(){
 						exit_obstacles4[i][type][orientation][rowCol.packed]=
 								(piece_board[rowCol.packed][orientation][type]&pre_pre_pre_pre_exit[i])!=0;
 					}
+					for(int i=0;i<26;i++){
+						exit_obstacles5[i][type][orientation][rowCol.packed]=
+								(piece_board[rowCol.packed][orientation][type]&pre_pre_pre_pre_pre_exit[i])!=0;
+					}
 				}
 			}
 		}
@@ -416,6 +421,11 @@ _dummy_static_initializer::_dummy_static_initializer(){
 				on_exit=on_exit||((piece_board[rowCol.packed][HOR][rover]&pre_pre_pre_pre_exit[i])!=0);
 			}
 			rover_on_exit[3][rowCol.packed]=on_exit;
+			on_exit=false;
+			for(int i=0;i<26;i++){
+				on_exit=on_exit||((piece_board[rowCol.packed][HOR][rover]&pre_pre_pre_pre_pre_exit[i])!=0);
+			}
+			rover_on_exit[4][rowCol.packed]=on_exit;
 		}
 	}
 	if (heuristicArg == "relaxed1" || heuristicArg == "relaxed2" || heuristicArg == "relaxed3") {
