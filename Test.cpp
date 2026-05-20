@@ -380,7 +380,7 @@ int main(int argc, char *argv[]) {
       bool passed = false;
       bool timeout = false;
       bool expected_timeout = false;
-      double durationMs = 0.0;
+      double durationS = 0.0;
       std::string error_message;
       int solved_length = -1;
     };
@@ -422,11 +422,11 @@ int main(int argc, char *argv[]) {
         solved_length = pz.rbfs(ttSizeArg, maxSolLength);
       }
       auto endTime = std::chrono::high_resolution_clock::now();
-      double durationMs =
-          std::chrono::duration<double, std::milli>(endTime - startTime)
+      double durationS =
+          std::chrono::duration<double>(endTime - startTime)
               .count();
 
-      results[i].durationMs = durationMs;
+      results[i].durationS = durationS;
       results[i].solved_length = solved_length;
 
       if (job.alg == "BFS") {
@@ -492,28 +492,28 @@ int main(int argc, char *argv[]) {
         if (res.passed) {
           if (res.alg == "BFS") {
             std::cout << "PASSED (BFS completed without crash in "
-                      << res.durationMs << "ms)" << std::endl;
+                      << res.durationS << "s)" << std::endl;
           } else if (res.timeout) {
             if (res.expected_timeout) {
-              std::cout << "PASSED (Expected TIMEOUT in " << res.durationMs
-                        << "ms)" << std::endl;
+              std::cout << "PASSED (Expected TIMEOUT in " << res.durationS
+                        << "s)" << std::endl;
             } else {
-              std::cout << "TIMEOUT (after " << res.durationMs << "ms)"
+              std::cout << "TIMEOUT (after " << res.durationS << "s)"
                         << std::endl;
             }
           } else {
-            std::cout << "PASSED! (took " << res.durationMs << "ms)"
+            std::cout << "PASSED! (took " << res.durationS << "s)"
                       << std::endl;
           }
         } else {
           std::cout << "FAILED! " << res.error_message << " (took "
-                    << res.durationMs << "ms)" << std::endl;
+                    << res.durationS << "s)" << std::endl;
         }
       } else {
         if (!res.passed) {
           std::cout << "\n  [FAILED] " << res.alg
                     << ", Heuristic: " << res.heur_name << " - "
-                    << res.error_message << " (took " << res.durationMs << "ms)"
+                    << res.error_message << " (took " << res.durationS << "s)"
                     << std::endl;
         }
       }

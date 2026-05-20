@@ -149,7 +149,7 @@ int main(int argc, char *argv[]) {
       moves = puzzle.rbfs(ttSizeArg, maxSolLength);
     }
     auto endTime = chrono::high_resolution_clock::now();
-    double durationMs = chrono::duration<double, std::milli>(endTime - startTime).count();
+    double durationMs = chrono::duration<double>(endTime - startTime).count();
 
     if (algorithmArg == "IDAstar" && moves >= 0) {
       cout << "statistics " << name << " " << puzzle.statistics() << endl;
