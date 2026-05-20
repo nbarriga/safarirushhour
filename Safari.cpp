@@ -89,6 +89,8 @@ int main(int argc, char *argv[]) {
     heuristic = relaxed1;
   } else if (heuristicArg == "relaxed2") {
     heuristic = relaxed2;
+  } else if (heuristicArg == "relaxed3") {
+    heuristic = relaxed3;
   } else {
     cout << desc << "\n";
     return 1;

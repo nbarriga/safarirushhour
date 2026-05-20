@@ -69,7 +69,9 @@ int Puzzle::aStar(){
 		if (current->isGoal()) {
 			solution=reconstruct(current);;
 			int solutionLength=current->getG();
-			Problems.append("'").append(_name).append("',");
+			if (_name != "Test") {
+				Problems.append("'").append(_name).append("',");
+			}
 
 			for(auto it=open.begin();it!=open.end();it++){
 				delete *it;
@@ -310,7 +312,9 @@ int Puzzle::idaStar(unsigned int ttSize, unsigned int maxSolLength) {
 			delete path[i];
 		}
 	}
-	Problems.append("'").append(_name).append("',");
+	if (_name != "Test") {
+		Problems.append("'").append(_name).append("',");
+	}
 	if(!clusterCache){
 		delete TT;
 	}

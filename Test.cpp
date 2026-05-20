@@ -206,7 +206,15 @@ int main(int argc, char *argv[]) {
   }
 
   // Load standard data structures
-  heuristicArg = "relaxed2";
+  std::ifstream f_three("dataThree.bin");
+  bool has_dataThree = f_three.good();
+  f_three.close();
+
+  if (has_dataThree) {
+    heuristicArg = "relaxed3";
+  } else {
+    heuristicArg = "relaxed2";
+  }
   _dummy_static_initializer _dummy;
 
   // Load puzzles
@@ -252,6 +260,9 @@ int main(int argc, char *argv[]) {
       {"obstacles3", obstacles3},
       {"relaxed1", relaxed1},
       {"relaxed2", relaxed2}};
+  if (has_dataThree) {
+    heuristics.push_back({"relaxed3", relaxed3});
+  }
 
   bool all_passed = true;
 
@@ -305,7 +316,7 @@ int main(int argc, char *argv[]) {
     };
     std::vector<TestResult> results(jobs.size());
 
-    #pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic)
     for (size_t i = 0; i < jobs.size(); ++i) {
       const auto &job = jobs[i];
       results[i].alg = job.alg;
@@ -363,7 +374,8 @@ int main(int argc, char *argv[]) {
       if (solved_length != expected_length) {
         results[i].passed = false;
         std::stringstream ss;
-        ss << "Expected length " << expected_length << ", got " << solved_length;
+        ss << "Expected length " << expected_length << ", got "
+           << solved_length;
         results[i].error_message = ss.str();
         continue;
       }
@@ -389,7 +401,8 @@ int main(int argc, char *argv[]) {
         results[i].passed = true;
       } else {
         results[i].passed = false;
-        results[i].error_message = "Solver moves did not solve the puzzle or caused collision!";
+        results[i].error_message =
+            "Solver moves did not solve the puzzle or caused collision!";
       }
     }
 
@@ -400,32 +413,34 @@ int main(int argc, char *argv[]) {
       }
 
       if (!quiet) {
-        std::cout << "  Algorithm: " << res.alg << ", Heuristic: " << res.heur_name
-                  << "... " << std::flush;
+        std::cout << "  Algorithm: " << res.alg
+                  << ", Heuristic: " << res.heur_name << "... " << std::flush;
         if (res.passed) {
           if (res.alg == "BFS") {
-            std::cout << "PASSED (BFS completed without crash in " << res.durationMs
-                      << "ms)" << std::endl;
+            std::cout << "PASSED (BFS completed without crash in "
+                      << res.durationMs << "ms)" << std::endl;
           } else if (res.timeout) {
             if (res.expected_timeout) {
-              std::cout << "PASSED (Expected TIMEOUT in " << res.durationMs << "ms)"
-                        << std::endl;
+              std::cout << "PASSED (Expected TIMEOUT in " << res.durationMs
+                        << "ms)" << std::endl;
             } else {
               std::cout << "TIMEOUT (after " << res.durationMs << "ms)"
                         << std::endl;
             }
           } else {
-            std::cout << "PASSED! (took " << res.durationMs << "ms)" << std::endl;
+            std::cout << "PASSED! (took " << res.durationMs << "ms)"
+                      << std::endl;
           }
         } else {
-          std::cout << "FAILED! " << res.error_message << " (took " << res.durationMs
-                    << "ms)" << std::endl;
+          std::cout << "FAILED! " << res.error_message << " (took "
+                    << res.durationMs << "ms)" << std::endl;
         }
       } else {
         if (!res.passed) {
-          std::cout << "\n  [FAILED] " << res.alg << ", Heuristic: " << res.heur_name
-                    << " - " << res.error_message << " (took " << res.durationMs
-                    << "ms)" << std::endl;
+          std::cout << "\n  [FAILED] " << res.alg
+                    << ", Heuristic: " << res.heur_name << " - "
+                    << res.error_message << " (took " << res.durationMs << "ms)"
+                    << std::endl;
         }
       }
     }

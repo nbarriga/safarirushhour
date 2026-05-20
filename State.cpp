@@ -412,7 +412,7 @@ uint16_t State::calculateH() const {
         int value = relaxationOne[_rover.split.row][_rover.split.col]
                                  [pieces[p].split.row][pieces[p].split.col]
                                  [index_type[p]][index_orientation[p]];
-        if (value > maxH) {
+        if (value != 255 && value > maxH) {
           maxH = value;
         }
       }
@@ -431,8 +431,39 @@ uint16_t State::calculateH() const {
                              [index_type[p]][index_orientation[p]]
                              [pieces[p2].split.row][pieces[p2].split.col]
                              [index_type[p2]][index_orientation[p2]];
-            if (value > maxH) {
+            if (value != 255 && value > maxH) {
               maxH = value;
+            }
+          }
+        }
+      }
+    }
+    _h = maxH;
+  } break;
+  case relaxed3: {
+    uint16_t maxH = 0;
+    if (relaxationThree != nullptr) {
+      typedef uint8_t RelaxationThreeArray[6][6][7][7][4][2][7][7][4][2][7][7][4][2];
+      RelaxationThreeArray& r3 = *(RelaxationThreeArray*)relaxationThree;
+      for (int p = 0; p < numPieces; ++p) {
+        if (p != rover_idx) {
+          for (int p2 = 0; p2 < numPieces; ++p2) {
+            if (p != p2 && p2 != rover_idx) {
+              for (int p3 = 0; p3 < numPieces; ++p3) {
+                if (p != p3 && p2 != p3 && p3 != rover_idx) {
+                  int value =
+                      r3[_rover.split.row][_rover.split.col]
+                        [pieces[p].split.row][pieces[p].split.col]
+                        [index_type[p]][index_orientation[p]]
+                        [pieces[p2].split.row][pieces[p2].split.col]
+                        [index_type[p2]][index_orientation[p2]]
+                        [pieces[p3].split.row][pieces[p3].split.col]
+                        [index_type[p3]][index_orientation[p3]];
+                  if (value != 255 && value > maxH) {
+                    maxH = value;
+                  }
+                }
+              }
             }
           }
         }

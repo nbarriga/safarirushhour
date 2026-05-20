@@ -33,9 +33,19 @@ bool exit_obstacles4[16][4][2][128];
 bool rover_on_exit[4][128];
 bool init_done=false;
 
+// Converts an A* solution length to a uint8_t database value.
+// Convention: 255 = unsolvable (A* returned -1), 254 = "≥254 moves" (admissible
+// lower bound cap to prevent uint8_t overflow for long solutions), else exact.
+static inline uint8_t to_db_value(int astar_result) {
+	if (astar_result < 0)  return 255; // unsolvable
+	if (astar_result >= 254) return 254; // cap: still admissible as a lower bound
+	return static_cast<uint8_t>(astar_result);
+}
+
 
 uint8_t relaxationTwo[6][6][7][7][4][2][7][7][4][2];
 uint8_t relaxationOne[6][6][7][7][4][2];
+uint8_t* relaxationThree = nullptr;
 
 uint64_t get_board(RowCol rowCol,ORIENTATION orientation,PIECE_TYPE type){
 	uint64_t board=0;
@@ -408,7 +418,7 @@ _dummy_static_initializer::_dummy_static_initializer(){
 			rover_on_exit[3][rowCol.packed]=on_exit;
 		}
 	}
-	if (heuristicArg == "relaxed1" || heuristicArg == "relaxed2") {
+	if (heuristicArg == "relaxed1" || heuristicArg == "relaxed2" || heuristicArg == "relaxed3") {
 		ifstream fileInOne("dataOne.bin", ios::in | ios::binary);
 		if (!fileInOne.is_open()) { cerr << "Could not open dataOne.bin" << endl; exit(1); }
 		RowCol roverRowCol;
@@ -425,7 +435,7 @@ _dummy_static_initializer::_dummy_static_initializer(){
 		}
 		fileInOne.close();
 
-		if (heuristicArg == "relaxed2") {
+		if (heuristicArg == "relaxed2" || heuristicArg == "relaxed3") {
 			ifstream fileInTwo("dataTwo.bin", ios::in | ios::binary);
 			if (!fileInTwo.is_open()) { cerr << "Could not open dataTwo.bin" << endl; exit(1); }
 			done=false;
@@ -440,6 +450,16 @@ _dummy_static_initializer::_dummy_static_initializer(){
 				}
 			}
 			fileInTwo.close();
+		}
+
+		if (heuristicArg == "relaxed3") {
+			if (relaxationThree == nullptr) {
+				relaxationThree = new uint8_t[2168506368ULL];
+			}
+			ifstream fileInThree("dataThree.bin", ios::in | ios::binary);
+			if (!fileInThree.is_open()) { cerr << "Could not open dataThree.bin" << endl; exit(1); }
+			fileInThree.read((char*)relaxationThree, 2168506368ULL);
+			fileInThree.close();
 		}
 	}
 
@@ -481,20 +501,40 @@ _dummy_static_initializer::_dummy_static_initializer(){
 									index_type[1] = (PIECE_TYPE)type1;
 									index_orientation[1] = (ORIENTATION)orientation1;
 
-									numPieces=2;
-									RowCol *pieces=new RowCol[numPieces];
-
+									RowCol pieces[2];
 									pieces[0]=roverRowCol;
 									pieces[1].split.row=obs1r;
 									pieces[1].split.col=obs1c;
 
-									Puzzle puzzle("Test",State(pieces,NULL));
-									int value=puzzle.aStar();
+									bool valid = true;
+									uint64_t occupied = 0;
+
+									uint64_t mask0 = piece_board[roverRowCol.packed][HOR][rover];
+									if (mask0 == 0) {
+										valid = false;
+									} else {
+										occupied = mask0;
+										
+										uint64_t mask1 = piece_board[pieces[1].packed][orientation1][type1];
+										if (mask1 == 0 || (occupied & mask1) != 0) {
+											valid = false;
+										}
+									}
+
+									int value = -1;
+									if (valid) {
+										numPieces=2;
+										RowCol *pieces_copy=new RowCol[numPieces];
+										memcpy(pieces_copy, pieces, numPieces * sizeof(RowCol));
+										Puzzle puzzle("Test",State(pieces_copy,NULL));
+										value=puzzle.aStar();
+									}
+
 									relaxationOne[roverRowCol.split.row]
 											   [roverRowCol.split.col]
 												[obs1r]
 												 [obs1c]
-												  [type1][orientation1]= value;
+												  [type1][orientation1]= to_db_value(value);
 								}
 							}
 						}
@@ -541,16 +581,44 @@ _dummy_static_initializer::_dummy_static_initializer(){
 														index_type[2] = (PIECE_TYPE)type2;
 														index_orientation[2] = (ORIENTATION)orientation2;
 
-														numPieces=3;
-														RowCol *pieces=new RowCol[numPieces];
+														RowCol pieces[3];
 														pieces[0]=roverRowCol;
 														pieces[1].split.row=obs1r;
 														pieces[1].split.col=obs1c;
 														pieces[2].split.row=obs2r;
 														pieces[2].split.col=obs2c;
 
-														Puzzle puzzle("Test",State(pieces,NULL));
-														int value=puzzle.aStar();
+														bool valid = true;
+														uint64_t occupied = 0;
+
+														uint64_t mask0 = piece_board[roverRowCol.packed][HOR][rover];
+														if (mask0 == 0) {
+															valid = false;
+														} else {
+															occupied = mask0;
+															
+															uint64_t mask1 = piece_board[pieces[1].packed][orientation1][type1];
+															if (mask1 == 0 || (occupied & mask1) != 0) {
+																valid = false;
+															} else {
+																occupied |= mask1;
+
+																uint64_t mask2 = piece_board[pieces[2].packed][orientation2][type2];
+																if (mask2 == 0 || (occupied & mask2) != 0) {
+																	valid = false;
+																}
+															}
+														}
+
+														int value = -1;
+														if (valid) {
+															numPieces=3;
+															RowCol *pieces_copy=new RowCol[numPieces];
+															memcpy(pieces_copy, pieces, numPieces * sizeof(RowCol));
+															Puzzle puzzle("Test",State(pieces_copy,NULL));
+															value=puzzle.aStar();
+														}
+
 														relaxationTwo[roverRowCol.split.row]
 																   [roverRowCol.split.col]
 																	[obs1r]
@@ -559,7 +627,7 @@ _dummy_static_initializer::_dummy_static_initializer(){
 																			  [obs2r]
 																			   [obs2c]
 																				[type2][orientation2]
-																						= value;
+																						= to_db_value(value);
 													}
 												}
 											}
@@ -576,6 +644,145 @@ _dummy_static_initializer::_dummy_static_initializer(){
 				}
 			}
 			myFile2.close();
+		}
+
+		if (generateRelaxedArg > 2) {
+			letter_index[(uint8_t)'x'] = 0;
+			index_letter[0] = 'x';
+			index_type[0] = rover;
+			index_orientation[0] = HOR;
+
+			letter_index[(uint8_t)'u'] = 1;
+			index_letter[1] = 'u';
+
+			letter_index[(uint8_t)'v'] = 2;
+			index_letter[2] = 'v';
+
+			letter_index[(uint8_t)'w'] = 3;
+			index_letter[3] = 'w';
+
+			if (relaxationThree == nullptr) {
+				relaxationThree = new uint8_t[2168506368ULL];
+			}
+
+			ofstream myFile3("dataThree.bin", ios::out | ios::binary);
+			RowCol roverRowCol;
+			for(roverRowCol.split.row=0;roverRowCol.split.row<6;roverRowCol.split.row++){
+				for(roverRowCol.split.col=0;roverRowCol.split.col<6;roverRowCol.split.col++){
+					#pragma omp parallel
+					{
+						index_type[0] = rover;
+						index_orientation[0] = HOR;
+						letter_index[(uint8_t)'x'] = 0;
+						index_letter[0] = 'x';
+
+						letter_index[(uint8_t)'u'] = 1;
+						index_letter[1] = 'u';
+
+						letter_index[(uint8_t)'v'] = 2;
+						index_letter[2] = 'v';
+
+						letter_index[(uint8_t)'w'] = 3;
+						index_letter[3] = 'w';
+
+						#pragma omp for collapse(4)
+						for(int obs1r=0;obs1r<7;obs1r++){
+							for(int obs1c=0;obs1c<7;obs1c++){
+								for(int type1=0;type1<4;type1++){
+									for(int orientation1=0;orientation1<2;orientation1++){
+										index_type[1] = (PIECE_TYPE)type1;
+										index_orientation[1] = (ORIENTATION)orientation1;
+
+										for(int obs2r=0;obs2r<7;obs2r++){
+											for(int obs2c=0;obs2c<7;obs2c++){
+												for(int type2=0;type2<4;type2++){
+													for(int orientation2=0;orientation2<2;orientation2++){
+														index_type[2] = (PIECE_TYPE)type2;
+														index_orientation[2] = (ORIENTATION)orientation2;
+
+														for(int obs3r=0;obs3r<7;obs3r++){
+															for(int obs3c=0;obs3c<7;obs3c++){
+																for(int type3=0;type3<4;type3++){
+																	for(int orientation3=0;orientation3<2;orientation3++){
+																		index_type[3] = (PIECE_TYPE)type3;
+																		index_orientation[3] = (ORIENTATION)orientation3;
+
+																		RowCol pieces[4];
+																		pieces[0]=roverRowCol;
+																		pieces[1].split.row=obs1r;
+																		pieces[1].split.col=obs1c;
+																		pieces[2].split.row=obs2r;
+																		pieces[2].split.col=obs2c;
+																		pieces[3].split.row=obs3r;
+																		pieces[3].split.col=obs3c;
+
+																		bool valid = true;
+																		uint64_t occupied = 0;
+
+																		uint64_t mask0 = piece_board[roverRowCol.packed][HOR][rover];
+																		if (mask0 == 0) {
+																			valid = false;
+																		} else {
+																			occupied = mask0;
+																			
+																			uint64_t mask1 = piece_board[pieces[1].packed][orientation1][type1];
+																			if (mask1 == 0 || (occupied & mask1) != 0) {
+																				valid = false;
+																			} else {
+																				occupied |= mask1;
+
+																				uint64_t mask2 = piece_board[pieces[2].packed][orientation2][type2];
+																				if (mask2 == 0 || (occupied & mask2) != 0) {
+																					valid = false;
+																				} else {
+																					occupied |= mask2;
+
+																					uint64_t mask3 = piece_board[pieces[3].packed][orientation3][type3];
+																					if (mask3 == 0 || (occupied & mask3) != 0) {
+																						valid = false;
+																					}
+																				}
+																			}
+																		}
+
+																		int value = -1;
+																		if (valid) {
+																			numPieces=4;
+																			RowCol *pieces_copy=new RowCol[numPieces];
+																			memcpy(pieces_copy, pieces, numPieces * sizeof(RowCol));
+																			Puzzle puzzle("Test",State(pieces_copy,NULL));
+																			value=puzzle.aStar();
+																		}
+
+																		typedef uint8_t RelaxationThreeArray[6][6][7][7][4][2][7][7][4][2][7][7][4][2];
+																		RelaxationThreeArray& r3 = *(RelaxationThreeArray*)relaxationThree;
+																		r3[roverRowCol.split.row]
+																		  [roverRowCol.split.col]
+																		  [obs1r][obs1c][type1][orientation1]
+																		  [obs2r][obs2c][type2][orientation2]
+																		  [obs3r][obs3c][type3][orientation3] = to_db_value(value);
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+					typedef uint8_t RelaxationThreeArray[6][6][7][7][4][2][7][7][4][2][7][7][4][2];
+					RelaxationThreeArray& r3 = *(RelaxationThreeArray*)relaxationThree;
+					char *pointer=(char*)&r3[roverRowCol.split.row][roverRowCol.split.col][0][0][0][0][0][0][0][0][0][0][0][0];
+					myFile3.write(pointer, sizeof(r3[roverRowCol.split.row][roverRowCol.split.col]));
+					myFile3.flush();
+					cout<<"wrote dataThree "<<(int)roverRowCol.split.row<<" "<<(int)roverRowCol.split.col<<endl;
+				}
+			}
+			myFile3.close();
 		}
 		
 		exit(0);
