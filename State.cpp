@@ -21,36 +21,86 @@ uint16_t State::calculateH() const {
   if (generateRelaxedArg > 0) {
     return getTwoOne(_rover);
   }
+
+  // obstacles0 family: pieces intersecting pre_exit (single straight mask).
+  auto countExitObstacles0 = [&]() {
+    int count = 0;
+    for (int p = 0; p < numPieces; p++) {
+      if (p != rover_idx &&
+          exit_obstacles[index_type[p]][index_orientation[p]][pieces[p].packed]) {
+        count++;
+      }
+    }
+    return count;
+  };
+
+  // obstacles1 family: pieces intersecting pre_pre_exit[pathIdx] (3 two-step
+  // path masks: up/left/down). The "2" refers to mask depth, not heuristic id.
+  auto countExitObstacles2 = [&](int pathIdx) {
+    int count = 0;
+    for (int p = 0; p < numPieces; p++) {
+      if (p != rover_idx &&
+          exit_obstacles2[pathIdx][index_type[p]][index_orientation[p]]
+                         [pieces[p].packed]) {
+        count++;
+      }
+    }
+    return count;
+  };
+
+  // obstacles2 family: pieces intersecting pre_pre_pre_exit[pathIdx] (7
+  // three-step path masks).
+  auto countExitObstacles3 = [&](int pathIdx) {
+    int count = 0;
+    for (int p = 0; p < numPieces; p++) {
+      if (p != rover_idx &&
+          exit_obstacles3[pathIdx][index_type[p]][index_orientation[p]]
+                         [pieces[p].packed]) {
+        count++;
+      }
+    }
+    return count;
+  };
+
+  // obstacles3 family: pieces intersecting pre_pre_pre_pre_exit[pathIdx] (14
+  // four-step path masks).
+  auto countExitObstacles4 = [&](int pathIdx) {
+    int count = 0;
+    for (int p = 0; p < numPieces; p++) {
+      if (p != rover_idx &&
+          exit_obstacles4[pathIdx][index_type[p]][index_orientation[p]]
+                         [pieces[p].packed]) {
+        count++;
+      }
+    }
+    return count;
+  };
+
+  // Shared conservative baseline used by all obstacles* fallbacks near exit.
+  auto obstacles0Estimate = [&]() {
+    uint16_t value = getTwoOne(_rover);
+    if (!rover_on_exit[0][_rover.packed]) {
+      value += countExitObstacles0();
+    }
+    return value;
+  };
+
   switch (heuristic) {
   case zero:
     return 0;
   case twoonezero:
     return getTwoOne(_rover);
   case obstacles0:
-    _h += getTwoOne(_rover);
-    if (!rover_on_exit[0][_rover.packed]) {
-      for (int p = 0; p < numPieces; p++) {
-        if (p != rover_idx &&
-            exit_obstacles[index_type[p]][index_orientation[p]]
-                          [pieces[p].packed]) {
-          _h += 1;
-        }
-      }
-    }
+    // Direct pre-exit estimate.
+    _h += obstacles0Estimate();
     break;
   case obstacles1:
-    //_h+=getTwoOne(_rover);
+    // Uses pre_pre_exit masks (3 variants) while rover is outside exit layer 1.
     if (!rover_on_exit[1][_rover.packed]) {
       int minVal = INT_MAX;
       for (int i = 0; i < 3; i++) {
-        int count = 0;
-        for (int p = 0; p < numPieces; p++) {
-        if (p != rover_idx &&
-            exit_obstacles2[i][index_type[p]][index_orientation[p]]
-                           [pieces[p].packed]) {
-            count++;
-          }
-        }
+        // Count blockers for this two-step path variant.
+        int count = countExitObstacles2(i);
         switch (i) {
         case 0: // up
           if (_rover.split.row < 2) {
@@ -86,31 +136,20 @@ uint16_t State::calculateH() const {
       }
       _h += minVal;
     } else if (!rover_on_exit[0][_rover.packed]) {
-      _h += getTwoOne(_rover);
-      for (int p = 0; p < numPieces; p++) {
-        if (p != rover_idx &&
-            exit_obstacles[index_type[p]][index_orientation[p]]
-                          [pieces[p].packed]) {
-          _h += 1;
-        }
-      }
+      // Close to exit: fall back to obstacles0 baseline.
+      _h += obstacles0Estimate();
     } else {
-      _h += getTwoOne(_rover);
+      // On immediate exit region: still use same baseline for continuity.
+      _h += obstacles0Estimate();
     }
     break;
   case obstacles2:
-    //_h+=getTwoOne(_rover);
+    // Uses pre_pre_pre_exit masks (7 variants) while rover is outside layer 2.
     if (!rover_on_exit[2][_rover.packed]) {
       int minVal = INT_MAX;
       for (int i = 0; i < 7; i++) {
-        int count = 0;
-        for (int p = 0; p < numPieces; p++) {
-        if (p != rover_idx &&
-            exit_obstacles3[i][index_type[p]][index_orientation[p]]
-                           [pieces[p].packed]) {
-            count++;
-          }
-        }
+        // Count blockers for this three-step path variant.
+        int count = countExitObstacles3(i);
         if (_rover.split.col == 5) {
           switch (i) {
           case 0: // up-up
@@ -206,17 +245,11 @@ uint16_t State::calculateH() const {
       }
       _h += minVal;
     } else if (!rover_on_exit[1][_rover.packed]) {
-      //_h+=getTwoOne(_rover);
+      // Layer-1 fallback reuses obstacles1 mask family (pre_pre_exit).
       int minVal = INT_MAX;
       for (int i = 0; i < 3; i++) {
-        int count = 0;
-        for (int p = 0; p < numPieces; p++) {
-          if (p != rover_idx &&
-              exit_obstacles2[i][index_type[p]][index_orientation[p]]
-                             [pieces[p].packed]) {
-            count++;
-          }
-        }
+        // Count blockers for this two-step path variant.
+        int count = countExitObstacles2(i);
         switch (i) {
         case 0: // up
           if (_rover.split.row == 0 && _rover.split.col == 5) {
@@ -242,31 +275,21 @@ uint16_t State::calculateH() const {
       }
       _h += minVal;
     } else if (!rover_on_exit[0][_rover.packed]) {
-      _h += getTwoOne(_rover);
-      for (int p = 0; p < numPieces; p++) {
-        if (p != rover_idx &&
-            exit_obstacles[index_type[p]][index_orientation[p]]
-                          [pieces[p].packed]) {
-          _h += 1;
-        }
-      }
+      // Near exit: use common baseline.
+      _h += obstacles0Estimate();
     } else {
-      _h += getTwoOne(_rover);
+      // Immediate exit region baseline.
+      _h += obstacles0Estimate();
     }
     break;
   case obstacles3:
-    //_h+=getTwoOne(_rover);
+    // Uses pre_pre_pre_pre_exit masks (14 variants) while rover is outside
+    // layer 3.
     if (!rover_on_exit[3][_rover.packed]) {
       int minVal = INT_MAX;
       for (int i = 0; i < 14; i++) {
-        int count = 0;
-        for (int p = 0; p < numPieces; p++) {
-        if (p != rover_idx &&
-            exit_obstacles4[i][index_type[p]][index_orientation[p]]
-                           [pieces[p].packed]) {
-            count++;
-          }
-        }
+        // Count blockers for this four-step path variant.
+        int count = countExitObstacles4(i);
         switch (i) {
         case 0: // up-up-left
         case 1: // up-left-up
@@ -325,17 +348,11 @@ uint16_t State::calculateH() const {
       }
       _h += minVal;
     } else if (!rover_on_exit[2][_rover.packed]) {
-      //_h+=getTwoOne(_rover);
+      // Layer-2 fallback reuses obstacles2 mask family (pre_pre_pre_exit).
       int minVal = INT_MAX;
       for (int i = 0; i < 7; i++) {
-        int count = 0;
-        for (int p = 0; p < numPieces; p++) {
-        if (p != rover_idx &&
-            exit_obstacles3[i][index_type[p]][index_orientation[p]]
-                           [pieces[p].packed]) {
-            count++;
-          }
-        }
+        // Count blockers for this three-step path variant.
+        int count = countExitObstacles3(i);
         switch (i) {
         case 0: // up-up
           count += 2;
@@ -365,17 +382,11 @@ uint16_t State::calculateH() const {
       }
       _h += minVal;
     } else if (!rover_on_exit[1][_rover.packed]) {
-      //_h+=getTwoOne(_rover);
+      // Layer-1 fallback reuses obstacles1 mask family (pre_pre_exit).
       int minVal = INT_MAX;
       for (int i = 0; i < 3; i++) {
-        int count = 0;
-        for (int p = 0; p < numPieces; p++) {
-        if (p != rover_idx &&
-            exit_obstacles2[i][index_type[p]][index_orientation[p]]
-                           [pieces[p].packed]) {
-            count++;
-          }
-        }
+        // Count blockers for this two-step path variant.
+        int count = countExitObstacles2(i);
         switch (i) {
         case 0: // up
           count += 2;
@@ -393,16 +404,11 @@ uint16_t State::calculateH() const {
       }
       _h += minVal;
     } else if (!rover_on_exit[0][_rover.packed]) {
-      _h += getTwoOne(_rover);
-      for (int p = 0; p < numPieces; p++) {
-        if (p != rover_idx &&
-            exit_obstacles[index_type[p]][index_orientation[p]]
-                          [pieces[p].packed]) {
-          _h += 1;
-        }
-      }
+      // Near exit: use common baseline.
+      _h += obstacles0Estimate();
     } else {
-      _h += getTwoOne(_rover);
+      // Immediate exit region baseline.
+      _h += obstacles0Estimate();
     }
     break;
   case relaxed1: {
