@@ -203,6 +203,120 @@ int Puzzle::aStar(){
 	return -1;
 }
 
+int Puzzle::beamSearch(int beamWidth) {
+	start = chrono::high_resolution_clock::now();
+
+	unordered_set<State*> closed;
+
+	auto cleanup = [&](State *current, vector<State*>& beam, vector<State*>& next_beam) {
+		unordered_set<State*> toDelete;
+		if (current != nullptr) {
+			toDelete.insert(current);
+		}
+		for (auto s : closed) {
+			toDelete.insert(s);
+		}
+		for (auto s : beam) {
+			toDelete.insert(s);
+		}
+		for (auto s : next_beam) {
+			toDelete.insert(s);
+		}
+		for (auto s : toDelete) {
+			delete s;
+		}
+		closed.clear();
+		beam.clear();
+		next_beam.clear();
+	};
+
+	State *initial = new State(_initial);
+	vector<State*> beam;
+	beam.push_back(initial);
+
+	nodes = 0;
+
+	while (!beam.empty()) {
+		vector<State*> next_beam;
+
+		for (State* current : beam) {
+			if (current->isGoal()) {
+				string candidateSolution = reconstruct(current);
+				int solutionLength = current->getG();
+				if (isLegalSolutionPath(_initial, candidateSolution, solutionLength)) {
+					solution = candidateSolution;
+					if (_name != "Test") {
+						Problems.append("'").append(_name).append("',");
+					}
+					cleanup(current, beam, next_beam);
+					return solutionLength;
+				}
+			}
+
+			const vector<State*>& children = current->genSuccesors(false);
+
+			for (auto it = children.begin(); it != children.end(); it++) {
+				nodes++;
+				if (nodes % 5000 == 0) {
+					timeOut = chrono::duration_cast<std::chrono::milliseconds>(chrono::high_resolution_clock::now() - start).count() > timeArg * 1000;
+					if (timeOut) {
+						threshold = current->getF();
+						for (auto toDel = it; toDel != children.end(); toDel++) {
+							delete (*toDel);
+						}
+						cleanup(current, beam, next_beam);
+						return -1;
+					}
+				}
+
+				if (closed.find(*it) != closed.end()) {
+					delete *it;
+					continue;
+				}
+
+				next_beam.push_back(*it);
+			}
+			closed.insert(current);
+		}
+
+		beam.clear(); // Current beam states are now in closed
+
+		if (next_beam.empty()) break;
+
+		// Sort next_beam to keep the most promising states
+		ReverseStatePointerComparator comp;
+		sort(next_beam.begin(), next_beam.end(), comp);
+
+		// Remove duplicates that might have been generated in the same level
+		unordered_set<uintptr_t> seen;
+		for (auto it = next_beam.begin(); it != next_beam.end(); ) {
+			if (seen.find((*it)->getHash()) != seen.end()) {
+				delete *it;
+				it = next_beam.erase(it);
+			} else {
+				seen.insert((*it)->getHash());
+				it++;
+			}
+		}
+
+		// Keep top beamWidth elements
+		if ((int)next_beam.size() > beamWidth) {
+			for (size_t i = beamWidth; i < next_beam.size(); i++) {
+				delete next_beam[i];
+			}
+			next_beam.resize(beamWidth);
+		}
+
+		beam = next_beam;
+	}
+
+	vector<State*> dummy;
+	cleanup(nullptr, beam, dummy);
+	solution = "Can't find answer";
+	return -1;
+}
+
+
 int Puzzle::innerIdaStar(State* s, int depth, uint16_t bound) {
 	nodes++;
 	if(nodes%5000==0){

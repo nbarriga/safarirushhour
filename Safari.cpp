@@ -6,6 +6,7 @@ namespace po = boost::program_options;
 thread_local int timeArg;
 int ttSizeArg, maxSolLength;
 int generateRelaxedArg = 0;
+int beamWidthArg = 10;
 
 thread_local string algorithmArg;
 thread_local string heuristicArg;
@@ -32,6 +33,8 @@ int main(int argc, char *argv[]) {
       "generate-relaxed,g",
       po::value<int>(&generateRelaxedArg)->default_value(0),
       "generate relaxed heuristics (1: dataOne, 2: dataOne & dataTwo)")(
+      "beam,b", po::value<int>(&beamWidthArg)->default_value(100),
+      "set beam width for BeamSearch")(
       "cluster,c", "Enable caching of solutions between boards, for reuse in "
                    "the same cluster")(
       "typett",
@@ -136,6 +139,8 @@ int main(int argc, char *argv[]) {
       {
               cout << tt->statistics() << endl;
       }*/
+    } else if (algorithmArg == "BeamSearch") {
+      moves = puzzle.beamSearch(beamWidthArg);
     }
     auto endTime = chrono::high_resolution_clock::now();
     double durationMs = chrono::duration<double, std::milli>(endTime - startTime).count();
@@ -156,7 +161,7 @@ int main(int argc, char *argv[]) {
       if (algorithmArg == "IDAstar") {
         cout << "solution " << name << " "
              << "No solution exists with length < " << maxSolLength << endl;
-      } else if (algorithmArg == "Astar") {
+      } else if (algorithmArg == "Astar" || algorithmArg == "BeamSearch") {
         cout << "solution " << name << " " << "No solution exists" << endl;
       }
     }

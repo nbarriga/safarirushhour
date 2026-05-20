@@ -36,6 +36,7 @@ public:
 	string toString()const;
 	int aStar();
 	void BFS(unsigned int ttSize);
+	int beamSearch(int beamWidth);
 	void setTTForReuse(TTInterface *_TT);
 
 	int idaStar(unsigned int ttSize, unsigned int maxSolLength);

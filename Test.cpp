@@ -13,6 +13,7 @@
 thread_local int timeArg = 60;
 int ttSizeArg = 1000000;
 int maxSolLength = 1000;
+int beamWidthArg = 100;
 thread_local std::string algorithmArg;
 thread_local std::string heuristicArg;
 std::string ttTypeArg = "normal";
@@ -148,6 +149,7 @@ bool verifyMoves(const std::string &state_str,
 int main(int argc, char *argv[]) {
   // Determine the test set, quiet flag, and optional BFS flag to run
   bool run_bfs = false;
+  bool run_beam = false;
   bool quiet = false;
   std::string test_set = "J1";
   std::string custom_puzzle_file = "";   // set by -f <file>
@@ -156,6 +158,8 @@ int main(int argc, char *argv[]) {
     std::string arg = argv[i];
     if (arg == "--BFS") {
       run_bfs = true;
+    } else if (arg == "--BeamSearch") {
+      run_beam = true;
     } else if (arg == "--quiet") {
       quiet = true;
     } else if (arg == "-f" && i + 1 < argc) {
@@ -276,6 +280,9 @@ int main(int argc, char *argv[]) {
   if (run_bfs) {
     algorithms.push_back("BFS");
   }
+  if (run_beam) {
+    algorithms.push_back("BeamSearch");
+  }
   std::vector<std::pair<std::string, HEURISTIC>> heuristics = {
       {"0", zero},
       {"210", twoonezero},
@@ -372,6 +379,8 @@ int main(int argc, char *argv[]) {
       } else if (job.alg == "BFS") {
         pz.BFS(ttSizeArg);
         solved_length = expected_length;
+      } else if (job.alg == "BeamSearch") {
+        solved_length = pz.beamSearch(beamWidthArg);
       }
       auto endTime = std::chrono::high_resolution_clock::now();
       double durationMs =
@@ -397,7 +406,7 @@ int main(int argc, char *argv[]) {
         continue;
       }
 
-      if (solved_length != expected_length) {
+      if (solved_length != expected_length && job.alg != "BeamSearch") {
         results[i].passed = false;
         std::stringstream ss;
         ss << "Expected length " << expected_length << ", got "
