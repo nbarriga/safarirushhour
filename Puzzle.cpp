@@ -221,7 +221,23 @@ int Puzzle::innerIdaStar(State* s, int depth, uint16_t bound) {
 
 	
 
+	uint32_t prevBestChild = 0;
+	auto parentEntry = TT->TTLookup(s);
+	if (parentEntry.getHash2() == s->getHash2()) {
+		prevBestChild = parentEntry.getBestChild();
+	}
+
 	vector<State*> children=s->genSuccesors(false);//todo: avoid copy
+    
+	if (prevBestChild != 0 && children.size() > 1) {
+		for (size_t i = 0; i < children.size(); i++) {
+			if ((uint32_t)(children[i]->getHash2()) == prevBestChild) {
+				std::swap(children[0], children[i]);
+				break;
+			}
+		}
+	}
+
 
 
 	for (auto it=children.begin(); it!=children.end();it++) {
@@ -250,6 +266,7 @@ int Puzzle::innerIdaStar(State* s, int depth, uint16_t bound) {
 
 
 	uint16_t new_bound=SHRT_MAX;
+	uint32_t bestChildFound = 0;
 
 	for (auto it=children.begin(); it!=children.end();it++) {
 		if(timeOut){
@@ -259,6 +276,7 @@ int Puzzle::innerIdaStar(State* s, int depth, uint16_t bound) {
 			return -1;
 		}
 
+		uint32_t childHash32 = (uint32_t)((*it)->getHash2());
 		uint16_t t;
 		totalH+=(*it)->getH();
 		countH++;
@@ -277,13 +295,14 @@ int Puzzle::innerIdaStar(State* s, int depth, uint16_t bound) {
 		}
 
 		if (t < new_bound) {
-			new_bound = t ; // better lower bound
+			new_bound = t; // better lower bound
+			bestChildFound = childHash32;
 		}
 	}
 
 
 	solution="Can't find answer";
-	TT->TTsave(s,new_bound);
+	TT->TTsave(s, new_bound, bestChildFound);
 	return new_bound;
 }
 
@@ -436,7 +455,23 @@ void Puzzle::innerBFS(const State *s)
 
 	bfsTT->save(s);
 
+	uint32_t prevBestChild = 0;
+	auto parentEntry = TT->TTLookup(s);
+	if (parentEntry.getHash2() == s->getHash2()) {
+		prevBestChild = parentEntry.getBestChild();
+	}
+
 	vector<State*> children=s->genSuccesors(false);//todo: avoid copy
+    
+	if (prevBestChild != 0 && children.size() > 1) {
+		for (size_t i = 0; i < children.size(); i++) {
+			if ((uint32_t)(children[i]->getHash2()) == prevBestChild) {
+				std::swap(children[0], children[i]);
+				break;
+			}
+		}
+	}
+
 
 	for (auto it=children.begin(); it!=children.end();it++) {
 		innerBFS(*it);

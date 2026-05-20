@@ -6,8 +6,8 @@ TranspositionTable::TranspositionTable(unsigned int ttSize) : ttSize(ttSize) {
 
 TranspositionTable::~TranspositionTable() { delete[] TT; }
 
-void TranspositionTable::TTsave(const State *const s, uint16_t bound) {
-  TT[s->getHash() % ttSize] = Entry(s->getHash2(), bound);
+void TranspositionTable::TTsave(const State *const s, uint16_t bound, uint32_t bestChild) {
+  TT[s->getHash() % ttSize] = Entry(s->getHash2(), bound, bestChild);
 }
 
 Entry TranspositionTable::TTLookup(const State *const s) const {
@@ -27,8 +27,8 @@ TranspositionTableMap::~TranspositionTableMap() {
   mapTT.clear();
   bestState.clear();
 }
-void TranspositionTableMap::TTsave(const State *const s, uint16_t bound) {
-  mapTT[s->getHash()] = Entry(s->getHash2(), bound);
+void TranspositionTableMap::TTsave(const State *const s, uint16_t bound, uint32_t bestChild) {
+  mapTT[s->getHash()] = Entry(s->getHash2(), bound, bestChild);
 }
 Entry TranspositionTableMap::TTLookup(const State *const s) const {
   if (mapTT.find(s->getHash()) != mapTT.end()) {

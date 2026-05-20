@@ -11,21 +11,24 @@ class Entry{
 private:
 	uint64_t hash2;
 	uint16_t bound;
+	uint32_t bestChild;
 public:
-	Entry(uint64_t hash2,uint16_t bound):
+	Entry(uint64_t hash2, uint16_t bound, uint32_t bestChild = 0):
 				hash2(hash2),
-				bound(bound){}
+				bound(bound), bestChild(bestChild){}
 	Entry():
 		hash2(0),
-		bound(SHRT_MAX){}
+		bound(SHRT_MAX), bestChild(0){}
 
 	uint64_t getHash2() const {
 		return hash2;
 	}
 	uint16_t getBound() const {
-			return bound;
-		}
-
+		return bound;
+	}
+	uint32_t getBestChild() const {
+		return bestChild;
+	}
 };
 
 class TTInterface
@@ -41,7 +44,7 @@ class TTInterface
 		void setSolvable();
 		bool isSolvable() const;
 		virtual ~TTInterface(){};
-		virtual void TTsave(const State *const s, uint16_t bound) = 0;
+		virtual void TTsave(const State *const s, uint16_t bound, uint32_t bestChild = 0) = 0;
 		virtual Entry TTLookup(const State *const s) const = 0;
 		virtual void TTmerge( TTInterface * other) = 0;
 		virtual string statistics() const = 0;
@@ -54,7 +57,7 @@ private:
 public:
 	TranspositionTable(unsigned int ttSize);
 	virtual ~TranspositionTable();
-	virtual void TTsave(const State *const s, uint16_t bound);
+	virtual void TTsave(const State *const s, uint16_t bound, uint32_t bestChild = 0);
 	virtual Entry TTLookup(const State *const s) const;
 	virtual void TTmerge( TTInterface * other);
 	virtual string statistics() const;
@@ -65,7 +68,7 @@ class TranspositionTableMap : public TTInterface{
 	public:
 	TranspositionTableMap(unsigned int startingSize);
 	virtual ~TranspositionTableMap();
-	virtual void TTsave(const State *const s, uint16_t bound);
+	virtual void TTsave(const State *const s, uint16_t bound, uint32_t bestChild = 0);
 	virtual Entry TTLookup(const State *const s) const;
 	virtual void TTmerge(TTInterface * other);
 	virtual string statistics() const;
