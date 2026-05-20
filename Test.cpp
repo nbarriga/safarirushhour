@@ -150,27 +150,45 @@ int main(int argc, char *argv[]) {
   bool run_bfs = false;
   bool quiet = false;
   std::string test_set = "J1";
+  std::string custom_puzzle_file = "";   // set by -f <file>
+  std::string custom_solution_file = ""; // set by -s <file>
   for (int i = 1; i < argc; i++) {
     std::string arg = argv[i];
     if (arg == "--BFS") {
       run_bfs = true;
     } else if (arg == "--quiet") {
       quiet = true;
+    } else if (arg == "-f" && i + 1 < argc) {
+      custom_puzzle_file = argv[++i];
+    } else if (arg == "-s" && i + 1 < argc) {
+      custom_solution_file = argv[++i];
     } else {
       test_set = arg;
     }
   }
 
-  if (!quiet) {
-    std::cout << "Loading test set: " << test_set << std::endl;
-    if (run_bfs) {
-      std::cout << "BFS testing is ENABLED." << std::endl;
+  if (!custom_puzzle_file.empty()) {
+    if (!quiet) {
+      std::cout << "Loading puzzle file: " << custom_puzzle_file << std::endl;
+      if (run_bfs) {
+        std::cout << "BFS testing is ENABLED." << std::endl;
+      }
+    }
+  } else {
+    if (!quiet) {
+      std::cout << "Loading test set: " << test_set << std::endl;
+      if (run_bfs) {
+        std::cout << "BFS testing is ENABLED." << std::endl;
+      }
     }
   }
 
   std::string puzzle_file;
   bool is_individual = false;
-  if (test_set == "J1") {
+  if (!custom_puzzle_file.empty()) {
+    // -f <file>: load all boards from the given file, no individual filtering
+    puzzle_file = custom_puzzle_file;
+  } else if (test_set == "J1") {
     puzzle_file = "J1";
   } else if (test_set == "J") {
     puzzle_file = "Jpuzzles";
@@ -246,6 +264,13 @@ int main(int argc, char *argv[]) {
   loadSolutions("ESolutions", expected_solutions);
   loadSolutions("ISolutions", expected_solutions);
   loadSolutions("JSolutions", expected_solutions);
+  if (!custom_solution_file.empty()) {
+    loadSolutions(custom_solution_file, expected_solutions);
+    if (!quiet) {
+      std::cout << "Loaded solution file: " << custom_solution_file
+                << std::endl;
+    }
+  }
 
   std::vector<std::string> algorithms = {"Astar", "IDAstar"};
   if (run_bfs) {

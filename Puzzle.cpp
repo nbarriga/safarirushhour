@@ -2,6 +2,33 @@
 #include <algorithm>
 #include <cassert>
 
+namespace {
+// Stable identity key for tracking active queue entries by pointer instance.
+inline uintptr_t ptrKey(const State *s) {
+	return reinterpret_cast<uintptr_t>(s);
+}
+
+// Replays the move list from the initial board and checks length + goal.
+bool isLegalSolutionPath(const State &initial, const string &moves,
+												int expectedLength) {
+	// Defensive validation: replay reconstructed moves before accepting a goal.
+	State *cursor = new State(initial);
+	stringstream ss(moves);
+	string move;
+	int actualLength = 0;
+	while (ss >> move) {
+		State *next = cursor->applyMove(move);
+		delete cursor;
+		cursor = next;
+		actualLength++;
+	}
+
+	bool ok = actualLength == expectedLength && cursor->isGoal();
+	delete cursor;
+	return ok;
+}
+} // namespace
+
 thread_local string Problems, times, memories, nodesSearched, initialH, actualSolution;
 thread_local vector<BFSCache*> TTs;
 thread_local BFSCache* bfsTT = nullptr;
@@ -41,19 +68,47 @@ string Puzzle::reconstruct(const State *const state){
 int Puzzle::aStar(){
 	start = chrono::high_resolution_clock::now();
 
-	equal_to<State*> stateEqual;
+	// Min-heap (via custom comparator) used as A* open queue.
 	vector<State*> open_queue;
 	StatePointerComparator comp;
-	ReverseStatePointerComparator revComp;
 
+	// Content-equality sets for best-known open/closed states.
 	unordered_set<State*> open;
+	// Pointer-identity set to detect stale heap entries in open_queue.
+	unordered_set<uintptr_t> openByAddress;
 	unordered_set<State*> closed;
+
+	auto cleanup = [&](State *current) {
+		// Collect unique pointers across all containers to avoid double frees.
+		unordered_set<State*> toDelete;
+		if (current != nullptr) {
+			toDelete.insert(current);
+		}
+		for (auto s : open) {
+			toDelete.insert(s);
+		}
+		for (auto s : closed) {
+			toDelete.insert(s);
+		}
+		for (auto s : open_queue) {
+			toDelete.insert(s);
+		}
+		for (auto s : toDelete) {
+			delete s;
+		}
+		open.clear();
+		openByAddress.clear();
+		closed.clear();
+		open_queue.clear();
+	};
+
 	State *initial= new State(_initial);
 	open_queue.push_back(initial);
 	std::make_heap(open_queue.begin(), open_queue.end(),comp);
 
 
 	open.insert(initial);
+	openByAddress.insert(ptrKey(initial));
 
 	nodes=0;
 
@@ -63,27 +118,29 @@ int Puzzle::aStar(){
 		State *current= open_queue.front();
 		std::pop_heap(open_queue.begin(), open_queue.end(),comp);
 		open_queue.pop_back();
-		open.erase(current);
+
+		// Lazy-delete stale heap entries that are no longer active in open.
+		if (openByAddress.erase(ptrKey(current)) == 0) {
+			delete current;
+			continue;
+		}
+		auto currentOpen = open.find(current);
+		if (currentOpen != open.end()) {
+			open.erase(currentOpen);
+		}
 
 
 		if (current->isGoal()) {
-			solution=reconstruct(current);;
+			string candidateSolution = reconstruct(current);
 			int solutionLength=current->getG();
-			if (_name != "Test") {
-				Problems.append("'").append(_name).append("',");
+			if (isLegalSolutionPath(_initial, candidateSolution, solutionLength)) {
+				solution = candidateSolution;
+				if (_name != "Test") {
+					Problems.append("'").append(_name).append("',");
+				}
+				cleanup(current);
+				return solutionLength;
 			}
-
-			for(auto it=open.begin();it!=open.end();it++){
-				delete *it;
-			}
-			for(auto it=closed.begin();it!=closed.end();it++){
-				delete *it;
-			}
-			delete current;
-			open.clear();
-			closed.clear();
-
-			return solutionLength;
 		}
 		const vector<State*>& children =current->genSuccesors(false);
 
@@ -97,21 +154,11 @@ int Puzzle::aStar(){
 					for(auto toDel=it;toDel!=children.end();toDel++){
 						delete (*toDel);
 					}
-					for(auto it=open.begin();it!=open.end();it++){
-						delete *it;
-					}
-					for(auto it=closed.begin();it!=closed.end();it++){
-						delete *it;
-					}
-					delete current;
-					open.clear();
-					closed.clear();
-
-
+					cleanup(current);
 					return -1;
 				}
 			}
-			bool updatedInOpen=false;
+			bool insertedInOpen=false;
 
 			auto stored = closed.find(*it);
 			if(stored!=closed.end()){
@@ -120,7 +167,7 @@ int Puzzle::aStar(){
 					continue;
 				}
 				auto toDel=*stored;//needed because iterator gets invalidated on next line
-				closed.erase(*it); // re-open node to
+				closed.erase(stored); // re-open node to
 				delete toDel;
 			}
 
@@ -130,23 +177,20 @@ int Puzzle::aStar(){
 					delete *it;
 					continue;
 				}
-
-				//check in queue and delete
-				for(auto toUpdate=open_queue.begin();toUpdate!=open_queue.end();toUpdate++){
-					if(stateEqual(*toUpdate,*it)){
-						updatedInOpen=true;
-						assert((*stored)==(*toUpdate));
-						(*toUpdate)->setG((*it)->getG());
-						(*toUpdate)->setParent((*it)->getPrev());
-						std::push_heap(open_queue.begin(), toUpdate+1,comp);
-						delete *it;
-						break;
-					}
-				}
-
+				// Replace open record instead of mutating it in-place to keep
+				// heap entries and parent chains consistent.
+				State *toReplace = *stored;
+				openByAddress.erase(ptrKey(toReplace));
+				open.erase(stored);
+				open.insert(*it);
+				openByAddress.insert(ptrKey(*it));
+				open_queue.push_back(*it);
+				std::push_heap(open_queue.begin(), open_queue.end(),comp);
+				insertedInOpen=true;
 			}
-			if(!updatedInOpen){
+			if(!insertedInOpen){
 				open.insert(*it); // fast, but nodes may appear multiple times
+				openByAddress.insert(ptrKey(*it));
 				open_queue.push_back(*it);
 				std::push_heap(open_queue.begin(), open_queue.end(),comp);
 			}
@@ -154,10 +198,7 @@ int Puzzle::aStar(){
 		closed.insert(current);
 
 	}
-	for(auto it=closed.begin();it!=closed.end();it++){
-		delete (*it);
-	}
-	closed.clear();
+	cleanup(nullptr);
 	solution="Can't find answer";
 	return -1;
 }
