@@ -98,6 +98,8 @@ int main(int argc, char *argv[]) {
     heuristic = relaxed3;
   } else if (heuristicArg == "combo") {
     heuristic = combo;
+  } else if (heuristicArg == "raycast") {
+    heuristic = raycast;
   } else {
     cout << desc << "\n";
     return 1;

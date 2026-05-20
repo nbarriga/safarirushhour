@@ -674,6 +674,94 @@ uint16_t State::calculateH() const {
     }
     _h = maxH;
   } break;
+  case raycast: {
+    // Raycast Heuristic: A fast, bottleneck-based heuristic that dynamically calculates 
+    // the minimum dependencies required for blocking pieces to clear the rover's path.
+
+    // Base cost for the rover (1 if in row 2, 2 if off-axis)
+    uint16_t h_val = getTwoOne(_rover);
+    if (rover_on_exit[0][_rover.packed]) {
+      _h = h_val; // Rover is already at the exit
+      break;
+    }
+
+    // Step 1: Rapidly build a 1D board representation mapping cells to piece indices.
+    // This executes in O(Pieces) time with no branches.
+    int8_t board[49];
+    __builtin_memset(board, -1, 49);
+    for (int p = 0; p < numPieces; p++) {
+       int r = pieces[p].split.row;
+       int c = pieces[p].split.col;
+       if (index_orientation[p] == HOR) {
+           int len = type_sizeX[index_type[p]][0];
+           for(int i=0; i<len; ++i) board[r*7 + c+i] = p;
+       } else {
+           int len = type_sizeY[index_type[p]][1];
+           for(int i=0; i<len; ++i) board[(r+i)*7 + c] = p;
+       }
+    }
+
+    int max_extra = 0;
+    int blockers_count = 0;
+
+    // Step 2: Iterate over all pieces and find those blocking the rover's path.
+    // The rover occupies rows 2 and 3, and exit_obstacles pre-calculates intersection.
+    for (int p = 0; p < numPieces; p++) {
+      if (p != rover_idx && exit_obstacles[index_type[p]][index_orientation[p]][pieces[p].packed]) {
+        blockers_count++; // Every blocker requires at least 1 move
+        
+        // Horizontal blockers are in the same rows (2 or 3) and just need to slide left/right. 
+        // We ignore their deep dependencies for speed, treating their extra required moves as 0.
+        if (index_orientation[p] == HOR) continue;
+        
+        int col = pieces[p].split.col;
+        int row1 = pieces[p].split.row;
+        int L = type_sizeY[index_type[p]][1];
+        int row2 = row1 + L - 1;
+
+        // Step 3: Check UP Direction Dependency
+        // To clear rows 2 and 3 by moving UP, the piece's bottom (row2) must become <= 1.
+        // Therefore, its top becomes (1 - L + 1) = 2 - L.
+        int u_cost = 0;
+        if (2 - L < 0) {
+            u_cost = 1000; // Impossible to move UP (off board)
+        } else {
+            uint32_t u_mask = 0;
+            // Collect unique piece indices occupying the needed UP clearance cells
+            for (int r = 2 - L; r < row1; r++) {
+               if (board[r*7 + col] != -1) u_mask |= (1 << board[r*7 + col]);
+            }
+            u_cost = __builtin_popcount(u_mask); // Count distinct pieces blocking UP
+        }
+        
+        // Step 4: Check DOWN Direction Dependency
+        // To clear rows 2 and 3 by moving DOWN, the piece's top (row1) must become >= 4.
+        // Therefore, its bottom becomes (4 + L - 1) = L + 3.
+        int d_cost = 0;
+        if (L + 3 >= 7) {
+            d_cost = 1000; // Impossible to move DOWN (off board, max row is 6)
+        } else {
+            uint32_t d_mask = 0;
+            // Collect unique piece indices occupying the needed DOWN clearance cells
+            for (int r = row2 + 1; r <= L + 3; r++) {
+               if (board[r*7 + col] != -1) d_mask |= (1 << board[r*7 + col]);
+            }
+            d_cost = __builtin_popcount(d_mask); // Count distinct pieces blocking DOWN
+        }
+        
+        // The piece will take the path of least resistance. 
+        // Its minimum dependency cost is strictly additive (admissible) because those 
+        // horizontal blocking pieces exist outside the rover's primary rows (2 and 3).
+        int extra = std::min(u_cost, d_cost);
+        
+        // We take the maximum bottleneck among all vertical blockers to preserve admissibility.
+        if (extra > max_extra && extra != 1000) max_extra = extra;
+      }
+    }
+    
+    // Total heuristic: Rover base cost + direct blockers count + max dependencies among those blockers
+    _h = h_val + blockers_count + max_extra;
+  } break;
   }
 
   return _h;

@@ -153,6 +153,7 @@ int main(int argc, char *argv[]) {
   bool run_beam = false;
   bool run_rbfs = false;
   bool quiet = false;
+  bool eval_heuristics = false;
   std::string test_set = "J1";
   std::string custom_puzzle_file = "";   // set by -f <file>
   std::string custom_solution_file = ""; // set by -s <file>
@@ -166,6 +167,8 @@ int main(int argc, char *argv[]) {
       run_rbfs = true;
     } else if (arg == "--quiet") {
       quiet = true;
+    } else if (arg == "--eval-heuristics") {
+      eval_heuristics = true;
     } else if ((arg == "-t" || arg == "--threads") && i + 1 < argc) {
       int num_threads = std::stoi(argv[++i]);
       omp_set_num_threads(num_threads);
@@ -303,7 +306,8 @@ int main(int argc, char *argv[]) {
       {"obstacles4", obstacles4},
       {"relaxed1", relaxed1},
       {"relaxed2", relaxed2},
-      {"combo", combo}};
+      {"combo", combo},
+      {"raycast", raycast}};
   if (has_dataThree) {
     heuristics.push_back({"relaxed3", relaxed3});
   }
@@ -333,6 +337,28 @@ int main(int argc, char *argv[]) {
     }
 
     int expected_length = it->second.first;
+
+    if (eval_heuristics) {
+      if (!quiet) {
+        std::cout << "  Optimal Solution Length: " << expected_length << std::endl;
+      } else {
+        std::cout << "  [Opt: " << expected_length << "] " << std::flush;
+      }
+      
+      for (const auto &heur : heuristics) {
+        heuristicArg = heur.first;
+        heuristic = heur.second;
+        State initial_state(state);
+        uint16_t h_val = initial_state.getH();
+        if (!quiet) {
+          std::cout << "  Heuristic: " << heur.first << " -> " << h_val << std::endl;
+        } else {
+          std::cout << heur.first << ":" << h_val << " " << std::flush;
+        }
+      }
+      if (quiet) std::cout << std::endl;
+      continue;
+    }
 
     struct Job {
       std::string alg;

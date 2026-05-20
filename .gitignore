@@ -16,3 +16,4 @@ verify
 .vscode/*
 test
 dataThree.bin
+dataThree.bin.bak

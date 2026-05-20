@@ -34,7 +34,7 @@ using namespace std;
 enum ORIENTATION {HOR=0, VERT=1};
 enum DIRECTION {UP=0, DOWN=1, LEFT=2, RIGHT=3};
 enum PIECE_TYPE {rover=0, two_by_two=1, three_by_one=2, two_by_one=3};
-enum HEURISTIC {zero, twoonezero, obstacles0,obstacles1,obstacles2,obstacles3,obstacles4,relaxed1,relaxed2,relaxed3,combo};
+enum HEURISTIC {zero, twoonezero, obstacles0,obstacles1,obstacles2,obstacles3,obstacles4,relaxed1,relaxed2,relaxed3,combo,raycast};
 extern ORIENTATION ORIENTATIONS[2];
 extern DIRECTION DIRECTIONS[4];
 extern PIECE_TYPE PIECE_TYPES[4];
