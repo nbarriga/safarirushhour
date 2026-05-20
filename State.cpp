@@ -99,6 +99,28 @@ uint16_t State::calculateH() const {
     return value;
   };
 
+  auto getRelaxed2 = [&]() {
+    uint16_t maxH = 0;
+    for (int p = 0; p < numPieces; p++) {
+      if (p != rover_idx) {
+        for (int p2 = 0; p2 < numPieces; p2++) {
+          if (p != p2 && p2 != rover_idx) {
+            int value =
+                relaxationTwo[_rover.split.row][_rover.split.col]
+                             [pieces[p].split.row][pieces[p].split.col]
+                             [index_type[p]][index_orientation[p]]
+                             [pieces[p2].split.row][pieces[p2].split.col]
+                             [index_type[p2]][index_orientation[p2]];
+            if (value != 255 && value > maxH) {
+              maxH = value;
+            }
+          }
+        }
+      }
+    }
+    return maxH;
+  };
+
   switch (heuristic) {
   case zero:
     return 0;
@@ -425,6 +447,7 @@ uint16_t State::calculateH() const {
       _h += obstacles0Estimate();
     }
     break;
+  case combo:
   case obstacles4:
     if (!rover_on_exit[4][_rover.packed]) {
       int minVal = INT_MAX;
@@ -600,6 +623,8 @@ uint16_t State::calculateH() const {
       // Immediate exit region baseline.
       _h += obstacles0Estimate();
     }
+    if (heuristic == obstacles4) break;
+    _h = std::max(_h, getRelaxed2());//combo
     break;
   case relaxed1: {
     uint16_t maxH = 0;
@@ -616,25 +641,7 @@ uint16_t State::calculateH() const {
     _h = maxH;
   } break;
   case relaxed2: {
-    uint16_t maxH = 0;
-    for (int p = 0; p < numPieces; p++) {
-      if (p != rover_idx) {
-        for (int p2 = 0; p2 < numPieces; p2++) {
-          if (p != p2 && p2 != rover_idx) {
-            int value =
-                relaxationTwo[_rover.split.row][_rover.split.col]
-                             [pieces[p].split.row][pieces[p].split.col]
-                             [index_type[p]][index_orientation[p]]
-                             [pieces[p2].split.row][pieces[p2].split.col]
-                             [index_type[p2]][index_orientation[p2]];
-            if (value != 255 && value > maxH) {
-              maxH = value;
-            }
-          }
-        }
-      }
-    }
-    _h = maxH;
+    _h = getRelaxed2();
   } break;
   case relaxed3: {
     uint16_t maxH = 0;

@@ -294,15 +294,16 @@ int main(int argc, char *argv[]) {
     algorithms.push_back("RBFS");
   }
   std::vector<std::pair<std::string, HEURISTIC>> heuristics = {
-      {"0", zero},
-      {"210", twoonezero},
+      // {"0", zero},
+      // {"210", twoonezero},
       {"obstacles0", obstacles0},
       {"obstacles1", obstacles1},
       {"obstacles2", obstacles2},
       {"obstacles3", obstacles3},
       {"obstacles4", obstacles4},
       {"relaxed1", relaxed1},
-      {"relaxed2", relaxed2}};
+      {"relaxed2", relaxed2},
+      {"combo", combo}};
   if (has_dataThree) {
     heuristics.push_back({"relaxed3", relaxed3});
   }

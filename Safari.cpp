@@ -96,6 +96,8 @@ int main(int argc, char *argv[]) {
     heuristic = relaxed2;
   } else if (heuristicArg == "relaxed3") {
     heuristic = relaxed3;
+  } else if (heuristicArg == "combo") {
+    heuristic = combo;
   } else {
     cout << desc << "\n";
     return 1;
