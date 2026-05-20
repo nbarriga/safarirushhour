@@ -40,6 +40,8 @@ public:
 	void setTTForReuse(TTInterface *_TT);
 
 	int idaStar(unsigned int ttSize, unsigned int maxSolLength);
+	int rbfs(unsigned int ttSize, unsigned int maxSolLength);
+	int innerRbfs(State* s, int depth, uint16_t f_limit, uint16_t node_f, uint16_t& out_f);
 
 	bool Lookup(const State *s);
 

@@ -141,6 +141,8 @@ int main(int argc, char *argv[]) {
       }*/
     } else if (algorithmArg == "BeamSearch") {
       moves = puzzle.beamSearch(beamWidthArg);
+    } else if (algorithmArg == "RBFS") {
+      moves = puzzle.rbfs(ttSizeArg, maxSolLength);
     }
     auto endTime = chrono::high_resolution_clock::now();
     double durationMs = chrono::duration<double, std::milli>(endTime - startTime).count();
@@ -161,7 +163,7 @@ int main(int argc, char *argv[]) {
       if (algorithmArg == "IDAstar") {
         cout << "solution " << name << " "
              << "No solution exists with length < " << maxSolLength << endl;
-      } else if (algorithmArg == "Astar" || algorithmArg == "BeamSearch") {
+      } else if (algorithmArg == "Astar" || algorithmArg == "BeamSearch" || algorithmArg == "RBFS") {
         cout << "solution " << name << " " << "No solution exists" << endl;
       }
     }

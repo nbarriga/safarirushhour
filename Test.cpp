@@ -9,6 +9,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <omp.h>
 
 thread_local int timeArg = 60;
 int ttSizeArg = 1000000;
@@ -150,6 +151,7 @@ int main(int argc, char *argv[]) {
   // Determine the test set, quiet flag, and optional BFS flag to run
   bool run_bfs = false;
   bool run_beam = false;
+  bool run_rbfs = false;
   bool quiet = false;
   std::string test_set = "J1";
   std::string custom_puzzle_file = "";   // set by -f <file>
@@ -160,8 +162,13 @@ int main(int argc, char *argv[]) {
       run_bfs = true;
     } else if (arg == "--BeamSearch") {
       run_beam = true;
+    } else if (arg == "--RBFS") {
+      run_rbfs = true;
     } else if (arg == "--quiet") {
       quiet = true;
+    } else if ((arg == "-t" || arg == "--threads") && i + 1 < argc) {
+      int num_threads = std::stoi(argv[++i]);
+      omp_set_num_threads(num_threads);
     } else if (arg == "-f" && i + 1 < argc) {
       custom_puzzle_file = argv[++i];
     } else if (arg == "-s" && i + 1 < argc) {
@@ -283,6 +290,9 @@ int main(int argc, char *argv[]) {
   if (run_beam) {
     algorithms.push_back("BeamSearch");
   }
+  if (run_rbfs) {
+    algorithms.push_back("RBFS");
+  }
   std::vector<std::pair<std::string, HEURISTIC>> heuristics = {
       {"0", zero},
       {"210", twoonezero},
@@ -381,6 +391,8 @@ int main(int argc, char *argv[]) {
         solved_length = expected_length;
       } else if (job.alg == "BeamSearch") {
         solved_length = pz.beamSearch(beamWidthArg);
+      } else if (job.alg == "RBFS") {
+        solved_length = pz.rbfs(ttSizeArg, maxSolLength);
       }
       auto endTime = std::chrono::high_resolution_clock::now();
       double durationMs =

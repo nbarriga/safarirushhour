@@ -496,6 +496,142 @@ int Puzzle::idaStar(unsigned int ttSize, unsigned int maxSolLength) {
 	return moves;
 }
 
+int Puzzle::rbfs(unsigned int ttSize, unsigned int maxSolLength) {
+	if (!clusterCache||TT==nullptr){
+		if(useMapTT) TT=new TranspositionTableMap(ttSize);
+		else TT=new TranspositionTable(ttSize);
+	}
+
+	path = new State*[maxSolLength + 1];
+	done = false;
+	uint16_t out_f = 0;
+	
+	int moves = innerRbfs(&_initial, 0, SHRT_MAX, _initial.getH(), out_f);
+	
+	if (done && moves >= 0) {
+		solution = reconstruct(moves);
+		for(int i = 0; i <= moves; i++) {
+			delete path[i];
+		}
+	} else {
+		solution = "Can't find answer";
+	}
+
+	if (_name != "Test") {
+		Problems.append("'").append(_name).append("',");
+	}
+
+	if(!clusterCache){
+		delete TT;
+	}
+	delete[] path;
+	return moves;
+}
+
+int Puzzle::innerRbfs(State* s, int depth, uint16_t f_limit, uint16_t node_f, uint16_t& out_f) {
+	nodes++;
+	if(nodes % 5000 == 0) {
+		if(chrono::duration_cast<std::chrono::milliseconds>(chrono::high_resolution_clock::now() - start).count() > timeArg * 1000) {
+			timeOut = true;
+			out_f = node_f;
+			return -1;
+		}
+	}
+
+	if (s->isGoal()) {
+		done = true;
+		path[depth] = new State(*s);
+		out_f = node_f;
+		return 0;
+	}
+
+	uint32_t prevBestChild = 0;
+	auto parentEntry = TT->TTLookup(s);
+	if (parentEntry.getHash2() == s->getHash2()) {
+		prevBestChild = parentEntry.getBestChild();
+		uint16_t cached_f = (parentEntry.getBound() == SHRT_MAX) ? SHRT_MAX : parentEntry.getBound() + s->getG();
+		if (cached_f > node_f) {
+			node_f = cached_f;
+		}
+	}
+
+	vector<State*> children = s->genSuccesors(false);
+
+	if (children.empty()) {
+		out_f = SHRT_MAX;
+		TT->TTsave(s, SHRT_MAX, 0);
+		return -1;
+	}
+
+	for (auto it = children.begin(); it != children.end(); it++) {
+		auto entry = TT->TTLookup(*it);
+		genCalls++;
+		if (entry.getHash2() == (*it)->getHash2()) {
+			auto newH = entry.getBound();
+			if (newH > (*it)->getH()) {
+				(*it)->setH(newH);
+			}
+		}
+	}
+
+	if (prevBestChild != 0 && children.size() > 1) {
+		for (size_t i = 0; i < children.size(); i++) {
+			if ((uint32_t)(children[i]->getHash2()) == prevBestChild) {
+				std::swap(children[0], children[i]);
+				break;
+			}
+		}
+	}
+
+	struct RbfsNode {
+		State* state;
+		uint16_t f;
+	};
+	vector<RbfsNode> child_nodes;
+	for (auto it = children.begin(); it != children.end(); it++) {
+		genCalls++;
+		uint16_t child_f = max((uint16_t)((*it)->getG() + (*it)->getH()), node_f);
+		child_nodes.push_back({*it, child_f});
+	}
+
+	while (true) {
+		if (timeOut) {
+			out_f = node_f;
+			for (auto cn : child_nodes) delete cn.state;
+			return -1;
+		}
+
+		sort(child_nodes.begin(), child_nodes.end(), [](const RbfsNode& a, const RbfsNode& b) {
+			return a.f < b.f;
+		});
+
+		RbfsNode& best = child_nodes[0];
+		if (best.f > f_limit) {
+			out_f = best.f;
+			uint16_t h_bound = (out_f == SHRT_MAX) ? SHRT_MAX : out_f - s->getG();
+			TT->TTsave(s, h_bound, (uint32_t)(best.state->getHash2()));
+			for (auto cn : child_nodes) delete cn.state;
+			return -1;
+		}
+
+		uint16_t alternative_f = (child_nodes.size() > 1) ? child_nodes[1].f : SHRT_MAX;
+		uint16_t next_limit = min(f_limit, alternative_f);
+		uint16_t new_f = 0;
+
+		totalH += best.state->getH();
+		countH++;
+
+		int res = innerRbfs(best.state, depth + 1, next_limit, best.f, new_f);
+		best.f = new_f;
+
+		if (done) {
+			path[depth] = new State(*s);
+			for (auto cn : child_nodes) delete cn.state;
+			return res + 1;
+		}
+	}
+}
+
 void Puzzle::BFS(unsigned int ttSize)
 {
 	assert(clusterCache && connectedComponents);
