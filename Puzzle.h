@@ -15,10 +15,10 @@ class Puzzle {
 	string reconstruct(int endPos);
 	int innerIdaStar(State* s, int depth, uint16_t bound);
 	void innerBFS(const State *s);
-	uint16_t threshold;
-	uint64_t nodes;
-	static int genCalls;
-	bool done,timeOut;
+	uint16_t threshold = 0;
+	uint64_t nodes = 0;
+	static thread_local int genCalls;
+	bool done = false, timeOut = false;
 	State** path;
 	TTInterface *TT=nullptr;
 	

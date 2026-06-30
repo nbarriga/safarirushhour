@@ -32,7 +32,7 @@ bool isLegalSolutionPath(const State &initial, const string &moves,
 thread_local string Problems, times, memories, nodesSearched, initialH, actualSolution;
 thread_local vector<BFSCache*> TTs;
 thread_local BFSCache* bfsTT = nullptr;
-int Puzzle::genCalls = 0;
+thread_local int Puzzle::genCalls = 0;
 //BFSCache * bfsTT=nullptr;	
 //bool foundInPreviousTT=false;
 
@@ -77,6 +77,7 @@ int Puzzle::aStar(){
 	// Pointer-identity set to detect stale heap entries in open_queue.
 	unordered_set<uintptr_t> openByAddress;
 	unordered_set<State*> closed;
+	vector<State*> reopened_states;
 
 	auto cleanup = [&](State *current) {
 		// Collect unique pointers across all containers to avoid double frees.
@@ -93,6 +94,9 @@ int Puzzle::aStar(){
 		for (auto s : open_queue) {
 			toDelete.insert(s);
 		}
+		for (auto s : reopened_states) {
+			toDelete.insert(s);
+		}
 		for (auto s : toDelete) {
 			delete s;
 		}
@@ -100,6 +104,7 @@ int Puzzle::aStar(){
 		openByAddress.clear();
 		closed.clear();
 		open_queue.clear();
+		reopened_states.clear();
 	};
 
 	State *initial= new State(_initial);
@@ -168,7 +173,7 @@ int Puzzle::aStar(){
 				}
 				auto toDel=*stored;//needed because iterator gets invalidated on next line
 				closed.erase(stored); // re-open node to
-				delete toDel;
+				reopened_states.push_back(toDel);
 			}
 
 			stored = open.find(*it);
@@ -395,7 +400,14 @@ int Puzzle::innerIdaStar(State* s, int depth, uint16_t bound) {
 		totalH+=(*it)->getH();
 		countH++;
 		if ((*it)->getH() <= bound-1) {
-			t = 1 + innerIdaStar(*it, depth+1, bound - 1);
+			int res = innerIdaStar(*it, depth+1, bound - 1);
+			if (res < 0) {
+				for (auto toDel = it; toDel != children.end(); toDel++) {
+					delete (*toDel);
+				}
+				return res;
+			}
+			t = 1 + res;
 		} else {
 			t = 1 + (*it)->getH();
 		}
@@ -529,6 +541,7 @@ int Puzzle::rbfs(unsigned int ttSize, unsigned int maxSolLength) {
 }
 
 int Puzzle::innerRbfs(State* s, int depth, uint16_t f_limit, uint16_t node_f, uint16_t& out_f) {
+	if (done) return -1;
 	nodes++;
 	if(nodes % 5000 == 0) {
 		if(chrono::duration_cast<std::chrono::milliseconds>(chrono::high_resolution_clock::now() - start).count() > timeArg * 1000) {
@@ -778,8 +791,11 @@ string Puzzle::statistics() {
 	//average h-value for all nodes where an evaluation occurred in the tree,
 	//and min/average/max depth of nodes where a cutoff occurred
 	stringstream ss;
-	ss<<"Nodes: "<<nodes<<", average H: "<<totalH/(float)countH<<", cut-off depth (min/average/max): "<<
-			cutMin<<"/"<<cutTotal/(float)cutCount<<"/"<<cutMax;
+	float avgH = countH > 0 ? totalH / (float)countH : 0.0f;
+	float avgCut = cutCount > 0 ? cutTotal / (float)cutCount : 0.0f;
+	int displayCutMin = cutMin == INT_MAX ? 0 : cutMin;
+	ss<<"Nodes: "<<nodes<<", average H: "<<avgH<<", cut-off depth (min/average/max): "<<
+			displayCutMin<<"/"<<avgCut<<"/"<<cutMax;
 
 	return ss.str();
 }
