@@ -4,7 +4,7 @@
 #include "State.h"
 #include<unordered_map>
 #include<unordered_set>
-#include<boost/container_hash/hash.hpp>
+// #include<boost/container_hash/hash.hpp>  // INSTRUMENTATION: unused, commented so that it compiles without boost
 
 
 class Entry{

@@ -20,8 +20,10 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <functional>
+#ifndef _WIN32   // INSTRUMENTATION: these POSIX headers are unused; skipped on Windows
 #include <sys/time.h>
 #include <sys/resource.h>
+#endif
 #include <fstream>
 
 //#define GENERATE_RELAXED
